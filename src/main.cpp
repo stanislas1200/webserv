@@ -13,6 +13,7 @@ void getConfig(s_config *config, std::string file) {
 		error("Config:", strerror(errno), NULL);
 		return ;
 	}
+	
 	std::string line;
 	while (std::getline(confFILE, line)) {
 		std::cout << line << std::endl;
@@ -57,6 +58,26 @@ void handleGetRequest(int connection, std::string request) {
     file.close();
 }
 
+void handlePostRequest(int connection, std::string request) {
+	std::cout << connection << "  " MB << request << std::endl;
+	send(connection, "HTTP/1.1 200 OK\r\n", strlen("HTTP/1.1 200 OK\r\n"), 0);
+	// std::string data = request.substr(request.find("\r\n\r\n"), request.back());
+	std::string data = request.substr(request.find("boundary="), request.back());
+	std::string boundary = data.substr(9, data.back());
+	boundary = boundary.substr(0, boundary.find("\n"));
+	// data = data.substr(request.find("\n"), request.back());
+	std::cout << GREEN "DATA:\n" << boundary << std::endl;
+	// const char* dataStart = strstr(request, "\r\n\r\n");
+	// if (!dataStart)
+	// 	error("HTTP", "Invalid POST request", NULL);
+	// std::cout << dataStart << std::endl;
+}
+
+void handleDeleteRequest(int connection, std::string request) {
+	(void)connection;
+	(void)request;
+}
+
 void parseRequest(int connection, char *buffer) {
 	std::string request(buffer);
 	std::string method = request.substr(0, request.find(" "));
@@ -64,11 +85,20 @@ void parseRequest(int connection, char *buffer) {
 	std::cout << "Method: " << method << std::endl;
 	if (method == "GET")
 		handleGetRequest(connection, request);
+	else if (method == "POST")
+		handlePostRequest(connection, request);
+	else if (method == "DELETE")
+		handleDeleteRequest(connection, request);
+	else
+	{
+		std::string response = "HTTP/1.0 505 Not supported\r\nContent-type:text/html\r\n\r\n";
+		send(connection, response.c_str(), response.length(), 0);
+	}
 }
 
 void handleConnection(int connection) {
 	
-		char buffer[1024];
+		char buffer[10240];
 		read(connection, buffer, sizeof(buffer) - 1);
 
 		parseRequest(connection, buffer);
