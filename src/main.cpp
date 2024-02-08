@@ -13,7 +13,7 @@ void getConfig(s_config *config, std::string file) {
 		error("Config:", strerror(errno), NULL);
 		return ;
 	}
-	
+
 	std::string line;
 	while (std::getline(confFILE, line)) {
 		std::cout << line << std::endl;
@@ -60,13 +60,38 @@ void handleGetRequest(int connection, std::string request) {
 
 void handlePostRequest(int connection, std::string request) {
 	std::cout << connection << "  " MB << request << std::endl;
+	// Find the boundary string
+    std::string boundaryMarker = "boundary=";
+    size_t boundaryPos = request.find(boundaryMarker);
+    // if (boundaryPos == std::string::npos) {
+    //     error("Boundary not found in request");
+    // }
+
+    boundaryPos += boundaryMarker.length();
+    size_t endOfLine = request.find("\r\n", boundaryPos);
+    // if (endOfLine == std::string::npos) {
+    //     error("Failed to find end of boundary line");
+    // }
+
+    std::string boundary = request.substr(boundaryPos, endOfLine - boundaryPos);
+
 	send(connection, "HTTP/1.1 200 OK\r\n", strlen("HTTP/1.1 200 OK\r\n"), 0);
-	// std::string data = request.substr(request.find("\r\n\r\n"), request.back());
-	std::string data = request.substr(request.find("boundary="), request.back());
-	std::string boundary = data.substr(9, data.back());
-	boundary = boundary.substr(0, boundary.find("\n"));
-	// data = data.substr(request.find("\n"), request.back());
-	std::cout << GREEN "DATA:\n" << boundary << std::endl;
+	// // std::string data = request.substr(request.find("\r\n\r\n"), request.back());
+	std::string data = request.substr(endOfLine);
+	// std::string boundary = data.substr(9, data.back());
+	// std::cout << GREEN "DATA:\n" << boundary << std::endl;
+	// boundary = boundary.substr(0, boundary.find("\n"));
+	// // data = data.substr(request.find("\n"), request.back());
+	std::cout << GREEN "DATA:\n" << data << std::endl;
+
+	std::string fileData = data.substr(data.find(boundary));
+	std::cout << YELLOW "DATA:\n" << fileData << std::endl; 
+	std::ofstream outputFile("output", std::ios::binary);
+	if (!outputFile.is_open())
+		error("Open:", strerror(errno), NULL);
+	else
+		outputFile.write(fileData.c_str(), fileData.length());
+	outputFile.close();
 	// const char* dataStart = strstr(request, "\r\n\r\n");
 	// if (!dataStart)
 	// 	error("HTTP", "Invalid POST request", NULL);
