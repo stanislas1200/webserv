@@ -9,6 +9,11 @@
 # include <string.h>
 # include <fstream>
 # include <stdlib.h>
+# include <map>
+# include <sstream>
+# include <iomanip>
+# include <vector>
+# include <iostream>
 
 # define RED "\x1b[1m\x1b[38;2;255;0;0m"
 # define MB "\x1b[1m\x1b[38;2;25;25;599m"
@@ -20,3 +25,20 @@
 typedef struct s_config {
 	int port;
 } t_config;
+
+typedef struct s_request {
+	std::string method;
+	std::string path;
+	std::map<std::string, std::string> headers;
+	std::string body;
+} t_request;
+
+typedef struct s_FormDataPart {
+	std::string name;
+	std::string filename;
+	std::string contentType;
+	std::string data;
+} t_FormDataPart;
+
+void parseRequest(int connection, std::string buffer);
+void error(const char *type, const char *msg, const char *bold);

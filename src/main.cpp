@@ -25,108 +25,30 @@ void getConfig(s_config *config, std::string file) {
 	}
 }
 
-void handleGetRequest(int connection, std::string request) {
-	char filePath[1024];
-	sscanf(request.c_str(), "GET %255s", filePath);
-	std::string path = filePath;
-	if (path == "/") {
-		path = "/index.html";
+std::string readHeader(int connection) {
+	std::string header;
+	char buffer[1024];
+	int bytes = 0;
+
+	while ((bytes = recv(connection, buffer, sizeof buffer - 1, 0)) > 0) {
+		buffer[bytes] = '\0';
+		header += buffer;
+		if (header.find("\r\n\r\n") != std::string::npos)
+			break;
 	}
-	std::string fullPath = "src/pages" + path;
-	std::cout << "Full path: " << fullPath << std::endl;
-	std::ifstream file(fullPath.c_str(), std::ios::binary);
-	if (!file.is_open()) {
-		error("File:", strerror(errno), NULL);
-		std::string response = "HTTP/1.0 404 Not Found\r\nContent-type:text/html\r\n\r\n";
-		std::string page = "<html>\n<head>\n<title>404 Not Found</title>\n</head>\n<body>\n<h2>404 Not Found</h2>\n</body>\n</html>\n\n";
-		send(connection, response.c_str(), response.length(), 0);
-		send(connection, page.c_str(), page.length(), 0);
-		return ;
-	}
-
-	send(connection, "HTTP/1.1 200 OK\r\n", strlen("HTTP/1.1 200 OK\r\n"), 0);
-    send(connection, "Content-Type: text/html\r\n\r\n", strlen("Content-Type: text/html\r\n\r\n"), 0);
-
-    // Send file content
-    char buffer[1024];
-    while (file.read(buffer, sizeof(buffer)).gcount() > 0) {
-		std::cout << "Sending file" << std::endl;
-		std::cout << file.gcount() << std::endl;
-        send(connection, buffer, file.gcount(), 0);
-    }
-
-    file.close();
+	return header;
 }
 
-void handlePostRequest(int connection, std::string request) {
-	std::cout << connection << "  " MB << request << std::endl;
-	// Find the boundary string
-    std::string boundaryMarker = "boundary=";
-    size_t boundaryPos = request.find(boundaryMarker);
-    // if (boundaryPos == std::string::npos) {
-    //     error("Boundary not found in request");
-    // }
-
-    boundaryPos += boundaryMarker.length();
-    size_t endOfLine = request.find("\r\n", boundaryPos);
-    // if (endOfLine == std::string::npos) {
-    //     error("Failed to find end of boundary line");
-    // }
-
-    std::string boundary = request.substr(boundaryPos, endOfLine - boundaryPos);
-
-	send(connection, "HTTP/1.1 200 OK\r\n", strlen("HTTP/1.1 200 OK\r\n"), 0);
-	// // std::string data = request.substr(request.find("\r\n\r\n"), request.back());
-	std::string data = request.substr(endOfLine);
-	// std::string boundary = data.substr(9, data.back());
-	// std::cout << GREEN "DATA:\n" << boundary << std::endl;
-	// boundary = boundary.substr(0, boundary.find("\n"));
-	// // data = data.substr(request.find("\n"), request.back());
-	std::cout << GREEN "DATA:\n" << data << std::endl;
-
-	std::string fileData = data.substr(data.find(boundary));
-	std::cout << YELLOW "DATA:\n" << fileData << std::endl; 
-	std::ofstream outputFile("output", std::ios::binary);
-	if (!outputFile.is_open())
-		error("Open:", strerror(errno), NULL);
-	else
-		outputFile.write(fileData.c_str(), fileData.length());
-	outputFile.close();
-	// const char* dataStart = strstr(request, "\r\n\r\n");
-	// if (!dataStart)
-	// 	error("HTTP", "Invalid POST request", NULL);
-	// std::cout << dataStart << std::endl;
-}
-
-void handleDeleteRequest(int connection, std::string request) {
-	(void)connection;
-	(void)request;
-}
-
-void parseRequest(int connection, char *buffer) {
-	std::string request(buffer);
-	std::string method = request.substr(0, request.find(" "));
-
-	std::cout << "Method: " << method << std::endl;
-	if (method == "GET")
-		handleGetRequest(connection, request);
-	else if (method == "POST")
-		handlePostRequest(connection, request);
-	else if (method == "DELETE")
-		handleDeleteRequest(connection, request);
-	else
-	{
-		std::string response = "HTTP/1.0 505 Not supported\r\nContent-type:text/html\r\n\r\n";
-		send(connection, response.c_str(), response.length(), 0);
-	}
-}
 
 void handleConnection(int connection) {
 	
-		char buffer[10240];
-		read(connection, buffer, sizeof(buffer) - 1);
+	std::string request = readHeader(connection);
+	parseRequest(connection, request);
 
-		parseRequest(connection, buffer);
+		// char buffer[10240];
+		// read(connection, buffer, sizeof(buffer) - 1); //don't read binary data so no image use recv() ? or read until body
+
+		// parseRequest(connection, buffer);
 
 		// std::string response = "HTTP/1.0 200 OK\r\nContent-type:text/html\r\n\r\n";
 		// std::string page = "<html>\n<head>\n<title>Hello World - First CGI Program</title>\n</head>\n<body>\n<h2>Hello World! This is my first CGI program</h2>\n</body>\n</html>\n\n";

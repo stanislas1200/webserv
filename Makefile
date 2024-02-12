@@ -10,7 +10,8 @@
 #                                                                              #
 # **************************************************************************** #
 
-SRCS = src/main.cpp
+SRCS = src/main.cpp\
+		src/request/request.cpp\
 
 INCL = include/Webserv.hpp
 
