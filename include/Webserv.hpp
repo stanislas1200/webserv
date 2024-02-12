@@ -14,6 +14,7 @@
 # include <iomanip>
 # include <vector>
 # include <iostream>
+# include <fcntl.h>
 
 # define RED "\x1b[1m\x1b[38;2;255;0;0m"
 # define MB "\x1b[1m\x1b[38;2;25;25;599m"

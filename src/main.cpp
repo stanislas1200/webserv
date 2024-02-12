@@ -5,6 +5,7 @@ void error(const char *type, const char *msg, const char *bold) {
 	if (bold)
 		std::cerr << DV " " << bold << C;
 	std::cerr << C << std::endl;
+	exit(1);
 }
 
 void getConfig(s_config *config, std::string file) {
@@ -30,8 +31,9 @@ std::string readHeader(int connection) {
 	char buffer[1024];
 	int bytes = 0;
 
-	while ((bytes = recv(connection, buffer, sizeof buffer - 1, 0)) > 0) {
+	while ((bytes = recv(connection, buffer, 1, 0)) > 0) {
 		buffer[bytes] = '\0';
+		std::cout << buffer << std::endl;
 		header += buffer;
 		if (header.find("\r\n\r\n") != std::string::npos)
 			break;
@@ -44,25 +46,13 @@ void handleConnection(int connection) {
 	
 	std::string request = readHeader(connection);
 	parseRequest(connection, request);
-
-		// char buffer[10240];
-		// read(connection, buffer, sizeof(buffer) - 1); //don't read binary data so no image use recv() ? or read until body
-
-		// parseRequest(connection, buffer);
-
-		// std::string response = "HTTP/1.0 200 OK\r\nContent-type:text/html\r\n\r\n";
-		// std::string page = "<html>\n<head>\n<title>Hello World - First CGI Program</title>\n</head>\n<body>\n<h2>Hello World! This is my first CGI program</h2>\n</body>\n</html>\n\n";
-
-		// send(connection, response.c_str(), response.length(), 0);
-		// send(connection, page.c_str(), page.length(), 0);
-		// std::cout << buffer << std::endl;
 }
 
 int main(int ac, char **av) {
 	s_config config;
 
 	if (ac != 2) {
-		error("Usage:", av[0], "<config_file>");
+		// error("Usage:", av[0], "<config_file>");
 		std::cout << GREEN "WebServ: " << MB "Using default config file" C << std::endl;
 		getConfig(&config, "configs/default");
 	}
@@ -73,6 +63,14 @@ int main(int ac, char **av) {
 	if (socketFd == -1)
 		error("Socket:", strerror(errno), NULL);
 	
+	// reusable sd
+	int on = 1;
+	int rc = setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, (char *)&(on), sizeof(on));
+
+	//
+
+	if (rc < 0)
+		error("Sock opt:", strerror(errno), NULL);
 
 	sockaddr_in sockaddr;
 	sockaddr.sin_family = AF_INET;
@@ -91,7 +89,12 @@ int main(int ac, char **av) {
 		int connection = accept(socketFd, (struct sockaddr*)&sockaddr, (socklen_t*)&addrlen);
 		if (connection < 0)
 			error("Connection:", strerror(errno), NULL);
-
+			
+		// non blocking
+		// rc = fcntl(connection, F_SETFL, O_NONBLOCK);
+		// if (rc < 0)
+		// 	error("Sock opt:", strerror(errno), NULL);
+		
 		handleConnection(connection);
 
 		close(connection);

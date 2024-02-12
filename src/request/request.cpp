@@ -30,75 +30,7 @@ void handleGetRequest(int connection, s_request request) {
 	file.close();
 }
 
-std::vector<s_FormDataPart> parseMultipartFormData(const std::string& body, const std::string& boundary) {
-	std::vector<s_FormDataPart> parts;
-	// Find the boundary delimiter
-    std::string delimiter = "--" + boundary;
-    size_t pos = body.find(delimiter);
-    if (pos == std::string::npos)
-        return parts; // No parts found
-
-    // Iterate through each part
-    do {
-        s_FormDataPart part;
-
-        // Find the end of the headers
-        size_t headerEnd = body.find("\r\n\r\n", pos);
-        if (headerEnd == std::string::npos)
-            break; // Malformed request
-
-        // Parse headers
-        std::string headers = body.substr(pos + delimiter.length(), headerEnd - (pos + delimiter.length()));
-        size_t namePos = headers.find("name=\"");
-        size_t filenamePos = headers.find("filename=\"");
-        if (namePos != std::string::npos) {
-            size_t nameEnd = headers.find("\"", namePos + 6);
-            part.name = headers.substr(namePos + 6, nameEnd - (namePos + 6));
-			std::cout << RED "NAME: " MB << part.name << C << std::endl;
-        }
-        if (filenamePos != std::string::npos) {
-            size_t filenameEnd = headers.find("\"", filenamePos + 10);
-            part.filename = headers.substr(filenamePos + 10, filenameEnd - (filenamePos + 10));
-        }
-        part.contentType = "text/plain"; // Default content type
-        if (filenamePos != std::string::npos) {
-            size_t contentTypePos = headers.find("Content-Type: ");
-            if (contentTypePos != std::string::npos) {
-                size_t contentTypeEnd = headers.find("\r\n", contentTypePos + 14);
-                part.contentType = headers.substr(contentTypePos + 14, contentTypeEnd - (contentTypePos + 14));
-            }
-        }
-
-        // Find the start of the data
-        size_t dataStart = headerEnd + 4;
-        if (dataStart >= body.length())
-		{
-			std::cout << RED "MALFORMED REQUEST\n" C;
-            break; // Malformed request
-		}
-
-        // Find the end of the part
-        size_t partEnd = body.find(delimiter, dataStart);
-        if (partEnd == std::string::npos)
-		{
-			std::cout << RED "MALFORMED REQUEST\n" C;
-			break; // Malformed request
-		}
-
-        // Extract data
-        part.data.assign(body.begin() + dataStart, body.begin() + partEnd - 2); // Subtract 2 to exclude \r\n at the end
-
-        parts.push_back(part);
-
-        // Move to the next part
-        pos = body.find(delimiter, partEnd);
-    } while (pos != std::string::npos);
-
-    return parts;
-}
-
 void handlePostRequest(int connection, s_request request) {
-	std::cout << "POST REQUEST\n";
 	if (request.method == "POST" && request.headers["Content-Type"].find("multipart/form-data") != std::string::npos) {
 		std::string dataHeader;
 		size_t bytes = 0;
@@ -110,20 +42,27 @@ void handlePostRequest(int connection, s_request request) {
 			if (dataHeader.find("\r\n\r\n") != std::string::npos)
 				break;
 		}
+		std::cout << DV "dataHeader: " << dataHeader << std::endl;
 		std::string data;
 		std::vector<char> binary;
 		size_t pos;
-		while ((bytes = recv(connection, buffer, 1, 0)) > 0)
+		pos = request.headers["Content-Type"].find("boundary=") + 9;
+		std::string boundary = "--" + request.headers["Content-Type"].substr(pos, pos + 24);
+		bool flag = 1;
+		std::cout << atoi(request.headers["Content-Length"].c_str()) - sizeof(request) << std::endl;
+		while (flag && (bytes = recv(connection, buffer, 1000, 0)) > 0)
 		{
-			buffer[bytes] = '\0';
+			std::cout << MB << bytes << std::endl;
 			data += buffer;
-			binary.push_back(buffer[0]);
-			if ((pos = data.find("------WebKitFormBoundary")) != std::string::npos)
+			binary.insert(binary.end(), buffer, buffer + bytes);
+			if ((pos = data.find(boundary)) != std::string::npos)
 			{
+				std::cout << RED << "BREAK" << std::endl;
 				// binary.erase(binary.begin() + pos, binary.end());
 				break;
-			}
+			}			
 		}
+		std::cout << RED << "OUT" << bytes << std::endl;
 		std::ofstream outputFile("output.png", std::ios::binary);
 		if (!outputFile.is_open())
 				error("Open:", strerror(errno), NULL);
@@ -134,7 +73,8 @@ void handlePostRequest(int connection, s_request request) {
 	return;
 }
 
-void handleDeleteRequest(int connection, std::string request) {
+void handleDeleteRequest(int connection, s_request request) {
+	// remove(request.)
 	(void)connection;
 	(void)request;
 }
@@ -150,6 +90,7 @@ void printRequest(s_request request) {
 }
 
 void parseRequest(int connection, std::string header) {
+	
 	s_request request;
 	std::istringstream requestStream(header);
 	std::string line;
@@ -180,7 +121,7 @@ void parseRequest(int connection, std::string header) {
 		handleGetRequest(connection, request);
 	else if (request.method == "POST")
 		handlePostRequest(connection, request);
-	else if (method == "DELETE")
+	else if (request.method == "DELETE")
 		handleDeleteRequest(connection, request);
 	else
 	{
