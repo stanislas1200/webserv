@@ -25,6 +25,18 @@ void getConfig(s_config *config, std::string file) {
 	}
 }
 
+void	sendFile(int connection, std::ifstream *file) {
+	char buffer[1024];
+
+	send(connection, "HTTP/1.1 200 OK\r\n", strlen("HTTP/1.1 200 OK\r\n"), 0);
+    send(connection, "Content-Type: text/html\r\n\r\n", strlen("Content-Type: text/html\r\n\r\n"), 0);
+    while (file->read(buffer, sizeof(buffer)).gcount() > 0) {
+		std::cout << "Sending file" << std::endl;
+		std::cout << file->gcount() << std::endl;
+        send(connection, buffer, file->gcount(), 0);
+    }
+}
+
 void handleGetRequest(int connection, std::string request) {
 	char filePath[1024];
 	sscanf(request.c_str(), "GET %255s", filePath);
@@ -36,25 +48,21 @@ void handleGetRequest(int connection, std::string request) {
 	std::cout << "Full path: " << fullPath << std::endl;
 	std::ifstream file(fullPath.c_str(), std::ios::binary);
 	if (!file.is_open()) {
+		std::ifstream fileError("src/pages/errorpages/error_404.html", std::ios::binary);
+		sendFile(connection, &fileError);
 		error("File:", strerror(errno), NULL);
-		std::string response = "HTTP/1.0 404 Not Found\r\nContent-type:text/html\r\n\r\n";
-		std::string page = "<html>\n<head>\n<title>404 Not Found</title>\n</head>\n<body>\n<h2>404 Not Found</h2>\n</body>\n</html>\n\n";
-		send(connection, response.c_str(), response.length(), 0);
-		send(connection, page.c_str(), page.length(), 0);
 		return ;
+
+		// std::string response = "HTTP/1.0 404 Not Found\r\nContent-type:text/html\r\n\r\n";
+		// std::string page = "<html>\n<head>\n<title>404 Not Found</title>\n</head>\n<body>\n<h2>404 Not Found</h2>\n</body>\n</html>\n\n";
+		// send(connection, response.c_str(), response.length(), 0);
+		// send(connection, page.c_str(), page.length(), 0);
+		// return ;
 	}
+    sendFile(connection, &file);
 
-	send(connection, "HTTP/1.1 200 OK\r\n", strlen("HTTP/1.1 200 OK\r\n"), 0);
-    send(connection, "Content-Type: text/html\r\n\r\n", strlen("Content-Type: text/html\r\n\r\n"), 0);
-
-    // Send file content
-    char buffer[1024];
-    while (file.read(buffer, sizeof(buffer)).gcount() > 0) {
-		std::cout << "Sending file" << std::endl;
-		std::cout << file.gcount() << std::endl;
-        send(connection, buffer, file.gcount(), 0);
-    }
-
+  // Send file content
+   
     file.close();
 }
 
