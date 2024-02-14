@@ -38,7 +38,7 @@ typedef struct s_FormDataPart {
 	std::string name;
 	std::string filename;
 	std::string contentType;
-	std::string data;
+	std::vector<char> data;
 } t_FormDataPart;
 
 void parseRequest(int connection, std::string buffer);

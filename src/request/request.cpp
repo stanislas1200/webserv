@@ -10,11 +10,11 @@ void handleGetRequest(int connection, s_request request) {
 	std::string fullPath = "src/pages" + path; // src/pages/../main.cpp
 	std::ifstream file(fullPath.c_str(), std::ios::binary);
 	if (!file.is_open()) {
-		error("File:", strerror(errno), NULL);
 		std::string response = "HTTP/1.0 404 Not Found\r\nContent-type:text/html\r\n\r\n";
 		std::string page = "<html>\n<head>\n<title>404 Not Found</title>\n</head>\n<body>\n<h2>404 Not Found</h2>\n</body>\n</html>\n\n";
 		send(connection, response.c_str(), response.length(), 0);
 		send(connection, page.c_str(), page.length(), 0);
+		error("File:", strerror(errno), fullPath.c_str());
 		return ;
 	}
 
@@ -30,44 +30,56 @@ void handleGetRequest(int connection, s_request request) {
 	file.close();
 }
 
+s_FormDataPart getFormData(int connection, s_request request) {
+	s_FormDataPart formData;
+	size_t bytes = 0;
+	size_t pos = 0;
+	pos = request.headers["Content-Type"].find("boundary=") + 9;
+	std::string boundary = "--" + request.headers["Content-Type"].substr(pos, pos + 24);
+	size_t dataLen = 0;
+	std::string header;
+	char buffer[1024];
+	std::cout << C << std::endl;
+	// read on socket
+	while ((bytes = recv(connection, buffer, 1000, 0)) > 0)
+	{
+		std::cout << MB << bytes << std::endl;
+		if ((pos = header.find("\r\n\r\n")) == std::string::npos)
+			header += buffer;
+		dataLen += bytes;
+		formData.data.insert(formData.data.end(), buffer, buffer + bytes);		
+	}
+
+	// parse header
+	std::istringstream iss(header);
+	std::string line;
+	while (std::getline(iss, line) && !line.empty())
+	{
+		if (line == "\r")
+			break;
+		if (line.find("Content-Disposition") != std::string::npos)
+		{
+			line = line.substr(line.find("name=\"") + 6);
+			formData.name = line.substr(0, line.find('"'));
+			line = line.substr(line.find("filename=\"") + 10);
+			formData.filename = line.substr(0, line.find('"'));
+		}
+		if (line.find("Content-Type") != std::string::npos)
+			formData.contentType = line.substr(line.find("Content-Type:") + 14);
+	}
+
+	// write in file
+	std::ofstream outputFile(("upload/" + formData.filename).c_str(), std::ios::binary);
+	if (!outputFile.is_open())
+			error("Open:", strerror(errno), NULL);
+	outputFile.write(&formData.data[pos + 4], dataLen - (pos + 4) - boundary.size()); // +2 if end request (--)
+	outputFile.close();
+	return formData;
+} 
+
 void handlePostRequest(int connection, s_request request) {
 	if (request.method == "POST" && request.headers["Content-Type"].find("multipart/form-data") != std::string::npos) {
-		std::string dataHeader;
-		size_t bytes = 0;
-		char buffer[1024];
-		while ((bytes = recv(connection, buffer, 1, 0)) > 0) // 
-		{
-			buffer[bytes] = '\0';
-			dataHeader += buffer;
-			if (dataHeader.find("\r\n\r\n") != std::string::npos)
-				break;
-		}
-		std::cout << DV "dataHeader: " << dataHeader << std::endl;
-		std::string data;
-		std::vector<char> binary;
-		size_t pos;
-		pos = request.headers["Content-Type"].find("boundary=") + 9;
-		std::string boundary = "--" + request.headers["Content-Type"].substr(pos, pos + 24);
-		bool flag = 1;
-		std::cout << atoi(request.headers["Content-Length"].c_str()) - sizeof(request) << std::endl;
-		while (flag && (bytes = recv(connection, buffer, 1000, 0)) > 0)
-		{
-			std::cout << MB << bytes << std::endl;
-			data += buffer;
-			binary.insert(binary.end(), buffer, buffer + bytes);
-			if ((pos = data.find(boundary)) != std::string::npos)
-			{
-				std::cout << RED << "BREAK" << std::endl;
-				// binary.erase(binary.begin() + pos, binary.end());
-				break;
-			}			
-		}
-		std::cout << RED << "OUT" << bytes << std::endl;
-		std::ofstream outputFile("output.png", std::ios::binary);
-		if (!outputFile.is_open())
-				error("Open:", strerror(errno), NULL);
-		outputFile.write(&binary[0], binary.size());
-		outputFile.close();
+		s_FormDataPart formData = getFormData(connection, request);
 	}
 	send(connection, "HTTP/1.1 200 OK\r\n", strlen("HTTP/1.1 200 OK\r\n"), 0);
 	return;

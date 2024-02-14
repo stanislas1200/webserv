@@ -5,7 +5,7 @@ void error(const char *type, const char *msg, const char *bold) {
 	if (bold)
 		std::cerr << DV " " << bold << C;
 	std::cerr << C << std::endl;
-	exit(1);
+	// exit(1);
 }
 
 void getConfig(s_config *config, std::string file) {
@@ -33,7 +33,6 @@ std::string readHeader(int connection) {
 
 	while ((bytes = recv(connection, buffer, 1, 0)) > 0) {
 		buffer[bytes] = '\0';
-		std::cout << buffer << std::endl;
 		header += buffer;
 		if (header.find("\r\n\r\n") != std::string::npos)
 			break;
@@ -78,6 +77,12 @@ int main(int ac, char **av) {
 	sockaddr.sin_port = htons(config.port);
 	if (bind(socketFd, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) == -1)
 		error("Bind:", strerror(errno), NULL);
+
+	// struct timeval tv;
+	// tv.tv_sec = 3;
+	// tv.tv_usec = 0;
+	// if (setsockopt(socketFd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv)) < 0)
+	// 	error("Sock opt:", strerror(errno), NULL);
 
 	if (listen(socketFd, 10) == -1)
 		error("Listen:", strerror(errno), NULL);
