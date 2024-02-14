@@ -86,9 +86,9 @@ void handlePostRequest(int connection, s_request request) {
 }
 
 void handleDeleteRequest(int connection, s_request request) {
-	// remove(request.)
-	(void)connection;
-	(void)request;
+	if (std::remove(("upload/" + request.path).c_str()))
+		error("DELETE:", "no file:", ("upload/" + request.path).c_str());
+	send(connection, "HTTP/1.1 200 OK\r\n", strlen("HTTP/1.1 200 OK\r\n"), 0);
 }
 
 void printRequest(s_request request) {
