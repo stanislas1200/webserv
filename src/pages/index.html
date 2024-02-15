@@ -91,8 +91,54 @@
 			padding: 20px;
 			border-radius: 10px;
 			border: 2px solid var(--secondary-color);
+
+			form {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+			}
 		}
 
+	}
+
+	input[type=file] {	
+		border-radius: 10px;
+		border: 1.5px solid var(--secondary-color);
+	}
+
+	input[type=file]::file-selector-button {
+		margin: 5px;
+		border: none;
+		background: var(--secondary-color);
+		padding: 5px 10px;
+		color: var(--text-color);
+		cursor: pointer;  			
+		transition: all 0.5s ease;
+
+	}
+
+	input[type=file]::file-selector-button:hover {
+		transition: all 0.3s ease;
+		background: #0d45a5;
+	}
+
+	input[type=button], input[type=submit], input[type=reset] {
+		background-color: var(--primary-color);
+		color: var(--secondary-color);
+		border: none;
+		padding: 20px 30px;
+		margin: 4px 2px;
+		/* text-decoration: none; */
+		cursor: pointer;
+		font-size: 18px;
+		transition: all 0.5s ease;
+
+
+		&:hover {
+			transition: all 0.3 ease;
+			background-color: #0d45a5;
+			color: var(--text-color);
+		}
 	}
 </style>
 
@@ -115,6 +161,7 @@
 	<div class="container">
 		<div class="box">
 			<form action='/upload' method='POST' enctype='multipart/form-data' accept-charset='utf-8'>
+				<h1>Upload a file</h1>
 				<input id="file2" name="file2" type="file" />
 				<input type="submit">
 			</form>
