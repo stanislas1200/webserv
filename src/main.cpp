@@ -53,8 +53,8 @@ void acceptConnection(s_config config) {
 		error("Socket:", strerror(errno), NULL);
 
 	// non blocking // The connection was reset RIP
-	if (fcntl(socketFd, F_SETFL, O_NONBLOCK) < 0)
-		error("Sock opt:", strerror(errno), NULL);
+	// if (fcntl(socketFd, F_SETFL, O_NONBLOCK) < 0)
+	// 	error("Sock opt:", strerror(errno), NULL);
 	
 	// reusable sd
 	int on = 1;
@@ -74,7 +74,7 @@ void acceptConnection(s_config config) {
 	// if (setsockopt(socketFd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv)) < 0)
 	// 	error("Sock opt:", strerror(errno), NULL);
 
-	if (listen(socketFd, 1000) == -1)
+	if (listen(socketFd, 10) == -1)
 		error("Listen:", strerror(errno), NULL);
 
 	while (1)
@@ -82,15 +82,15 @@ void acceptConnection(s_config config) {
 
 		int addrlen = sizeof(sockaddr);
 		int connection = accept(socketFd, (struct sockaddr*)&sockaddr, (socklen_t*)&addrlen);
-		if (connection < 0)
-		{
-			// sleep(5); 
-			if (errno != EAGAIN)
-			{
-				error("Connection:", strerror(errno), NULL);
-				continue;
-			}
-		}
+		// if (connection < 0)
+		// {
+		// 	// sleep(5); 
+		// 	if (errno != EAGAIN)
+		// 	{
+		// 		error("Connection:", strerror(errno), NULL);
+		// 		continue;
+		// 	}
+		// }
 		// std::cout << connection << std::endl;
 		
 		handleConnection(connection);

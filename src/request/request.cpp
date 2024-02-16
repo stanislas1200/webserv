@@ -1,6 +1,5 @@
 #include "../../include/Webserv.hpp"
 
-
 void handleGetRequest(int connection, s_request request) {
 	
 	std::string path = request.path;
@@ -49,13 +48,12 @@ s_FormDataPart getFormData(int connection, s_request request) {
 	std::string boundary = "--" + request.headers["Content-Type"].substr(pos, pos + 24);
 	size_t dataLen = 0;
 	std::string header;
-	char buffer[1024];
+	char buffer[10024];
 	std::cout << C << std::endl;
 	// read on socket
-	while ((bytes = recv(connection, buffer, 1000, 0)) > 0)
+	while ((bytes = recv(connection, buffer, 10000, 0)) > 0 && bytes != std::string::npos)
 	{
-		if (bytes > 1000) // 18446744073709551615 // non blocking socket
-			break;
+		std::cout << bytes << std::endl;
 		if ((pos = header.find("\r\n\r\n")) == std::string::npos)
 			header += buffer;
 		dataLen += bytes;
