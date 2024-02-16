@@ -43,7 +43,8 @@ s_FormDataPart getFormData(int connection, s_request request) {
 	// read on socket
 	while ((bytes = recv(connection, buffer, 1000, 0)) > 0)
 	{
-		std::cout << MB << bytes << std::endl;
+		if (bytes > 1000) // 18446744073709551615 // non blocking socket
+			break;
 		if ((pos = header.find("\r\n\r\n")) == std::string::npos)
 			header += buffer;
 		dataLen += bytes;
@@ -72,8 +73,11 @@ s_FormDataPart getFormData(int connection, s_request request) {
 	std::ofstream outputFile(("upload/" + formData.filename).c_str(), std::ios::binary);
 	if (!outputFile.is_open())
 			error("Open:", strerror(errno), NULL);
+	else
+		std::cout << GREEN << MB "File uploaded!" << std::endl;
 	outputFile.write(&formData.data[pos + 4], dataLen - (pos + 4) - boundary.size()); // +2 if end request (--)
 	outputFile.close();
+	handleGetRequest(connection, request);
 	return formData;
 } 
 
@@ -126,8 +130,6 @@ void parseRequest(int connection, std::string header) {
 	// std::stringstream ss;
 	// ss << requestStream.rdbuf();
 	// request.body = ss.str();
-
-	printRequest(request);
 	
 	if (request.method == "GET")
 		handleGetRequest(connection, request);

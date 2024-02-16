@@ -42,7 +42,6 @@ std::string readHeader(int connection) {
 
 
 void handleConnection(int connection) {
-	
 	std::string request = readHeader(connection);
 	parseRequest(connection, request);
 }
@@ -58,17 +57,18 @@ int main(int ac, char **av) {
 	else
 		getConfig(&config, av[1]);
 
-	int socketFd = socket(AF_INET, SOCK_STREAM, 0);
+	int socketFd = socket(AF_INET, SOCK_STREAM, 0);;
+			
 	if (socketFd == -1)
 		error("Socket:", strerror(errno), NULL);
+
+	// non blocking // The connection was reset RIP
+	if (fcntl(socketFd, F_SETFL, O_NONBLOCK) < 0)
+		error("Sock opt:", strerror(errno), NULL);
 	
 	// reusable sd
 	int on = 1;
-	int rc = setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, (char *)&(on), sizeof(on));
-
-	//
-
-	if (rc < 0)
+	if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, (char *)&(on), sizeof(on)) < 0)
 		error("Sock opt:", strerror(errno), NULL);
 
 	sockaddr_in sockaddr;
@@ -84,7 +84,7 @@ int main(int ac, char **av) {
 	// if (setsockopt(socketFd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv)) < 0)
 	// 	error("Sock opt:", strerror(errno), NULL);
 
-	if (listen(socketFd, 10) == -1)
+	if (listen(socketFd, 1000) == -1)
 		error("Listen:", strerror(errno), NULL);
 
 	while (1)
@@ -92,13 +92,15 @@ int main(int ac, char **av) {
 
 		int addrlen = sizeof(sockaddr);
 		int connection = accept(socketFd, (struct sockaddr*)&sockaddr, (socklen_t*)&addrlen);
-		if (connection < 0)
-			error("Connection:", strerror(errno), NULL);
-			
-		// non blocking
-		// rc = fcntl(connection, F_SETFL, O_NONBLOCK);
-		// if (rc < 0)
-		// 	error("Sock opt:", strerror(errno), NULL);
+		// if (connection < 0)
+		// {
+		// 	if (errno != EAGAIN)
+		// 	{
+		// 		error("Connection:", strerror(errno), NULL);
+		// 		continue;
+		// 	}
+		// }
+		// std::cout << connection << std::endl;
 		
 		handleConnection(connection);
 
