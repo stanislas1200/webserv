@@ -46,17 +46,7 @@ void handleConnection(int connection) {
 	parseRequest(connection, request);
 }
 
-int main(int ac, char **av) {
-	s_config config;
-
-	if (ac != 2) {
-		// error("Usage:", av[0], "<config_file>");
-		std::cout << GREEN "WebServ: " << MB "Using default config file" C << std::endl;
-		getConfig(&config, "configs/default");
-	}
-	else
-		getConfig(&config, av[1]);
-
+void acceptConnection(s_config config) {
 	int socketFd = socket(AF_INET, SOCK_STREAM, 0);;
 			
 	if (socketFd == -1)
@@ -92,18 +82,33 @@ int main(int ac, char **av) {
 
 		int addrlen = sizeof(sockaddr);
 		int connection = accept(socketFd, (struct sockaddr*)&sockaddr, (socklen_t*)&addrlen);
-		// if (connection < 0)
-		// {
-		// 	if (errno != EAGAIN)
-		// 	{
-		// 		error("Connection:", strerror(errno), NULL);
-		// 		continue;
-		// 	}
-		// }
+		if (connection < 0)
+		{
+			// sleep(5); 
+			if (errno != EAGAIN)
+			{
+				error("Connection:", strerror(errno), NULL);
+				continue;
+			}
+		}
 		// std::cout << connection << std::endl;
 		
 		handleConnection(connection);
 
 		close(connection);
 	}
+}
+
+int main(int ac, char **av) {
+	s_config config;
+
+	if (ac != 2) {
+		// error("Usage:", av[0], "<config_file>");
+		std::cout << GREEN "WebServ: " << MB "Using default config file" C << std::endl;
+		getConfig(&config, "configs/default");
+	}
+	else
+		getConfig(&config, av[1]);
+
+	acceptConnection(config);
 }

@@ -9,7 +9,8 @@ void handleGetRequest(int connection, s_request request) {
 	}
 	std::string fullPath = "src/pages" + path; // src/pages/../main.cpp
 	std::ifstream file(fullPath.c_str(), std::ios::binary);
-	if (!file.is_open()) {
+	std::ifstream templat("src/pages/template.html");
+	if (!file.is_open() || !templat.is_open()) {
 		std::string response = "HTTP/1.0 404 Not Found\r\nContent-type:text/html\r\n\r\n";
 		std::string page = "<html>\n<head>\n<title>404 Not Found</title>\n</head>\n<body>\n<h2>404 Not Found</h2>\n</body>\n</html>\n\n";
 		send(connection, response.c_str(), response.length(), 0);
@@ -18,16 +19,26 @@ void handleGetRequest(int connection, s_request request) {
 		return ;
 	}
 
+	// tempate
+	std::stringstream ss;
+	ss << templat.rdbuf();
+	std::string tempat = ss.str();
+
 	send(connection, "HTTP/1.1 200 OK\r\n", strlen("HTTP/1.1 200 OK\r\n"), 0);
 	send(connection, "Content-Type: text/html\r\n\r\n", strlen("Content-Type: text/html\r\n\r\n"), 0);
 
 	// Send file content
-	char buffer[1024];
-	while (file.read(buffer, sizeof(buffer)).gcount() > 0) {
-		send(connection, buffer, file.gcount(), 0);
-	}
+	ss.str(""); // emtpy
+	ss << file.rdbuf();
+	std::string fileContent = ss.str();
+
+	size_t pos = tempat.find("{{BODY}}");
+	if (pos != std::string::npos)
+		tempat.replace(pos, pos + 8, fileContent);
+	send(connection, tempat.c_str(), tempat.size(), 0);
 
 	file.close();
+	templat.close();
 }
 
 s_FormDataPart getFormData(int connection, s_request request) {
@@ -82,10 +93,10 @@ s_FormDataPart getFormData(int connection, s_request request) {
 } 
 
 void handlePostRequest(int connection, s_request request) {
+	send(connection, "HTTP/1.1 200 OK\r\n", strlen("HTTP/1.1 200 OK\r\n"), 0);
 	if (request.method == "POST" && request.headers["Content-Type"].find("multipart/form-data") != std::string::npos) {
 		s_FormDataPart formData = getFormData(connection, request);
 	}
-	send(connection, "HTTP/1.1 200 OK\r\n", strlen("HTTP/1.1 200 OK\r\n"), 0);
 	return;
 }
 
