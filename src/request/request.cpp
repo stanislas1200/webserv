@@ -9,14 +9,16 @@ void handleGetRequest(int connection, s_request request) {
 	std::string fullPath = "src/pages" + path; // src/pages/../main.cpp
 	std::ifstream file(fullPath.c_str(), std::ios::binary);
 	std::ifstream templat("src/pages/template.html");
+
 	if (!file.is_open() || !templat.is_open()) {
-		std::string response = "HTTP/1.0 404 Not Found\r\nContent-type:text/html\r\n\r\n";
-		std::string page = "<html>\n<head>\n<title>404 Not Found</title>\n</head>\n<body>\n<h2>404 Not Found</h2>\n</body>\n</html>\n\n";
-		send(connection, response.c_str(), response.length(), 0);
-		send(connection, page.c_str(), page.length(), 0);
+		std::ifstream fileError("src/pages/errorpages/error_404.html", std::ios::binary);
+		sendFile(connection, &fileError);
 		error("File:", strerror(errno), fullPath.c_str());
 		return ;
 	}
+	
+    sendFile(connection, &file);
+	return;
 
 	// tempate
 	std::stringstream ss;

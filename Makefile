@@ -19,7 +19,7 @@ INCL = include/Webserv.hpp
 
 NAME =  webserv
 
-GCC = c++ -std=c++98 -Wall -Wextra -Werror -g
+GCC = c++ -std=c++11 -Wall -Wextra -Werror -g
 
 OBJS_DIR = ./objects/
 OBJS = $(addprefix $(OBJS_DIR), $(SRCS:.cpp=.o))
