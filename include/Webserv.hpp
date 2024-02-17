@@ -8,7 +8,10 @@
 # include <errno.h>
 # include <string.h>
 # include <fstream>
+# include <sstream>
 # include <stdlib.h>
+# include <vector>
+# include <map>
 # include "ServConfig.hpp"
 
 # define RED "\x1b[1m\x1b[38;2;255;0;0m"
@@ -17,6 +20,8 @@
 # define YELLOW "\x1b[1m\x1b[38;2;205;205;0m"
 # define DV "\x1b[1m\x1b[38;2;148;0;211m"
 # define C "\x1b[0m"
+
+void error(const char *type, const char *msg, const char *bold);
 
 typedef struct s_file {
 	std::string name;

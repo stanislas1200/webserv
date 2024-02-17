@@ -23,6 +23,16 @@ void getConfig(s_config *config, std::string file) {
 				error("Port:", "Invalid port number", NULL);
 		}
 	}
+    confFILE.close();
+
+	std::ifstream confFile(file.c_str());
+    ServConfig  configClass;
+    try {
+        configClass.initializeConfig(&confFile);
+    }
+    catch (std::exception& e) {
+		std::cout << e.what() << std::endl;
+	}
 }
 
 void	sendFile(int connection, std::ifstream *file) {
