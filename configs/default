@@ -1,3 +1,8 @@
 server {
-	listen 8080
+	errorpages 404 src/pages/errorpages/error_404.html;
+	errorpages 503 src/pages/errorpages/error_503.html;
+	listen 8080;
+    methodes GET POST AGAIN;
+    server_names littleCloud;
+    client_size 42;
 }

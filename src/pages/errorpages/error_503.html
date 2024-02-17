@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html>
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            background-color: var(--background);
+            color: var(--text-color);
+        }
+    
+        :root {
+            --background: #020c1a;
+            --text-color: #dfeafd;
+    
+            /* --text-color-dim: #666;
+            --text-color-light: #999; */
+    
+            --primary-color: #73acf4;
+    
+            /* --primary-color-shade: #0056b3;
+            --primary-color-tint: #4d94ff; */
+    
+            --secondary-color: #590c9e;
+    
+            /* --secondary-color-shade: #5a6268;
+            --secondary-color-tint: #7b8a91; */
+    
+            --success-color: #28a745;
+            --info-color: #17a2b8;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+    
+            --accent-color: #d033f0;
+    
+            --breakpoint-xs: 0;
+            --breakpoint-sm: 576px;
+            --breakpoint-md: 768px;
+            --breakpoint-lg: 992px;
+            --breakpoint-xl: 1200px;
+        }
+    
+        .navbar {
+            overflow: hidden;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--background);
+            color: var(--text-color);
+            border-bottom: var(--primary-color) 2px solid;
+              transition: all 0.3s ease;
+    
+            .navItem {
+                display: flex;
+            }
+    
+            .logo {
+                display: flex;
+                align-items: center;
+                padding: 10px;
+    
+            }
+    
+            a {
+                font-size: 18px;
+                color: var(--text-color);
+                text-align: center;
+                padding: 20px;
+                text-decoration: none;
+                height: 100%;
+                width: 100%;
+                  transition: all 0.5s ease;
+            
+                &:hover {
+                    background-color: var(--primary-color);
+                    color: var(--secondary-color);
+                      transition: all 0.3s ease;
+                }
+            }
+        }
+    
+        .container {
+            display: grid;
+            gap: 20px;
+            padding: 10px;
+            grid-template-columns: repeat(4, 1fr);
+            grid-auto-rows: minmax(180px, auto);
+    
+            .box {
+                color: var(--text-color);
+                padding: 20px;
+                border-radius: 10px;
+                border: 2px solid var(--secondary-color);
+            }
+    
+        }
+    </style>
+    <head>
+        <title>Webserv</title>
+        <div class="navbar">
+            <div class="logo">
+                <img width="65" height="40" alt="Accueil École 42" src="https://campus19.be/wp-content/uploads/2022/06/19_member42_black-_2_.svg">
+                <h1>WebServ</h1>
+            </div>
+            <div class="navItem">
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+            </div>
+        </div>
+    </head>
+    <!-- <style>
+        .box{
+            display: flex;
+            width: 100%;
+            height: 200px;
+            border:2px solid red;
+        }
+    </style> -->
+    <body>
+        <h1 style="text-align:center">Error 503 Service Unavailable Error</h1>
+        <p style="text-align:center">server is temporarily unable to handle requests</p>
+    </body>
+</html>

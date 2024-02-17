@@ -24,6 +24,28 @@ void getConfig(s_config *config, std::string file) {
 				error("Port:", "Invalid port number", NULL);
 		}
 	}
+    confFILE.close();
+
+	std::ifstream confFile(file.c_str());
+    ServConfig  configClass;
+    try {
+        configClass.initializeConfig(&confFile);
+    }
+    catch (std::exception& e) {
+		std::cout << e.what() << std::endl;
+	}
+}
+
+void	sendFile(int connection, std::ifstream *file) {
+	char buffer[1024];
+
+	send(connection, "HTTP/1.1 200 OK\r\n", strlen("HTTP/1.1 200 OK\r\n"), 0);
+    send(connection, "Content-Type: text/html\r\n\r\n", strlen("Content-Type: text/html\r\n\r\n"), 0);
+    while (file->read(buffer, sizeof(buffer)).gcount() > 0) {
+		std::cout << "Sending file" << std::endl;
+		std::cout << file->gcount() << std::endl;
+        send(connection, buffer, file->gcount(), 0);
+    }
 }
 
 int main(int ac, char **av) {
