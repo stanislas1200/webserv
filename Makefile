@@ -12,6 +12,7 @@
 
 SRCS = src/main.cpp\
 		src/request/request.cpp\
+		src/server/server.cpp\
 
 INCL = include/Webserv.hpp
 

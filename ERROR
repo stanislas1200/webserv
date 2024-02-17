@@ -1,3 +1,3 @@
-no multiple serv
 multiple client wait each other
 Connection reset if NO_BLOCKING
+recv blocking

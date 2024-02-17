@@ -41,5 +41,12 @@ typedef struct s_FormDataPart {
 	std::vector<char> data;
 } t_FormDataPart;
 
+typedef struct s_server {
+	int port;
+	int fd;
+	sockaddr_in sockaddr;
+} t_server;
+
 void parseRequest(int connection, std::string buffer);
 void error(const char *type, const char *msg, const char *bold);
+void acceptConnection(s_config config);
