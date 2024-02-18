@@ -22,7 +22,7 @@ void handleGetRequest(int connection, s_request request) {
 	return;
 }
 
-s_FormDataPart getFormData(int connection, s_request request) {
+std::string handleFormData(int connection, s_request request) {
 	s_FormDataPart formData;
 	size_t bytes = 0;
 	size_t pos = 0;
@@ -32,14 +32,17 @@ s_FormDataPart getFormData(int connection, s_request request) {
 	std::string header;
 	char buffer[10024];
 	std::cout << C << std::endl;
-	// read on socket
+	// read on socket // TODO : handle multiple files
 	while ((bytes = recv(connection, buffer, 10000, 0)) > 0 && bytes != std::string::npos)
 	{
-		std::cout << bytes << std::endl;
 		if ((pos = header.find("\r\n\r\n")) == std::string::npos)
 			header += buffer;
+		
 		dataLen += bytes;
 		formData.data.insert(formData.data.end(), buffer, buffer + bytes);		
+
+		if (stoul(request.headers["Content-Length"]) == formData.data.size())
+			break;
 	}
 
 	// parse header
@@ -59,24 +62,87 @@ s_FormDataPart getFormData(int connection, s_request request) {
 		if (line.find("Content-Type") != std::string::npos)
 			formData.contentType = line.substr(line.find("Content-Type:") + 14);
 	}
-
+	// TODO : check malformated request
 	// write in file
 	std::ofstream outputFile(("upload/" + formData.filename).c_str(), std::ios::binary);
 	if (!outputFile.is_open())
-			error("Open:", strerror(errno), NULL);
-	else
-		std::cout << GREEN << MB "File uploaded!" << std::endl;
+	{
+		error("Open:", strerror(errno), NULL);
+		send(connection, "File upload failed! ", strlen("File upload failed! "), 0);
+		return "500";
+	}
+	std::cout << MB "File uploaded!" << std::endl;
 	outputFile.write(&formData.data[pos + 4], dataLen - (pos + 4) - boundary.size()); // +2 if end request (--)
 	outputFile.close();
 	handleGetRequest(connection, request);
-	return formData;
-} 
+	send(connection, "File uploaded! ", strlen("File uploaded! "), 0);
+	return "200";
+}
+
+std::string handleUrlEncoded(int connection, s_request request) {
+	std::cout << DV "handleUrlEncoded" << std::endl;
+	
+	char buffer[1000];
+	size_t bytes = 0;
+	std::string data;
+
+	// read on socket
+	while ((bytes = recv(connection, buffer, 999, 0)) > 0 && bytes != std::string::npos)
+	{
+		data += buffer;
+		if (stoul(request.headers["Content-Length"]) == data.length())
+			break;
+	}
+
+	// parse data
+	std::map<std::string, std::string> parsedData;
+	std::istringstream iss(data);
+	std::string line;
+	while (std::getline(iss, line, '&'))
+	{
+		std::istringstream lineStream(line);
+		std::string key;
+		std::string value;
+		std::getline(lineStream, key, '=');
+		std::getline(lineStream, value);
+		parsedData[key] = value;
+	}
+
+	handleGetRequest(connection, request);
+
+	// write data in cout
+	std::map<std::string, std::string>::const_iterator it;
+	for (it = parsedData.begin(); it != parsedData.end(); ++it)
+	{
+		std::cout << MB << it->first << C ": " DV << it->second << std::endl;
+		send(connection, it->first.c_str(), it->first.length(), 0);
+		send(connection, ": ", 2, 0);
+		send(connection, it->second.c_str(), it->second.length(), 0);
+		send(connection, " ", 1, 0);
+	}
+	return "200";
+}
+
+std::string handleJson(int connection, s_request request) {
+	std::cout << DV "handleJson" << std::endl;
+	(void)connection;
+	(void)request;
+	return "200";
+}
 
 void handlePostRequest(int connection, s_request request) {
-	send(connection, "HTTP/1.1 200 OK\r\n", strlen("HTTP/1.1 200 OK\r\n"), 0);
-	if (request.method == "POST" && request.headers["Content-Type"].find("multipart/form-data") != std::string::npos) {
-		s_FormDataPart formData = getFormData(connection, request);
-	}
+	std::string status = "505";
+
+	if (request.headers["Content-Type"].find("multipart/form-data") != std::string::npos)
+		status = handleFormData(connection, request);
+	else if (request.headers["Content-Type"].find("application/x-www-form-urlencoded") != std::string::npos)
+		status = handleUrlEncoded(connection, request);
+	else if (request.headers["Content-Type"].find("application/json") != std::string::npos)
+		status = handleJson(connection, request);
+
+	std::string response = "HTTP/1.1 " + status + " OK\r\n"; // TODO : map status code and message
+	send(connection, response.c_str(), response.length(), 0);
+
 	return;
 }
 

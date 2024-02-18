@@ -93,6 +93,7 @@
 			border: 2px solid var(--secondary-color);
 
 			form {
+				padding: 10px;
 				display: flex;
 				flex-direction: column;
 				align-items: center;
@@ -101,9 +102,15 @@
 
 	}
 
-	input[type=file] {	
+	input[type=text], input[type=email], input[type=password], input[type=file]{	
 		border-radius: 10px;
+		padding: 8px;
+		margin: 3px;
 		border: 1.5px solid var(--secondary-color);
+	}
+
+	input[type=text], input[type=email], input[type=password] {
+		background-color: #19293c;
 	}
 
 	input[type=file]::file-selector-button {

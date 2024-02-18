@@ -60,3 +60,4 @@ void parseRequest(int connection, std::string buffer);
 void error(const char *type, const char *msg, const char *bold);
 void acceptConnection(s_config config);
 void	sendFile(int connection, std::ifstream *file, std::string status);
+void printRequest(s_request request);
