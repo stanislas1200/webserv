@@ -3,43 +3,23 @@
 void handleGetRequest(int connection, s_request request) {
 	
 	std::string path = request.path;
+	// TODO : CGI
 	if (path == "/") {
 		path = "/index.html";
 	}
+
 	std::string fullPath = "src/pages" + path; // src/pages/../main.cpp
 	std::ifstream file(fullPath.c_str(), std::ios::binary);
-	std::ifstream templat("src/pages/template.html");
+	std::string status = "200";
 
-	if (!file.is_open() || !templat.is_open()) {
-		std::ifstream fileError("src/pages/errorpages/error_404.html", std::ios::binary);
-		sendFile(connection, &fileError);
+	if (!file.is_open()) {
+		status = "404"; // sendfile handle error; make a class ?
+		file.open("src/pages/errorpages/error_404.html", std::ios::binary);
 		error("File:", strerror(errno), fullPath.c_str());
-		return ;
 	}
 	
-    sendFile(connection, &file);
+	sendFile(connection, &file, status);
 	return;
-
-	// tempate
-	std::stringstream ss;
-	ss << templat.rdbuf();
-	std::string tempat = ss.str();
-
-	send(connection, "HTTP/1.1 200 OK\r\n", strlen("HTTP/1.1 200 OK\r\n"), 0);
-	send(connection, "Content-Type: text/html\r\n\r\n", strlen("Content-Type: text/html\r\n\r\n"), 0);
-
-	// Send file content
-	ss.str(""); // emtpy
-	ss << file.rdbuf();
-	std::string fileContent = ss.str();
-
-	size_t pos = tempat.find("{{BODY}}");
-	if (pos != std::string::npos)
-		tempat.replace(pos, pos + 8, fileContent);
-	send(connection, tempat.c_str(), tempat.size(), 0);
-
-	file.close();
-	templat.close();
 }
 
 s_FormDataPart getFormData(int connection, s_request request) {

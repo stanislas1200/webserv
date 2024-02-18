@@ -36,16 +36,40 @@ void getConfig(s_config *config, std::string file) {
 	}
 }
 
-void	sendFile(int connection, std::ifstream *file) {
-	char buffer[1024];
+void	sendFile(int connection, std::ifstream *file, std::string status) {
 
-	send(connection, "HTTP/1.1 200 OK\r\n", strlen("HTTP/1.1 200 OK\r\n"), 0);
+	std::ifstream templat("src/pages/template.html");
+	std::stringstream ss;
+	ss << templat.rdbuf();
+	std::string templateStr = ss.str();
+    
+	// Get response content
+	ss.str(""); // emtpy
+	ss << file->rdbuf();
+	std::string fileContent = ss.str();
+
+	size_t pos = templateStr.find("{{BODY}}");
+	if (pos != std::string::npos) {
+		if (file->is_open())
+			templateStr.replace(pos, pos + 8, fileContent);
+		else
+			templateStr.replace(pos, pos + 8, "<h1 style=\"text-align:center\">Error 404 Not Found Error</h1>");
+	}
+	else
+	{
+		status = "500";
+		templateStr = "<h1 style=\"text-align:center\">Error 500 Internal Server Error</h1>";
+		error("File:", "Error in template file", NULL);
+	}
+	// Send status line
+	std::string statusLine = "HTTP/1.1 " + status + " OK\r\n"; // TODO : map status code and message
+	send(connection, statusLine.c_str(), statusLine.length(), 0);
     send(connection, "Content-Type: text/html\r\n\r\n", strlen("Content-Type: text/html\r\n\r\n"), 0);
-    while (file->read(buffer, sizeof(buffer)).gcount() > 0) {
-		std::cout << "Sending file" << std::endl;
-		std::cout << file->gcount() << std::endl;
-        send(connection, buffer, file->gcount(), 0);
-    }
+
+	send(connection, templateStr.c_str(), templateStr.size(), 0);
+
+	file->close();
+	templat.close();
 }
 
 int main(int ac, char **av) {
