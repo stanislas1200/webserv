@@ -25,8 +25,8 @@ int serverSetup(s_server *server) {
 		return error("Socket:", strerror(errno), NULL), -1;
 
 	// non blocking // The connection was reset RIP
-	if (fcntl(server->fd, F_SETFL, O_NONBLOCK) < 0)
-		error("Sock opt:", strerror(errno), NULL);
+	// if (fcntl(server->fd, F_SETFL, O_NONBLOCK) < 0)
+	// 	error("Sock opt:", strerror(errno), NULL);
 
 	// reusable sd
 	int on = 1;
@@ -81,8 +81,8 @@ void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 					// std::cout << RED "\nFind a connection: " << servers[i].fd << std::endl;
 					int addrlen = sizeof(servers[i].sockaddr);
 					// non blocking // The connection was reset RIP // not working anymore
-					if (fcntl(servers[i].fd, F_SETFL, O_NONBLOCK) < 0)
-						error("Sock opt:", strerror(errno), NULL);
+					// if (fcntl(servers[i].fd, F_SETFL, O_NONBLOCK) < 0)
+					// 	error("Sock opt:", strerror(errno), NULL);
 					int connection = accept(servers[i].fd, (struct sockaddr*)&servers[i].sockaddr, (socklen_t*)&addrlen); // accept the first connection
 					if (connection < 0)
 					{

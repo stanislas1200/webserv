@@ -32,9 +32,11 @@ std::string handleFormData(int connection, s_request request) {
 	std::string header;
 	char buffer[10024];
 	std::cout << C << std::endl;
+	
 	// read on socket // TODO : handle multiple files
 	while ((bytes = recv(connection, buffer, 10000, 0)) > 0 && bytes != std::string::npos)
 	{
+		buffer[bytes] = '\0';
 		if ((pos = header.find("\r\n\r\n")) == std::string::npos)
 			header += buffer;
 		
@@ -84,14 +86,16 @@ std::string handleUrlEncoded(int connection, s_request request) {
 	
 	char buffer[1000];
 	size_t bytes = 0;
+	size_t length = stoul(request.headers["Content-Length"]);
 	std::string data;
 
 	// read on socket
-	while ((bytes = recv(connection, buffer, 999, 0)) > 0 && bytes != std::string::npos)
+	while (length > 0 && (bytes = recv(connection, buffer, 999, 0)) > 0 && bytes != std::string::npos)
 	{
+		buffer[bytes] = '\0';
 		data += buffer;
-		if (stoul(request.headers["Content-Length"]) == data.length())
-			break;
+		length -= bytes;
+		std::cout << DV << length << MB << data.length() << std::endl;
 	}
 
 	// parse data
