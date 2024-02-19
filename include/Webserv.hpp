@@ -43,13 +43,6 @@ typedef struct s_request {
 	std::string body;
 } t_request;
 
-typedef struct s_FormDataPart {
-	std::string name;
-	std::string filename;
-	std::string contentType;
-	std::vector<char> data;
-} t_FormDataPart;
-
 typedef struct s_server {
 	int port;
 	int fd;
