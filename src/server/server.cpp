@@ -1,6 +1,9 @@
 #include "../../include/Webserv.hpp"
 
 std::string readHeader(int connection) {
+
+	std::cout << "Read header" << std::endl;
+
 	std::string header;
 	char buffer[1024];
 	int bytes = 0;
@@ -14,9 +17,14 @@ std::string readHeader(int connection) {
 	return header;
 }
 
-void handleConnection(int connection) {
-	std::string request = readHeader(connection);
-	parseRequest(connection, request);
+int handleConnection(s_request *request) {
+
+	std::cout << "Handle connection" << std::endl;
+
+	std::string header;
+	if (request->headers.size() == 0)
+		header = readHeader(request->connection);
+	return (parseRequest(header, request));
 }
 
 int serverSetup(s_server *server) {
@@ -70,6 +78,15 @@ void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 
 			std::cout << GREEN "\rWait " << max_fd << std::flush;
 			ret = select(max_fd + 1, &reading_set, NULL, NULL, &tv); // get the number of ready file descriptors
+			for (size_t i = 0; i < fd_size; i++)
+			{
+				if (servers[i].requests.size() > 0 && handleConnection(&servers[i].requests[0]))
+				{
+					std::cout << GREEN << "close connection" << std::endl;
+					close(servers[i].requests[0].connection);
+					servers[i].requests.erase(servers[i].requests.begin() + 0);
+				}
+			}
 		}
 
 		if (ret > 0)
@@ -78,20 +95,58 @@ void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 			{
 				if (FD_ISSET(servers[i].fd, &reading_set)) // check if the fd is in set
 				{
-					// std::cout << RED "\nFind a connection: " << servers[i].fd << std::endl;
+					std::cout << RED "\nFind a connection: " << servers[i].fd << std::endl;
 					int addrlen = sizeof(servers[i].sockaddr);
 					// non blocking // The connection was reset RIP // not working anymore
 					// if (fcntl(servers[i].fd, F_SETFL, O_NONBLOCK) < 0)
 					// 	error("Sock opt:", strerror(errno), NULL);
-					int connection = accept(servers[i].fd, (struct sockaddr*)&servers[i].sockaddr, (socklen_t*)&addrlen); // accept the first connection
-					if (connection < 0)
+
+					
+					if (servers[i].requests.size() < 0) // TODO : handle old connection 
 					{
-						if (errno != EAGAIN)
-							error("Connection:", strerror(errno), NULL);
-						continue;
+						// new connection
+						s_request	request;
+						std::cout << "New connection" << std::endl;
+						request.connection = accept(servers[i].fd, (struct sockaddr*)&servers[i].sockaddr, (socklen_t*)&addrlen);
+						std::cout << "Accept: " << request.connection << std::endl;
+						if (request.connection < 0)
+						{
+							error("Accept:", strerror(errno), NULL);
+						}
+						else
+							servers[i].requests.push_back(request);
 					}
-					handleConnection(connection);
-					close(connection);
+					
+					// if (connection < 0)
+					// {
+					// 	if (errno != EAGAIN)
+					// 		error("Connection:", strerror(errno), NULL);
+					// 	continue;
+					// }
+					std::cout << "Request: " << servers[i].requests[0].path << std::endl;
+					if (handleConnection(&servers[i].requests[0]))
+					{
+						std::cout << GREEN << "close connection" << std::endl;
+						close(servers[i].requests[0].connection);
+						servers[i].requests.erase(servers[i].requests.begin() + 0);
+					}
+					std::cout << "continue" << std::endl;
+
+					// std::cout << "New connection: " << servers[i].requests.size() << std::endl;
+					// for (size_t j = 0; j < servers[i].requests.size(); j++)
+					// {
+					// 	std::cout << MB << "Handle connection: " << servers[i].requests[j].connection << std::endl;
+					// 	if (handleConnection(&servers[i].requests[j]))
+					// 	{
+					// 		std::cout << GREEN << "close connection" << std::endl;
+					// 		close(servers[i].requests[j].connection);
+					// 		servers[i].requests.erase(servers[i].requests.begin() + j);
+					// 	}
+					// }
+
+					//push server at end
+					servers.push_back(servers[i]);
+					servers.erase(servers.begin() + i);
 				}
 			}
 		}

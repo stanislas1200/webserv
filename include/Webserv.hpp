@@ -36,20 +36,32 @@ typedef struct s_config {
 	int port;
 }	t_config;
 
+typedef struct s_FormDataPart {
+    std::string header;
+	std::string name;
+	std::string filename;
+	std::string contentType;
+	std::vector<char> data;
+	int dataLen = 0;
+} t_FormDataPart;
+
 typedef struct s_request {
 	std::string method;
 	std::string path;
 	std::map<std::string, std::string> headers;
 	std::string body;
+	struct s_FormDataPart formData;
+	int connection;
 } t_request;
 
 typedef struct s_server {
 	int port;
 	int fd;
 	sockaddr_in sockaddr;
+	std::vector<s_request> requests;
 } t_server;
 
-void parseRequest(int connection, std::string buffer);
+int parseRequest(std::string header, s_request *request);
 void error(const char *type, const char *msg, const char *bold);
 void acceptConnection(s_config config);
 void	sendFile(int connection, std::ifstream *file, std::string status);
