@@ -5,6 +5,7 @@ std::string handleFormData(int connection, s_request *request, int *end) {
 	std::cout << DV "handleFormData" << std::endl;
 
 	s_FormDataPart *formDataPart = &request->formData;
+	std::cout << MB << formDataPart->data.size() << C << std::endl;
 	size_t bytes = 0;
 	size_t pos = request->headers["Content-Type"].find("boundary=") + 9;
 	std::string boundary = "--" + request->headers["Content-Type"].substr(pos);
@@ -20,7 +21,9 @@ std::string handleFormData(int connection, s_request *request, int *end) {
 	*end = 0;
 	std::cout << RED << connection << std::endl; // FIXME : connection broken at continue
 	std::cout << RED << request->connection << std::endl;
-	while ((bytes = recv(request->connection, buffer, 10000, 0)) > 0 && bytes != std::string::npos)
+	std::cout << YELLOW << pos << C << std::endl;
+	size_t bufferSize = 500;
+	while ((bytes = recv(request->connection, buffer, bufferSize, 0)) > 0 && bytes != std::string::npos)
 	{
 		buffer[bytes] = '\0';
 		// if (header.find(boundary) != std::string::npos)
@@ -35,6 +38,12 @@ std::string handleFormData(int connection, s_request *request, int *end) {
 
 		if (stoul(request->headers["Content-Length"]) == formDataPart->data.size())
 			break;
+		else
+		{
+			std::cout << RED << "Chunk" << std::endl;
+			*end = 0;
+			return "Chunked";
+		}
 
 		if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count() > timeout)
 		{
@@ -45,7 +54,6 @@ std::string handleFormData(int connection, s_request *request, int *end) {
 		}
 	}
 	*end = 1;
-
 	// parse header
 	std::istringstream iss(request->formData.header);
 	std::string line;
@@ -74,6 +82,8 @@ std::string handleFormData(int connection, s_request *request, int *end) {
 		return "500";
 	}
 	std::cout << MB "File uploaded!" << std::endl;
+	pos = request->formData.header.find("\r\n\r\n");
+	std::cout << YELLOW << pos << C << std::endl;
 	outputFile.write(&formDataPart->data[pos + 4], request->formData.dataLen- (pos + 4) - boundary.size()); // +2 if end request (--)
 	outputFile.close();
 	handleGetRequest(request->connection, *request);
@@ -146,6 +156,7 @@ int handlePostRequest(int connection, s_request *request) {
 		status = handleUrlEncoded(connection, *request);
 	else if (request->headers["Content-Type"].find("application/json") != std::string::npos)
 		status = handleJson(connection, *request);
+	std::cout << DV << "POST request end" << std::endl;
 	std::string response = "HTTP/1.1 " + status + " OK\r\n"; // TODO : map status code and message
 	send(connection, response.c_str(), response.length(), 0);
 	return end;
