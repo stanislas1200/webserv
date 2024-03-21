@@ -12,7 +12,7 @@ std::string handleFormData(int connection, s_request *request, int *end) {
 	char buffer[10024];
 
 	// timeout
-	constexpr int timeout = 0.0001;
+	constexpr double timeout = 0.0001;
 	
 	std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
 
@@ -146,7 +146,7 @@ std::string handleJson(int connection, s_request request) {
 
 int handlePostRequest(int connection, s_request *request) {
 	std::string status = "505";
-	int end;
+	int end = 0;
 
 	std::cout << DV << "POST request" << std::endl;
 

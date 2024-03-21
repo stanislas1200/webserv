@@ -18,7 +18,7 @@
 # include <fcntl.h>
 # include "ServConfig.hpp"
 
-#include <sys/epoll.h>
+// #include <sys/epoll.h>
 
 # define RED "\x1b[1m\x1b[38;2;255;0;0m"
 # define MB "\x1b[1m\x1b[38;2;25;25;599m"
