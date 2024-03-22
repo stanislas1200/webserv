@@ -8,7 +8,7 @@ void error(const char *type, const char *msg, const char *bold) {
 	// exit(1);
 }
 
-void getConfig(s_config *config, std::vector<ServConfig> configClass, std::string file) {
+void getConfig(s_config *config, std::string file) {
 	std::ifstream confFILE(file.c_str());
 	if (!confFILE.is_open()) {
 		error("Config:", strerror(errno), NULL);
@@ -25,17 +25,23 @@ void getConfig(s_config *config, std::vector<ServConfig> configClass, std::strin
 		}
 	}
     confFILE.close();
+}
 
+void getConfig(std::vector<ServConfig> *configClass, std::string file) {
 	std::ifstream confFile(file.c_str());
+ 
     try {
         while (confFile.eof() != 1) {
             ServConfig  newElement;
             std::cout << "hello" << std::endl;
-            newElement->initializeConfig(&confFile);
+            newElement.initializeConfig(&confFile);
             configClass->push_back(newElement);
-            std::cout << "size of configclass " << configClass->front()->getPort() << "size " << configClass->size() << std::endl;
+            std::cout << "size of configclass " << configClass->front().getPort() << " size " << configClass->size() << std::endl;
         }
-    }
+		for (std::vector<ServConfig>::iterator it = configClass->begin(); it != configClass->end(); it++) {
+			std::cout << *it << std::endl;
+		}
+	}
     catch (std::exception& e) {
 		std::cout << e.what() << std::endl;
 	}
@@ -85,10 +91,16 @@ int main(int ac, char **av) {
 	if (ac != 2) {
 		// error("Usage:", av[0], "<config_file>");
 		std::cout << GREEN "WebServ: " << MB "Using default config file" C << std::endl;
-		getConfig(&config, configClass, "configs/default");
+		// getConfig(&config "configs/default");
+		getConfig(&configClass, "configs/default");
 	}
-	else
-		getConfig(&config, configClass, av[1]);
-    
+	else {
+		// getConfig(&config, av[1]);
+		getConfig(&configClass, av[1]);
+	}
+	for (std::vector<ServConfig>::iterator it = configClass.begin(); it != configClass.end(); it++) {
+		std::cout << *it << std::endl;
+	}
+	exit(0);
 	acceptConnection(config);
 }

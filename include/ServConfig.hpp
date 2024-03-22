@@ -32,14 +32,16 @@ class ServConfig {
         void        initializeConfig(std::ifstream *confFile);
         std::string pathToErrorPage(int pageToFind);
         
-        std::string getName(void);
-        std::string getMethode(void);
-        int         getPort(void);
-        int         getMaxClient(void);
-        std::map<int, std::string> getErrorPages(void);
+        std::string getName(void) const;
+        std::string getMethode(void) const;
+        int         getPort(void) const;
+        int         getMaxClient(void) const;
+        std::map<int, std::string> getErrorPages(void) const;
         
 		class wrongFormat : public std::exception {
 			public :
 				virtual const char* what(void) const throw();
 		};
 };
+
+std::ostream& operator<<(std::ostream& os, const ServConfig& obj);

@@ -87,6 +87,7 @@ void    ServConfig::initializeConfig(std::ifstream *confFile) {
             _maxClient = stoi(tokens[1]);
         }
     }
+    std::cout << "Port: " << _port << std::endl;
     //print the map
     // for (std::map<int, std::string>::const_iterator it = _errorpages.begin(); it != _errorpages.end(); ++it) {
     //     std::cout << "Key: " << it->first << ", Value: " << it->second << std::endl;
@@ -102,25 +103,35 @@ std::string ServConfig::pathToErrorPage(int pageToFind) {
     }
 }
 
+//// Operator ////
+
+std::ostream& operator<<(std::ostream& os, const ServConfig& obj) {
+    os << "Name: " << obj.getName() << std::endl;
+    os << "Methode: " << obj.getMethode() << std::endl;
+    os << "Port: " << obj.getPort() << std::endl;
+    os << "MaxClient: " << obj.getMaxClient() << std::endl;
+    return (os);
+}
+
 //// Getter ////
 
-std::string ServConfig::getName(void) {
+std::string ServConfig::getName(void) const {
     return (this->_name);
 }
 
-std::string ServConfig::getMethode(void) {
+std::string ServConfig::getMethode(void) const {
     return (this->_methode);
 }
 
-int         ServConfig::getPort(void) {
+int         ServConfig::getPort(void) const {
     return (this->_port);
 }
 
-int         ServConfig::getMaxClient(void) {
+int         ServConfig::getMaxClient(void) const {
     return (this->_maxClient);
 }
 
-std::map<int, std::string> ServConfig::getErrorPages(void) {
+std::map<int, std::string> ServConfig::getErrorPages(void) const {
     return (this->_errorpages);
 }
 
