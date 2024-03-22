@@ -8,7 +8,7 @@ void error(const char *type, const char *msg, const char *bold) {
 	// exit(1);
 }
 
-void getConfig(s_config *config, std::string file) {
+void getConfig(s_config *config, std::vector<ServConfig> configClass, std::string file) {
 	std::ifstream confFILE(file.c_str());
 	if (!confFILE.is_open()) {
 		error("Config:", strerror(errno), NULL);
@@ -17,7 +17,7 @@ void getConfig(s_config *config, std::string file) {
 
 	std::string line;
 	while (std::getline(confFILE, line)) {
-		std::cout << line << std::endl;
+		//std::cout << line << std::endl;
 		if (line.find("listen") != std::string::npos) {
 			config->port = atoi(line.substr(line.find(" ") + 1).c_str());
 			if (config->port < 0 || config->port > 65535)
@@ -27,13 +27,19 @@ void getConfig(s_config *config, std::string file) {
     confFILE.close();
 
 	std::ifstream confFile(file.c_str());
-    ServConfig  configClass;
     try {
-        configClass.initializeConfig(&confFile);
+        while (confFile.eof() != 1) {
+            ServConfig  newElement;
+            std::cout << "hello" << std::endl;
+            newElement->initializeConfig(&confFile);
+            configClass->push_back(newElement);
+            std::cout << "size of configclass " << configClass->front()->getPort() << "size " << configClass->size() << std::endl;
+        }
     }
     catch (std::exception& e) {
 		std::cout << e.what() << std::endl;
 	}
+    confFile.close();
 }
 
 void	sendFile(int connection, std::ifstream *file, std::string status) {
@@ -74,14 +80,15 @@ void	sendFile(int connection, std::ifstream *file, std::string status) {
 
 int main(int ac, char **av) {
 	s_config config;
+    std::vector<ServConfig> configClass;
 
 	if (ac != 2) {
 		// error("Usage:", av[0], "<config_file>");
 		std::cout << GREEN "WebServ: " << MB "Using default config file" C << std::endl;
-		getConfig(&config, "configs/default");
+		getConfig(&config, configClass, "configs/default");
 	}
 	else
-		getConfig(&config, av[1]);
-
+		getConfig(&config, configClass, av[1]);
+    
 	acceptConnection(config);
 }
