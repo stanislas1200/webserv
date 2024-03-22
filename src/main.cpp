@@ -9,12 +9,14 @@ void error(const char *type, const char *msg, const char *bold) {
 }
 
 void getConfig(s_config *config, std::string file) {
+	std::cout << "Old GetConfig" << std::endl;
+
+	
 	std::ifstream confFILE(file.c_str());
 	if (!confFILE.is_open()) {
 		error("Config:", strerror(errno), NULL);
 		return ;
 	}
-
 	std::string line;
 	while (std::getline(confFILE, line)) {
 		//std::cout << line << std::endl;
@@ -29,22 +31,25 @@ void getConfig(s_config *config, std::string file) {
 
 void getConfig(std::vector<ServConfig> *configClass, std::string file) {
 	std::ifstream confFile(file.c_str());
- 
-    try {
+	ServConfig  newElement;
+
+    // try {
         while (confFile.eof() != 1) {
-            ServConfig  newElement;
+            // ServConfig  newElement;
             std::cout << "hello" << std::endl;
             newElement.initializeConfig(&confFile);
             configClass->push_back(newElement);
             std::cout << "size of configclass " << configClass->front().getPort() << " size " << configClass->size() << std::endl;
-        }
+			break;
+		}
+		std::cout << "Name: " << newElement.getName() << std::endl;
 		for (std::vector<ServConfig>::iterator it = configClass->begin(); it != configClass->end(); it++) {
 			std::cout << *it << std::endl;
 		}
-	}
-    catch (std::exception& e) {
-		std::cout << e.what() << std::endl;
-	}
+	// }
+    // catch (std::exception& e) {
+		// std::cout << e.what() << std::endl;
+	// }
     confFile.close();
 }
 

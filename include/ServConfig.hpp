@@ -42,6 +42,17 @@ class ServConfig {
 			public :
 				virtual const char* what(void) const throw();
 		};
+
 };
+
+template<typename T>
+void displayVector(const std::vector<T>& vec) {
+    typename std::vector<T>::const_iterator it;
+
+    std::cout << "Contents of the vector:" << std::endl;
+    for (it = vec.begin(); it != vec.end(); ++it) {
+        std::cout << *it << std::endl;
+    }
+}
 
 std::ostream& operator<<(std::ostream& os, const ServConfig& obj);

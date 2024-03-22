@@ -46,46 +46,110 @@ void    ServConfig::wrongFormatError(const char *msg, const char *line) {
     throw ServConfig::wrongFormat();
 }
 
+// void    ServConfig::initializeConfig(std::ifstream *confFile) {
+//     std::string line;
+    
+//     int index = 0;
+//     while (std::getline(*confFile, line) && ++index) {
+//         std::cout << "" << line << std::endl;
+//         std::stringstream ss;
+//         std::stringstream SplitedLine(line);
+//         while (!SplitedLine.fail()) {
+            
+//         }
+//         ss << index;
+//         // std::cout << "Servconfig.cpp " << line << std::endl;
+//         if (line.find(";") == std::string::npos)
+//             continue;
+//         line.replace(line.find(";"), line.length() - line.find(";"), "");
+//         std::vector<std::string> tokens = split(line, ' ');
+//         if (tokens[0].find("server") != std::string::npos && index != 1) {
+//             std::cout << "end because new serv" << std::endl; //
+//             return;
+//         }
+//         // std::cout << tokens[0] << " " << tokens[0].find("errorpages") << std::endl;
+//         if (tokens[0].find("errorpages") == 1) {
+//             //need exeption when the setting file is not properly design !
+//             if (tokens.size() != 3)
+//                 wrongFormatError("errorpages", ss.str().c_str());
+//             _errorpages[stoi(tokens[1])] = tokens[2];
+//         }   else if (tokens[0].find("server_names") == 1) {
+//             if (tokens.size() != 2)
+//                 wrongFormatError("server_names", ss.str().c_str());
+//             _name = tokens[1];
+//         }   else if (tokens[0].find("listen") == 1) {
+//             if (tokens.size() != 2)
+//                 wrongFormatError("listen", ss.str().c_str());
+//             _port = stoi(tokens[1]);
+//         }   else if (tokens[0].find("methode") == 1) {
+//             if (tokens.size() < 2)
+//                 wrongFormatError("methode", ss.str().c_str());
+//             _methode = line.erase(line.find("methode"), 8);
+//         }   else if (tokens[0].find("client_size") == 1) {
+//             if (tokens.size() != 2)
+//                 wrongFormatError("client_size", ss.str().c_str());
+//             _maxClient = stoi(tokens[1]);
+//         }
+//     }
+//     std::cout << "Port: " << _port << std::endl;
+//     //print the map
+//     // for (std::map<int, std::string>::const_iterator it = _errorpages.begin(); it != _errorpages.end(); ++it) {
+//     //     std::cout << "Key: " << it->first << ", Value: " << it->second << std::endl;
+//     // }
+// }
+
 void    ServConfig::initializeConfig(std::ifstream *confFile) {
     std::string line;
     
     int index = 0;
-    while (std::getline(*confFile, line) && ++index) {
-        std::cout << "" << line << std::endl;
+    while (std::getline(*confFile, line)) {
+        // std::cout << "" << line << std::endl;
         std::stringstream ss;
+        std::vector<std::string> tokens;
+        std::stringstream SplitedLine(line);
+        while (SplitedLine >> line) {
+            tokens.push_back(line);
+        }
+        if (tokens[0] == "server" && index != 0)
+            break;
+        // tokens.~vector();
+        index++;
+        displayVector(tokens);
+        tokens.clear();
+        continue ;
         ss << index;
-        // std::cout << "Servconfig.cpp " << line << std::endl;
-        if (line.find(";") == std::string::npos)
-            continue;
-        line.replace(line.find(";"), line.length() - line.find(";"), "");
-        std::vector<std::string> tokens = split(line, ' ');
-        if (tokens[0].find("server") != std::string::npos && index != 1) {
-            std::cout << "end because new serv" << std::endl; //
-            return;
-        }
-        // std::cout << tokens[0] << " " << tokens[0].find("errorpages") << std::endl;
-        if (tokens[0].find("errorpages") == 1) {
-            //need exeption when the setting file is not properly design !
-            if (tokens.size() != 3)
-                wrongFormatError("errorpages", ss.str().c_str());
-            _errorpages[stoi(tokens[1])] = tokens[2];
-        }   else if (tokens[0].find("server_names") == 1) {
-            if (tokens.size() != 2)
-                wrongFormatError("server_names", ss.str().c_str());
-            _name = tokens[1];
-        }   else if (tokens[0].find("listen") == 1) {
-            if (tokens.size() != 2)
-                wrongFormatError("listen", ss.str().c_str());
-            _port = stoi(tokens[1]);
-        }   else if (tokens[0].find("methode") == 1) {
-            if (tokens.size() < 2)
-                wrongFormatError("methode", ss.str().c_str());
-            _methode = line.erase(line.find("methode"), 8);
-        }   else if (tokens[0].find("client_size") == 1) {
-            if (tokens.size() != 2)
-                wrongFormatError("client_size", ss.str().c_str());
-            _maxClient = stoi(tokens[1]);
-        }
+        // // std::cout << "Servconfig.cpp " << line << std::endl;
+        // if (line.find(";") == std::string::npos)
+        //     continue;
+        // line.replace(line.find(";"), line.length() - line.find(";"), "");
+        // std::vector<std::string> tokens = split(line, ' ');
+        // if (tokens[0].find("server") != std::string::npos && index != 1) {
+        //     std::cout << "end because new serv" << std::endl; //
+        //     return;
+        // }
+        // // std::cout << tokens[0] << " " << tokens[0].find("errorpages") << std::endl;
+        // if (tokens[0].find("errorpages") == 1) {
+        //     //need exeption when the setting file is not properly design !
+        //     if (tokens.size() != 3)
+        //         wrongFormatError("errorpages", ss.str().c_str());
+        //     _errorpages[stoi(tokens[1])] = tokens[2];
+        // }   else if (tokens[0].find("server_names") == 1) {
+        //     if (tokens.size() != 2)
+        //         wrongFormatError("server_names", ss.str().c_str());
+        //     _name = tokens[1];
+        // }   else if (tokens[0].find("listen") == 1) {
+        //     if (tokens.size() != 2)
+        //         wrongFormatError("listen", ss.str().c_str());
+        //     _port = stoi(tokens[1]);
+        // }   else if (tokens[0].find("methode") == 1) {
+        //     if (tokens.size() < 2)
+        //         wrongFormatError("methode", ss.str().c_str());
+        //     _methode = line.erase(line.find("methode"), 8);
+        // }   else if (tokens[0].find("client_size") == 1) {
+        //     if (tokens.size() != 2)
+        //         wrongFormatError("client_size", ss.str().c_str());
+        //     _maxClient = stoi(tokens[1]);
+        // }
     }
     std::cout << "Port: " << _port << std::endl;
     //print the map
