@@ -58,31 +58,31 @@ int serverSetup(s_server *server) {
 	return 0;
 }
 
-int isServerConnection(std::vector<s_server> servers, int fd, int epoll_fd) {
+int isServerConnection(std::vector<s_server> servers, int fd) {
 	for (size_t j = 0; j < servers.size(); j++)
 	{
 		if (fd == servers[j].fd)
 		{
-			// new connection
-			struct sockaddr_in client_addr;
-			socklen_t client_len = sizeof(client_addr);
-			int client_fd = accept(servers[j].fd, (struct sockaddr*)&client_addr, &client_len);
-			std::cout << "Accept: " << client_fd << std::endl;
-			if (client_fd == -1)
-				return error("Accept:", strerror(errno), NULL), -1; // TODO : close all fd
+			// // new connection
+			// struct sockaddr_in client_addr;
+			// socklen_t client_len = sizeof(client_addr);
+			// int client_fd = accept(servers[j].fd, (struct sockaddr*)&client_addr, &client_len);
+			// std::cout << "Accept: " << client_fd << std::endl;
+			// if (client_fd == -1)
+			// 	return error("Accept:", strerror(errno), NULL), -1; // TODO : close all fd
 			
-			// set non blocking
-			int flag = fcntl(client_fd, F_GETFL, 0);
-			if (fcntl(client_fd, F_SETFL, flag | O_NONBLOCK) < 0)
-				return close(client_fd), error("Sock opt:", strerror(errno), NULL), -1; // TODO : close all fd
+			// // set non blocking
+			// int flag = fcntl(client_fd, F_GETFL, 0);
+			// if (fcntl(client_fd, F_SETFL, flag | O_NONBLOCK) < 0)
+			// 	return close(client_fd), error("Sock opt:", strerror(errno), NULL), -1; // TODO : close all fd
 			
-			// add client to epoll
-			struct epoll_event client_event;
-			client_event.events = EPOLLIN | EPOLLOUT | EPOLLET; // edge triggered mode
-			client_event.data.fd = client_fd;
-			if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_event) == -1)
-				return close(client_fd), error("Epoll:", strerror(errno), NULL), -1; // TODO : close all fd
-			std::cout << GREEN "New connection: " DV << client_fd << " " << inet_ntoa(client_addr.sin_addr) << " " << ntohs(client_addr.sin_port) << C << std::endl;
+			// // add client to epoll
+			// struct epoll_event client_event;
+			// client_event.events = EPOLLIN | EPOLLOUT | EPOLLET; // edge triggered mode
+			// client_event.data.fd = client_fd;
+			// if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_event) == -1)
+			// 	return close(client_fd), error("Epoll:", strerror(errno), NULL), -1; // TODO : close all fd
+			// std::cout << GREEN "New connection: " DV << client_fd << " " << inet_ntoa(client_addr.sin_addr) << " " << ntohs(client_addr.sin_port) << C << std::endl;
 			return 1;
 		}
 	}
@@ -91,138 +91,61 @@ int isServerConnection(std::vector<s_server> servers, int fd, int epoll_fd) {
 
 void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 
-	// store requests
+	// server using select 
 	std::vector<s_request> requests;
 	std::map<int, s_request> request_map;
-
-	// epoll instance
-	int epoll_fd = epoll_create(fd_size);
-	if (epoll_fd == -1)
-		return error("Epoll:", strerror(errno), NULL); // TODO : close all fd
-
-	// add servers to epoll
-	for (size_t i = 0; i < fd_size; i++)
-	{
-		struct epoll_event event;
-		event.events = EPOLLIN;
-		event.data.fd = servers[i].fd;
-		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, servers[i].fd, &event) == -1)
-			return close(epoll_fd), error("Epoll:", strerror(errno), NULL); // TODO : close all fd
-	}
-	int ret = 0;
+	
 	while (true)
 	{
-		struct epoll_event events[fd_size];
-		
-		std::cout << GREEN "\rWait " << max_fd << std::flush;
-		while (request_map.size() > 0)
-		{
-			for (std::map<int, s_request>::iterator it = request_map.begin(); it != request_map.end(); ++it)
-			{
-				std::cout << RED << "OK" << std::endl;
-				if (handleConnection(&it->second))
-				{
-					std::cout << GREEN << "close connection" << std::endl;
-					// close(request.connection);
-					if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, it->second.connection, NULL) == -1)
-						return close(epoll_fd), error("Epoll M:", strerror(errno), NULL); // TODO : close all fd
-					close(it->second.connection);
-					request_map.erase(it->second.connection);
-					std::cout << "Erase" << std::endl;
-				}
-			}
-		}
-
-
-
-
-		// wait for events
-		ret = epoll_wait(epoll_fd, events, fd_size, -1);
-		if (ret == -1)
-			return close(epoll_fd), error("Epoll:", strerror(errno), NULL); // TODO : close all fd
-		
-		// handle events
-		for (int i = 0; i < ret; i++)
-		{
-			if (events[i].events & EPOLLIN)
-			{
-				int on = isServerConnection(servers, events[i].data.fd, epoll_fd); // TODO : handle faillure
-				if (on == -1)
-					return;
-				if (on)
-					continue;
-
-				// handle request
-				int client_fd = events[i].data.fd;
-				s_request request;
-				// if (request_map.find(client_fd) == request_map.end())
-				// {
-					request.connection = client_fd;
-					request_map[client_fd] = request;
-				// }
-				// else
-				// {
-				// 	std::cout << RED << "Old request" << std::endl;
-				// 	request = request_map[client_fd];
-				// }
-				// request.connection = events[i].data.fd;
-				std::cout << MB "Request: " DV << request.connection << C << std::endl;
-				// for (std::map<int, s_request>::iterator it = request_map.begin(); it != request_map.end(); ++it)
-				// {
-				// 	std::cout << MB << it->first << C << std::endl;
-				// }
-				if (handleConnection(&request)) // read using recv return 1 if all is read else 0 if only buffer_size is read
-				{
-					std::cout << GREEN << "close connection" << std::endl;
-					// close(request.connection);
-					if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, request.connection, NULL) == -1)
-						return close(epoll_fd), error("Epoll R:", strerror(errno), NULL); // TODO : close all fd
-					close(request.connection);
-					request_map.erase(request.connection);
-				}
-				else
-				{
-					std::cout << "Add request" << std::endl;
-					request_map[client_fd] = request;
-				}
-			}
-		}
-	}
-	std::cout << "End" << std::endl;
-
-	return;
-	while (1)
-	{
 		fd_set reading_set;
-		fd_set writing_set;
+		// fd_set writing_set;
 		struct timeval tv;
 		int ret = 0;
 
 		while (!ret)
 		{
-			// copy read from set ?
-			FD_ZERO(&reading_set); 
-			FD_ZERO(&writing_set);
 			tv.tv_sec = 1;
 			tv.tv_usec = 0;
+			// ft_memcpy(&reading_set, &_fd_set, sizeof(_fd_set));
+			// FD_ZERO(&writing_set);
+			
 
 			for (size_t i = 0; i < fd_size; i++)
 			{
 				FD_SET(servers[i].fd, &reading_set);
-				// FD_SET(servers[i].fd, &writing_set);
+			}
+
+			if (request_map.size() > 0) // handle chuncked data
+			{
+				for (std::map<int, s_request>::iterator it = request_map.begin(); it != request_map.end(); ++it)
+				{
+					// check if it.connection is in vectior severs using vectior buildin
+					// if (std::find(servers.begin(), servers.end(), it->second) != servers.end())
+					// 	continue;
+					// if (!isServerConnection(servers, it->second.connection))
+					// {
+					// 	std::cout << YELLOW "server" << std::endl;
+					// 	continue;
+					// }
+					std::cout << RED << "OK1" << std::endl;
+					if (handleConnection(&it->second))
+					{
+						std::cout << GREEN << "close connection" << std::endl;
+						// close(request.connection);
+						// if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, it->second.connection, NULL) == -1)
+						// 	return close(epoll_fd), error("Epoll M:", strerror(errno), NULL); // TODO : close all fd
+						close(it->second.connection);
+						std::cout << "Erase1 " << request_map.size() << std::endl;
+						request_map.erase(it->second.connection);
+						std::cout << "Erase1 " << request_map.size() << std::endl;
+						break;
+					}
+				}
 			}
 
 			std::cout << GREEN "\rWait " << max_fd << std::flush;
 			ret = select(max_fd + 1, &reading_set, NULL, NULL, &tv); // get the number of ready file descriptors
-			for (size_t i = 0; i < fd_size; i++)
-			{
-				if (servers[i].requests.size() > 0 && handleConnection(&servers[i].requests[0]))
-				{
-					std::cout << GREEN << "close connection" << std::endl;
-					close(servers[i].requests[0].connection);
-					servers[i].requests.erase(servers[i].requests.begin() + 0);
-				}
-			}
+
 		}
 
 		if (ret > 0)
@@ -233,13 +156,8 @@ void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 				{
 					std::cout << RED "\nFind a connection: " << servers[i].fd << std::endl;
 					int addrlen = sizeof(servers[i].sockaddr);
-					// non blocking // The connection was reset RIP // not working anymore
-					// if (fcntl(servers[i].fd, F_SETFL, O_NONBLOCK) < 0)
-					// 	error("Sock opt:", strerror(errno), NULL);
-
-					
-					if (servers[i].requests.size() == 0) // TODO : handle old connection 
-					{
+					// if (servers[i].requests.size() == 0) 
+					// {
 						// new connection
 						s_request	request;
 						std::cout << "New connection" << std::endl;
@@ -249,46 +167,43 @@ void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 						{
 							error("Accept:", strerror(errno), NULL);
 						}
-						else
-							servers[i].requests.push_back(request);
-					}
+						// else
+						// 	servers[i].requests.push_back(request);
 					
-					// if (connection < 0)
+					// std::cout << "Request: " << servers[i].requests[0].path << std::endl;
+					
+					// handle request
+					int client_fd = request.connection;
+					// s_request request;
+					// if (request_map.find(client_fd) == request_map.end())
 					// {
-					// 	if (errno != EAGAIN)
-					// 		error("Connection:", strerror(errno), NULL);
-					// 	continue;
-					// }
-					std::cout << "Request: " << servers[i].requests[0].path << std::endl;
-					if (handleConnection(&servers[i].requests[0]))
+					// request.connection = client_fd;
+					request_map[request.connection] = request;
+					std::cout << RED << "OK2" << std::endl;
+
+					if (handleConnection(&request)) // read using recv return 1 if all is read else 0 if only buffer_size is read
 					{
 						std::cout << GREEN << "close connection" << std::endl;
-						close(servers[i].requests[0].connection);
-						servers[i].requests.erase(servers[i].requests.begin() + 0);
+						close(request.connection);
+						std::cout << "Erase2 " << request_map.size() << std::endl;
+						request_map.erase(request.connection);
+						std::cout << "Erase2 " << request_map.size() << std::endl;
 					}
-					std::cout << "continue" << std::endl;
-
-					// std::cout << "New connection: " << servers[i].requests.size() << std::endl;
-					// for (size_t j = 0; j < servers[i].requests.size(); j++)
-					// {
-					// 	std::cout << MB << "Handle connection: " << servers[i].requests[j].connection << std::endl;
-					// 	if (handleConnection(&servers[i].requests[j]))
-					// 	{
-					// 		std::cout << GREEN << "close connection" << std::endl;
-					// 		close(servers[i].requests[j].connection);
-					// 		servers[i].requests.erase(servers[i].requests.begin() + j);
-					// 	}
-					// }
-
-					//push server at end
-					servers.push_back(servers[i]);
-					servers.erase(servers.begin() + i);
+					else
+					{
+						std::cout << "Add request" << std::endl;
+						request_map[client_fd] = request;
+					}
+				
 				}
 			}
 		}
 		else
 			error("Select:", strerror(errno), NULL);		
+
 	}
+
+	return;
 }
 
 void acceptConnection(s_config config) {

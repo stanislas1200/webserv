@@ -41,7 +41,7 @@ void trimWhitespace(std::string& str) {
 }
 
 
-std::string parseFormData(s_request *request) {
+std::string parseFormData(s_request *request) { // FIXME : response to each file uploaded
 	s_FormDataPart *formDataPart = &request->formData[0];
 	size_t pos = 0;
 	std::istringstream iss(formDataPart->header);
@@ -89,31 +89,30 @@ std::string parseFormData(s_request *request) {
 	{
 		std::vector<char>::iterator bpos;
 		if (hasLeadingOrTrailingWhitespace(request->boundary))
+		{
 			std::cout << YELLOW << request->boundary << C << std::endl;
-		request->boundary += "--";
-		std::cout << YELLOW << request->boundary << C << std::endl;
-		std::string test = "-----------------------------307439877619959111994264962\r\n test \r\n-----------------------------307439877619959111994264962--\r\n";
-		std::vector<char> testVec(test.begin(), test.end());
-		if ((bpos = std::search(testVec.begin() + request->boundary.size(), testVec.end(), boundaryEnd.begin(), boundaryEnd.end())) != formDataPart->data.end())
-		{
-			std::cout << GREEN << "FIND" << std::endl;
+			trimWhitespace(request->boundary);
 		}
-		else
-		{
-			std::cout << GREEN << "NO FIND" << std::endl;
-		}
+
+		// std::cout << formDataPart->data.size() << std::endl;
+		formDataPart->data.erase(formDataPart->data.begin() + stoul(request->headers["Content-Length"]), formDataPart->data.end());
+		// std::cout << formDataPart->data.size() << std::endl;
+
 
 		if ((bpos = std::search(formDataPart->data.begin() + request->boundary.size(), formDataPart->data.end(), boundaryEnd.begin(), boundaryEnd.end())) != formDataPart->data.end())
 		{
-			std::cout << YELLOW << "FIND" << std::endl;
-			formDataPart->data.erase(bpos, formDataPart->data.end());
+			std::cout << YELLOW << "FIND>" << std::endl;
+			formDataPart->data.erase(bpos, formDataPart->data.end()); // FIXME : don't erase boundary or write to much ?
 		}
 		else
 			std::cout << YELLOW << "NO FIND" << std::endl;
-		outputFile.write(&formDataPart->data[pos + 4], formDataPart->data.size() - 97);
+
+		// for (size_t i = pos + 4; i < formDataPart->data.size(); i++)
+		// 	std::cout << &formDataPart->data[i];
+		outputFile.write(&formDataPart->data[pos + 4], formDataPart->data.size() - pos);
 	}
 	else
-		outputFile.write(&formDataPart->data[pos + 4], formDataPart->data.size());
+		outputFile.write(&formDataPart->data[pos + 4], formDataPart->data.size() - pos);
 	outputFile.close();
 	handleGetRequest(request->connection, *request);
 	send(request->connection, "File uploaded! ", strlen("File uploaded! "), 0);
@@ -121,7 +120,7 @@ std::string parseFormData(s_request *request) {
 }
 
 int readFormData(s_request *request) {
-	size_t bufferSize = 500;
+	size_t bufferSize = 1000;
 	char buffer[bufferSize];
 	s_FormDataPart *formDataPart = &request->formData[0];
 	size_t bytes = 0;

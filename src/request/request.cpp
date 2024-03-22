@@ -68,6 +68,8 @@ int parseRequest(std::string header, s_request *request) {
 	// std::stringstream ss;
 	// ss << requestStream.rdbuf();
 	// request->body = ss.str();
+
+	std::cout << MB "METHOD: " GREEN << request->method << C << std::endl;
 	
 	if (request->method == "GET")
 		return handleGetRequest(connection, *request);
