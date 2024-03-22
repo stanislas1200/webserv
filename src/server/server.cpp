@@ -131,8 +131,11 @@ void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 					std::cout << "Erase" << std::endl;
 				}
 			}
-		
 		}
+
+
+
+
 		// wait for events
 		ret = epoll_wait(epoll_fd, events, fd_size, -1);
 		if (ret == -1)

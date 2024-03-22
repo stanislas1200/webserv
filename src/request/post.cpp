@@ -1,61 +1,242 @@
 #include "../../include/request.hpp"
 
-std::string handleFormData(int connection, s_request *request, int *end) {
+#include <algorithm>
 
-	std::cout << DV "handleFormData" << std::endl;
+#include <cctype>
 
-	s_FormDataPart *formDataPart = &request->formData;
-	std::cout << MB << formDataPart->data.size() << C << std::endl;
-	size_t bytes = 0;
-	size_t pos = request->headers["Content-Type"].find("boundary=") + 9;
-	std::string boundary = "--" + request->headers["Content-Type"].substr(pos);
-	char buffer[10024];
+// Function to check if a string has leading or trailing whitespace
+bool hasLeadingOrTrailingWhitespace(const std::string& str) {
+    if (str.empty()) {
+        return false; // Empty string has no whitespace
+    }
+    
+    // Check leading whitespace
+    if (std::isspace(str.front())) {
+        return true; // Leading whitespace found
+    }
+    
+    // Check trailing whitespace
+    if (std::isspace(str.back())) {
+        return true; // Trailing whitespace found
+    }
+    
+    return false; // No leading or trailing whitespace
+}
 
-	// timeout
-	constexpr int timeout = 0.0001;
-	
-	std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
+void trimWhitespace(std::string& str) {
+    // Remove leading whitespace
+    size_t start = str.find_first_not_of(" \t\n\r\f\v");
+    if (start != std::string::npos) {
+        str = str.substr(start);
+    } else {
+        str.clear(); // String contains only whitespace
+        return;
+    }
 
-	// read on socket // TODO : handle multiple files
-	std::cout << YELLOW << boundary << C << std::endl;
-	*end = 0;
-	std::cout << RED << connection << std::endl; // FIXME : connection broken at continue
-	std::cout << RED << request->connection << std::endl;
-	std::cout << YELLOW << pos << C << std::endl;
-	size_t bufferSize = 500;
-	while ((bytes = recv(request->connection, buffer, bufferSize, 0)) > 0 && bytes != std::string::npos)
+    // Remove trailing whitespace
+    size_t end = str.find_last_not_of(" \t\n\r\f\v");
+    if (end != std::string::npos) {
+        str = str.substr(0, end + 1);
+    }
+}
+
+
+std::string parseFormData(s_request *request) {
+	s_FormDataPart *formDataPart = &request->formData[0];
+	size_t pos = 0;
+	std::istringstream iss(formDataPart->header);
+	std::string line;
+	std::string boundaryEnd = request->boundary + "--";
+
+	// if (formDataPart->data.size() > boundaryEnd.size())
+	// {
+	// 	std::vector<char>::iterator bpos;
+	// 	if ((bpos = std::search(formDataPart->data.begin() + request->boundary.size(), formDataPart->data.end(), boundaryEnd.begin(), boundaryEnd.end())) != formDataPart->data.end())
+	// 	{
+	// 		std::cout << GREEN << "FIND" << std::endl;
+	// 		formDataPart->data.erase(bpos, formDataPart->data.end());
+	// 	}
+	// 	else
+	// 		std::cout << GREEN << "NO FIND" << std::endl;
+	// }
+
+	while (std::getline(iss, line) && !line.empty())
 	{
-		buffer[bytes] = '\0';
-		// if (header.find(boundary) != std::string::npos)
-		// {
-		// 	std::cout << RED << "FIND" << std::endl;
-		// }
-		if ((pos = request->formData.header.find("\r\n\r\n")) == std::string::npos)
-			request->formData.header += buffer;
-		
-		request->formData.dataLen += bytes;
-		formDataPart->data.insert(formDataPart->data.end(), buffer, buffer + bytes);
-
-		if (stoul(request->headers["Content-Length"]) == formDataPart->data.size())
+		if (line == "\r")
 			break;
+		if (line.find("Content-Disposition") != std::string::npos)
+		{
+			line = line.substr(line.find("name=\"") + 6);
+			formDataPart->name = line.substr(0, line.find('"'));
+			line = line.substr(line.find("filename=\"") + 10);
+			formDataPart->filename = line.substr(0, line.find('"'));
+		}
+		if (line.find("Content-Type") != std::string::npos)
+			formDataPart->contentType = line.substr(line.find("Content-Type:") + 14);
+	}
+
+	std::cout << MB << formDataPart->name << C << std::endl;
+	std::ofstream outputFile(("upload/" + formDataPart->filename).c_str(), std::ios::binary);
+	if (!outputFile.is_open())
+	{
+		error("Open:", strerror(errno), NULL);
+		send(request->connection, "File upload failed! ", strlen("File upload failed! "), 0);
+		return "500";
+	}
+	std::cout << MB "File uploaded!" << std::endl;
+	pos = formDataPart->header.find("\r\n\r\n");
+	if (request->dataLen >= stoul(request->headers["Content-Length"]))
+	{
+		std::vector<char>::iterator bpos;
+		if (hasLeadingOrTrailingWhitespace(request->boundary))
+			std::cout << YELLOW << request->boundary << C << std::endl;
+		request->boundary += "--";
+		std::cout << YELLOW << request->boundary << C << std::endl;
+		std::string test = "-----------------------------307439877619959111994264962\r\n test \r\n-----------------------------307439877619959111994264962--\r\n";
+		std::vector<char> testVec(test.begin(), test.end());
+		if ((bpos = std::search(testVec.begin() + request->boundary.size(), testVec.end(), boundaryEnd.begin(), boundaryEnd.end())) != formDataPart->data.end())
+		{
+			std::cout << GREEN << "FIND" << std::endl;
+		}
 		else
 		{
-			std::cout << RED << "Chunk" << std::endl;
-			*end = 0;
-			return "Chunked";
+			std::cout << GREEN << "NO FIND" << std::endl;
 		}
 
-		if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count() > timeout)
+		if ((bpos = std::search(formDataPart->data.begin() + request->boundary.size(), formDataPart->data.end(), boundaryEnd.begin(), boundaryEnd.end())) != formDataPart->data.end())
 		{
-			std::cout << DV << "size: " << request->formData.dataLen << C << std::endl;
-			error("Timeout:", "no end of request", NULL);
-			// send(request->connection, "Timeout: no end of request", strlen("Timeout: no end of request"), 0);
-			return "500";
+			std::cout << YELLOW << "FIND" << std::endl;
+			formDataPart->data.erase(bpos, formDataPart->data.end());
 		}
+		else
+			std::cout << YELLOW << "NO FIND" << std::endl;
+		outputFile.write(&formDataPart->data[pos + 4], formDataPart->data.size() - 97);
 	}
-	*end = 1;
+	else
+		outputFile.write(&formDataPart->data[pos + 4], formDataPart->data.size());
+	outputFile.close();
+	handleGetRequest(request->connection, *request);
+	send(request->connection, "File uploaded! ", strlen("File uploaded! "), 0);
+	return "200";
+}
+
+int readFormData(s_request *request) {
+	size_t bufferSize = 500;
+	char buffer[bufferSize];
+	s_FormDataPart *formDataPart = &request->formData[0];
+	size_t bytes = 0;
+	size_t pos = 0;
+
+	if (request->boundary.empty())
+	{
+		pos = request->headers["Content-Type"].find("boundary=") + 9; // TODO check it exists		
+		request->boundary = "--" + request->headers["Content-Type"].substr(pos, request->headers["Content-Type"].size() - pos - 1);
+		std::cout << YELLOW << request->boundary << C << std::endl;
+	}
+
+	if ((bytes = recv(request->connection, buffer, bufferSize, 0)) > 0 && bytes != std::string::npos)
+	{
+		buffer[bytes] = '\0';
+		if ((pos = formDataPart->header.find("\r\n\r\n")) == std::string::npos)
+			formDataPart->header += buffer;
+		request->dataLen += bytes;
+		formDataPart->data.insert(formDataPart->data.end(), buffer, buffer + bytes);
+
+		if (formDataPart->data.size() > request->boundary.size())
+		{
+			std::vector<char>::iterator bpos;
+			if ((bpos = std::search(formDataPart->data.begin() + request->boundary.size(), formDataPart->data.end(), request->boundary.begin(), request->boundary.end())) != formDataPart->data.end())
+			{
+				std::cout << RED << "FIND" << std::endl;
+				formDataPart->full = true;
+				request->formData[1].header.clear();
+				request->formData[1].header = std::string(bpos, formDataPart->data.end());
+				request->formData[1].data.clear();
+				request->formData[1].data.insert(request->formData[1].data.end(), bpos, formDataPart->data.end());
+				formDataPart->data.erase(bpos, formDataPart->data.end());
+				parseFormData(request);
+			}
+			else
+				std::cout << RED << "NO FIND" << std::endl;
+		}
+
+		if (request->dataLen < stoul(request->headers["Content-Length"]))
+			return 0; // chunk
+	}
+	std::cout << formDataPart->header << std::endl;
+	return 1;
+}
+
+std::string handleFormData(int connection, s_request *request, int *end) {
+
+	// std::cout << DV "handleFormData" << std::endl;
+
+	// s_FormDataPart *formDataPart = &request->formData;
+	// std::cout << MB << formDataPart->data.size() << C << std::endl;
+	// size_t bytes = 0;
+	// size_t pos = request->headers["Content-Type"].find("boundary=") + 9;
+	// request->boundary = "--" + request->headers["Content-Type"].substr(pos);
+	// char buffer[10024];
+
+	// // timeout
+	// constexpr int timeout = 0.0001;
+	
+	// std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
+
+	// // read on socket // TODO : handle multiple files
+	// std::cout << YELLOW << request->boundary << C << std::endl;
+	// *end = 0;
+	// // std::cout << RED << connection << std::endl; // FIXME : connection broken at continue
+	// // std::cout << RED << request->connection << std::endl;
+	// // std::cout << YELLOW << pos << C << std::endl;
+	// size_t bufferSize = 500;
+	// while ((bytes = recv(request->connection, buffer, bufferSize, 0)) > 0 && bytes != std::string::npos)
+	// {
+	// 	buffer[bytes] = '\0';
+	// 	// if (header.find(request->boundary) != std::string::npos)
+	// 	// {
+	// 	// 	std::cout << RED << "FIND" << std::endl;
+	// 	// }
+	// 	if ((pos = request->formData.header.find("\r\n\r\n")) == std::string::npos)
+	// 		request->formData.header += buffer;
+		
+	// 	request->formData.dataLen += bytes;
+	// 	formDataPart->data.insert(formDataPart->data.end(), buffer, buffer + bytes);
+
+	// 	if (stoul(request->headers["Content-Length"]) == formDataPart->data.size())
+	// 		break;
+	// 	else
+	// 	{
+	// 		std::cout << RED << "Chunk" << std::endl;
+	// 		*end = 0;
+	// 		return "Chunked";
+	// 	}
+
+	// 	if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count() > timeout)
+	// 	{
+	// 		std::cout << DV << "size: " << request->formData.dataLen << C << std::endl;
+	// 		error("Timeout:", "no end of request", NULL);
+	// 		// send(request->connection, "Timeout: no end of request", strlen("Timeout: no end of request"), 0);
+	// 		return "500";
+	// 	}
+	// }
+	(void)connection;
+	if (request->formData[0].full)
+	{
+		request->formData[0].header.clear();
+		request->formData[0].data.clear();
+		request->formData[0].full = false;
+		request->formData[0] = request->formData[1];
+	}
+	size_t pos = 0;
+	*end = readFormData(request);
+	if (*end == 0)
+		return "Chunked";
+	return parseFormData(request);
+
 	// parse header
-	std::istringstream iss(request->formData.header);
+	s_FormDataPart *formDataPart = &request->formData[0];
+	std::istringstream iss(formDataPart->header);
 	std::string line;
 	while (std::getline(iss, line) && !line.empty())
 	{
@@ -82,9 +263,9 @@ std::string handleFormData(int connection, s_request *request, int *end) {
 		return "500";
 	}
 	std::cout << MB "File uploaded!" << std::endl;
-	pos = request->formData.header.find("\r\n\r\n");
+	pos = formDataPart->header.find("\r\n\r\n");
 	std::cout << YELLOW << pos << C << std::endl;
-	outputFile.write(&formDataPart->data[pos + 4], request->formData.dataLen- (pos + 4) - boundary.size()); // +2 if end request (--)
+	outputFile.write(&formDataPart->data[pos + 4], request->dataLen- (pos + 4) - request->boundary.size()); // +2 if end request (--)
 	outputFile.close();
 	handleGetRequest(request->connection, *request);
 	send(request->connection, "File uploaded! ", strlen("File uploaded! "), 0);

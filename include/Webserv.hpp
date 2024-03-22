@@ -44,7 +44,7 @@ typedef struct s_FormDataPart {
 	std::string filename;
 	std::string contentType;
 	std::vector<char> data;
-	int dataLen = 0;
+	bool full = false;
 } t_FormDataPart;
 
 typedef struct s_request {
@@ -52,7 +52,9 @@ typedef struct s_request {
 	std::string path;
 	std::map<std::string, std::string> headers;
 	std::string body;
-	struct s_FormDataPart formData;
+	std::string boundary;
+	size_t dataLen = 0;
+	struct s_FormDataPart formData[2];
 	int connection;
 } t_request;
 

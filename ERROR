@@ -2,3 +2,7 @@ multiple client wait each other
 Connection reset if NO_BLOCKING
 // recv blocking
 delete space = %20;
+
+
+
+TODO : server list
