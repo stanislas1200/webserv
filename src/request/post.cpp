@@ -136,7 +136,7 @@ std::string parseFormData(s_request *request) { // FIXME : response to each file
 }
 
 int readFormData(s_request *request) {
-	size_t bufferSize = 640;
+	size_t bufferSize = 100000;
 	char buffer[bufferSize + 1];
 	s_FormDataPart *formDataPart = &request->formData[0];
 	size_t bytes = 0;
@@ -151,9 +151,8 @@ int readFormData(s_request *request) {
 
 	if ((bytes = recv(request->connection, buffer, bufferSize, 0)) > 0 && bytes != std::string::npos)
 	{
-		std::cout << GREEN << bytes << std::endl;
+		std::cout << "byte: " << bytes << std::endl;
 		buffer[bytes] = '\0';
-		std::cout << MB << buffer << std::endl;
 		// if ((pos = formDataPart->header.find("\r\n\r\n")) == std::string::npos)
 		// 	formDataPart->header += buffer;
 		request->dataLen += bytes;
