@@ -36,9 +36,9 @@ int serverSetup(s_server *server) {
 		return error("Socket:", strerror(errno), NULL), -1;
 
 	// non blocking // The connection was reset RIP
-	int flag = fcntl(server->fd, F_GETFL, 0);
-	if (fcntl(server->fd, F_SETFL, flag | O_NONBLOCK) < 0)
-		return close(server->fd), error("Sock opt:", strerror(errno), NULL), -1;
+	// int flag = fcntl(server->fd, F_GETFL, 0);
+	// if (fcntl(server->fd, F_SETFL, flag | O_NONBLOCK) < 0)
+	// 	return close(server->fd), error("Sock opt:", strerror(errno), NULL), -1;
 
 	// reusable sd
 	int on = 1;
@@ -141,6 +141,7 @@ void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 						break;
 					}
 				}
+				std::cout << request_map.size() << std::endl;
 			}
 
 			std::cout << GREEN "\rWait " << max_fd << std::flush;
@@ -173,11 +174,12 @@ void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 					// std::cout << "Request: " << servers[i].requests[0].path << std::endl;
 					
 					// handle request
-					int client_fd = request.connection;
+					// int client_fd = request.connection;
 					// s_request request;
 					// if (request_map.find(client_fd) == request_map.end())
 					// {
 					// request.connection = client_fd;
+					std::cout << MB "Add request" << std::endl;
 					request_map[request.connection] = request;
 					std::cout << RED << "OK2" << std::endl;
 
@@ -189,11 +191,7 @@ void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 						request_map.erase(request.connection);
 						std::cout << "Erase2 " << request_map.size() << std::endl;
 					}
-					else
-					{
-						std::cout << "Add request" << std::endl;
-						request_map[client_fd] = request;
-					}
+					request_map[request.connection] = request;
 				
 				}
 			}

@@ -18,7 +18,6 @@
 # include <fcntl.h>
 # include "ServConfig.hpp"
 
-#include <sys/epoll.h>
 
 # define RED "\x1b[1m\x1b[38;2;255;0;0m"
 # define MB "\x1b[1m\x1b[38;2;25;25;599m"
@@ -44,6 +43,7 @@ typedef struct s_FormDataPart {
 	std::string filename;
 	std::string contentType;
 	std::vector<char> data;
+	size_t bodySize;
 	bool full = false;
 } t_FormDataPart;
 

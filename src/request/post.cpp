@@ -40,10 +40,23 @@ void trimWhitespace(std::string& str) {
     }
 }
 
+void printFile(s_request *request, bool body) {
+	std::cout << DV "Header:\n" MB << request->formData[0].header << std::endl;
+	if (body)
+	{
+		std::cout << DV "Body:" MB << std::endl;
+		// for (int i = 0; i < request->formData[0].bodySize; i++) {
+		for (size_t i = 0; i < request->formData[0].data.size(); i++) {
+			std::cout << request->formData[0].data[i];
+		}
+	}
+	std::cout << RED << "-----PRINT END-----" << std::endl;
+}
 
 std::string parseFormData(s_request *request) { // FIXME : response to each file uploaded
+	// return("200");
 	s_FormDataPart *formDataPart = &request->formData[0];
-	size_t pos = 0;
+	// size_t pos = 0;
 	std::istringstream iss(formDataPart->header);
 	std::string line;
 	std::string boundaryEnd = request->boundary + "--";
@@ -59,6 +72,8 @@ std::string parseFormData(s_request *request) { // FIXME : response to each file
 	// 	else
 	// 		std::cout << GREEN << "NO FIND" << std::endl;
 	// }
+
+	printFile(request, true);
 
 	while (std::getline(iss, line) && !line.empty())
 	{
@@ -83,36 +98,37 @@ std::string parseFormData(s_request *request) { // FIXME : response to each file
 		send(request->connection, "File upload failed! ", strlen("File upload failed! "), 0);
 		return "500";
 	}
-	std::cout << MB "File uploaded!" << std::endl;
-	pos = formDataPart->header.find("\r\n\r\n");
+	
+	// pos = formDataPart->header.find("\r\n\r\n");
 	if (request->dataLen >= stoul(request->headers["Content-Length"]))
 	{
-		std::vector<char>::iterator bpos;
-		if (hasLeadingOrTrailingWhitespace(request->boundary))
-		{
-			std::cout << YELLOW << request->boundary << C << std::endl;
-			trimWhitespace(request->boundary);
-		}
+		// std::vector<char>::iterator bpos;
+		// if (hasLeadingOrTrailingWhitespace(request->boundary))
+		// {
+		// 	std::cout << YELLOW << request->boundary << C << std::endl;
+		// 	trimWhitespace(request->boundary);
+		// }
 
-		// std::cout << formDataPart->data.size() << std::endl;
-		formDataPart->data.erase(formDataPart->data.begin() + stoul(request->headers["Content-Length"]), formDataPart->data.end());
-		// std::cout << formDataPart->data.size() << std::endl;
+		// // std::cout << formDataPart->data.size() << std::endl;
+		// formDataPart->data.erase(formDataPart->data.begin() + stoul(request->headers["Content-Length"]), formDataPart->data.end());
+		// // std::cout << formDataPart->data.size() << std::endl;
 
 
-		if ((bpos = std::search(formDataPart->data.begin() + request->boundary.size(), formDataPart->data.end(), boundaryEnd.begin(), boundaryEnd.end())) != formDataPart->data.end())
-		{
-			std::cout << YELLOW << "FIND>" << std::endl;
-			formDataPart->data.erase(bpos, formDataPart->data.end()); // FIXME : don't erase boundary or write to much ?
-		}
-		else
-			std::cout << YELLOW << "NO FIND" << std::endl;
+		// if ((bpos = std::search(formDataPart->data.begin() + request->boundary.size(), formDataPart->data.end(), boundaryEnd.begin(), boundaryEnd.end())) != formDataPart->data.end())
+		// {
+		// 	std::cout << YELLOW << "FIND>" << std::endl;
+		// 	formDataPart->data.erase(bpos, formDataPart->data.end()); // FIXME : don't erase boundary or write to much ?
+		// }
+		// else
+		// 	std::cout << YELLOW << "NO FIND" << std::endl;
 
-		// for (size_t i = pos + 4; i < formDataPart->data.size(); i++)
-		// 	std::cout << &formDataPart->data[i];
-		outputFile.write(&formDataPart->data[pos + 4], formDataPart->data.size() - pos);
+		// // for (size_t i = pos + 4; i < formDataPart->data.size(); i++)
+		// // 	std::cout << &formDataPart->data[i];
+		outputFile.write(&formDataPart->data[0], formDataPart->data.size());
 	}
 	else
-		outputFile.write(&formDataPart->data[pos + 4], formDataPart->data.size() - pos);
+		outputFile.write(&formDataPart->data[0], formDataPart->data.size());
+	std::cout << MB "File uploaded!" << std::endl;
 	outputFile.close();
 	handleGetRequest(request->connection, *request);
 	send(request->connection, "File uploaded! ", strlen("File uploaded! "), 0);
@@ -120,8 +136,8 @@ std::string parseFormData(s_request *request) { // FIXME : response to each file
 }
 
 int readFormData(s_request *request) {
-	size_t bufferSize = 1000;
-	char buffer[bufferSize];
+	size_t bufferSize = 640;
+	char buffer[bufferSize + 1];
 	s_FormDataPart *formDataPart = &request->formData[0];
 	size_t bytes = 0;
 	size_t pos = 0;
@@ -135,9 +151,11 @@ int readFormData(s_request *request) {
 
 	if ((bytes = recv(request->connection, buffer, bufferSize, 0)) > 0 && bytes != std::string::npos)
 	{
+		std::cout << GREEN << bytes << std::endl;
 		buffer[bytes] = '\0';
-		if ((pos = formDataPart->header.find("\r\n\r\n")) == std::string::npos)
-			formDataPart->header += buffer;
+		std::cout << MB << buffer << std::endl;
+		// if ((pos = formDataPart->header.find("\r\n\r\n")) == std::string::npos)
+		// 	formDataPart->header += buffer;
 		request->dataLen += bytes;
 		formDataPart->data.insert(formDataPart->data.end(), buffer, buffer + bytes);
 
@@ -146,17 +164,34 @@ int readFormData(s_request *request) {
 			std::vector<char>::iterator bpos;
 			if ((bpos = std::search(formDataPart->data.begin() + request->boundary.size(), formDataPart->data.end(), request->boundary.begin(), request->boundary.end())) != formDataPart->data.end())
 			{
-				std::cout << RED << "FIND" << std::endl;
-				formDataPart->full = true;
-				request->formData[1].header.clear();
-				request->formData[1].header = std::string(bpos, formDataPart->data.end());
+				std::cout << GREEN << "[FORMDATA-READ] FIND BOUNDARY" << std::endl;
+				// NEXT HEADER
+				// request->formData[1].header.clear();
+				// request->formData[1].header = std::string(bpos, formDataPart->data.end());
+				// NEXT BODY
 				request->formData[1].data.clear();
 				request->formData[1].data.insert(request->formData[1].data.end(), bpos, formDataPart->data.end());
-				formDataPart->data.erase(bpos, formDataPart->data.end());
-				parseFormData(request);
+
+				// HEADER
+				const char *crlf2 = "\r\n\r\n";
+				std::string head(formDataPart->data.begin(), std::search(formDataPart->data.begin(), formDataPart->data.end(), crlf2, crlf2 + 4)) ;
+				formDataPart->header = head;
+				// BODY 
+				formDataPart->data.erase(bpos, formDataPart->data.end()); // next file data
+				// std::vector<char> body(std::search(formDataPart->data.begin(), formDataPart->data.end(), crlf2, crlf2 + 4), formDataPart->data.end());
+				// formDataPart->data = body;
+				formDataPart->data.erase(formDataPart->data.begin(), std::search(formDataPart->data.begin(), formDataPart->data.end(), crlf2, crlf2 + 4) + 4);
+				
+				formDataPart->full = true;
+				if (request->dataLen < stoul(request->headers["Content-Length"]))
+				{
+					parseFormData(request);
+					return 0; // chunk
+				}
+				return 1;
 			}
 			else
-				std::cout << RED << "NO FIND" << std::endl;
+				std::cout << RED << "[FORMDATA-READ] NOT FIND BOUNDARY" << std::endl;
 		}
 
 		if (request->dataLen < stoul(request->headers["Content-Length"]))
@@ -229,6 +264,7 @@ std::string handleFormData(int connection, s_request *request, int *end) {
 	}
 	size_t pos = 0;
 	*end = readFormData(request);
+	std::cout << *end << std::endl;
 	if (*end == 0)
 		return "Chunked";
 	return parseFormData(request);
@@ -261,13 +297,13 @@ std::string handleFormData(int connection, s_request *request, int *end) {
 		send(request->connection, "File upload failed! ", strlen("File upload failed! "), 0);
 		return "500";
 	}
-	std::cout << MB "File uploaded!" << std::endl;
 	pos = formDataPart->header.find("\r\n\r\n");
 	std::cout << YELLOW << pos << C << std::endl;
 	outputFile.write(&formDataPart->data[pos + 4], request->dataLen- (pos + 4) - request->boundary.size()); // +2 if end request (--)
 	outputFile.close();
 	handleGetRequest(request->connection, *request);
 	send(request->connection, "File uploaded! ", strlen("File uploaded! "), 0);
+	std::cout << MB "File uploaded!" << std::endl;
 	return "200";
 }
 
@@ -326,7 +362,7 @@ std::string handleJson(int connection, s_request request) {
 
 int handlePostRequest(int connection, s_request *request) {
 	std::string status = "505";
-	int end;
+	int end = 1;
 
 	std::cout << DV << "POST request" << std::endl;
 
@@ -338,6 +374,9 @@ int handlePostRequest(int connection, s_request *request) {
 		status = handleJson(connection, *request);
 	std::cout << DV << "POST request end" << std::endl;
 	std::string response = "HTTP/1.1 " + status + " OK\r\n"; // TODO : map status code and message
-	send(connection, response.c_str(), response.length(), 0);
+	if (end)
+		send(connection, response.c_str(), response.length(), 0);
+	
+	std::cout << DV "PARSE REQUEST END" << std::endl;
 	return end;
 }
