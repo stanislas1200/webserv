@@ -4,9 +4,6 @@
 #include <arpa/inet.h>
 
 std::string readHeader(int connection) {
-
-	std::cout << "Read header" << std::endl;
-
 	std::string header;
 	char buffer[1024];
 	int bytes = 0;
@@ -21,9 +18,6 @@ std::string readHeader(int connection) {
 }
 
 int handleConnection(s_request *request) {
-
-	std::cout << "Handle connection" << std::endl;
-
 	std::string header;
 	if (request->headers.size() == 0)
 		header = readHeader(request->connection);
@@ -62,36 +56,13 @@ int isServerConnection(std::vector<s_server> servers, int fd) {
 	for (size_t j = 0; j < servers.size(); j++)
 	{
 		if (fd == servers[j].fd)
-		{
-			// // new connection
-			// struct sockaddr_in client_addr;
-			// socklen_t client_len = sizeof(client_addr);
-			// int client_fd = accept(servers[j].fd, (struct sockaddr*)&client_addr, &client_len);
-			// std::cout << "Accept: " << client_fd << std::endl;
-			// if (client_fd == -1)
-			// 	return error("Accept:", strerror(errno), NULL), -1; // TODO : close all fd
-			
-			// // set non blocking
-			// int flag = fcntl(client_fd, F_GETFL, 0);
-			// if (fcntl(client_fd, F_SETFL, flag | O_NONBLOCK) < 0)
-			// 	return close(client_fd), error("Sock opt:", strerror(errno), NULL), -1; // TODO : close all fd
-			
-			// // add client to epoll
-			// struct epoll_event client_event;
-			// client_event.events = EPOLLIN | EPOLLOUT | EPOLLET; // edge triggered mode
-			// client_event.data.fd = client_fd;
-			// if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &client_event) == -1)
-			// 	return close(client_fd), error("Epoll:", strerror(errno), NULL), -1; // TODO : close all fd
-			// std::cout << GREEN "New connection: " DV << client_fd << " " << inet_ntoa(client_addr.sin_addr) << " " << ntohs(client_addr.sin_port) << C << std::endl;
 			return 1;
-		}
 	}
 	return 0;
 }
 
 void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
-
-	// server using select 
+	std::cout << C"[" DV "serverRun" C "] " << YELLOW "---START---" C << std::endl;
 	std::vector<s_request> requests;
 	std::map<int, s_request> request_map;
 	
@@ -119,80 +90,49 @@ void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 			{
 				for (std::map<int, s_request>::iterator it = request_map.begin(); it != request_map.end(); ++it)
 				{
-					// check if it.connection is in vectior severs using vectior buildin
-					// if (std::find(servers.begin(), servers.end(), it->second) != servers.end())
-					// 	continue;
-					// if (!isServerConnection(servers, it->second.connection))
-					// {
-					// 	std::cout << YELLOW "server" << std::endl;
-					// 	continue;
-					// }
-					std::cout << RED << "OK1" << std::endl;
 					if (handleConnection(&it->second))
 					{
-						std::cout << GREEN << "close connection" << std::endl;
-						// close(request.connection);
-						// if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, it->second.connection, NULL) == -1)
-						// 	return close(epoll_fd), error("Epoll M:", strerror(errno), NULL); // TODO : close all fd
+						std::cout << C"[" DV "serverRun" C "] " << MB "close chunck connection" C << std::endl;
 						close(it->second.connection);
-						std::cout << "Erase1 " << request_map.size() << std::endl;
 						request_map.erase(it->second.connection);
-						std::cout << "Erase1 " << request_map.size() << std::endl;
 						break;
 					}
 				}
-				std::cout << request_map.size() << std::endl;
 			}
 
-			std::cout << GREEN "\rWait " << max_fd << std::flush;
+			std::cout << C"\r[" DV "serverRun" C "] " << GREEN "waiting a connection" C << std::flush;
 			ret = select(max_fd + 1, &reading_set, NULL, NULL, &tv); // get the number of ready file descriptors
-
 		}
 
+		std::cout << "\n" << std::endl;
 		if (ret > 0)
 		{
 			for (size_t i = 0; i < fd_size; i++)
 			{
 				if (FD_ISSET(servers[i].fd, &reading_set)) // check if the fd is in set
 				{
-					std::cout << RED "\nFind a connection: " << servers[i].fd << std::endl;
+					// new connection
 					int addrlen = sizeof(servers[i].sockaddr);
-					// if (servers[i].requests.size() == 0) 
-					// {
-						// new connection
-						s_request	request;
-						std::cout << "New connection" << std::endl;
-						request.connection = accept(servers[i].fd, (struct sockaddr*)&servers[i].sockaddr, (socklen_t*)&addrlen);
-						std::cout << "Accept: " << request.connection << std::endl;
-						if (request.connection < 0)
-						{
-							error("Accept:", strerror(errno), NULL);
-						}
-						// else
-						// 	servers[i].requests.push_back(request);
-					
-					// std::cout << "Request: " << servers[i].requests[0].path << std::endl;
-					
-					// handle request
-					// int client_fd = request.connection;
-					// s_request request;
-					// if (request_map.find(client_fd) == request_map.end())
-					// {
-					// request.connection = client_fd;
-					std::cout << MB "Add request" << std::endl;
-					request_map[request.connection] = request;
-					std::cout << RED << "OK2" << std::endl;
+					s_request	request;
+					request.connection = accept(servers[i].fd, (struct sockaddr*)&servers[i].sockaddr, (socklen_t*)&addrlen);
+					std::cout << C"[" DV "serverRun" C "] " << MB "connection fd" C ": " GREEN << request.connection << std::endl;
+					if (request.connection < 0)
+					{
+						error("Accept:", strerror(errno), NULL);
+					}
 
+					// add connection to map
+					request_map[request.connection] = request;
+
+					// handle connection
 					if (handleConnection(&request)) // read using recv return 1 if all is read else 0 if only buffer_size is read
 					{
-						std::cout << GREEN << "close connection" << std::endl;
+						std::cout << C"[" DV "serverRun" C "] " << MB "close connection" C << std::endl;
 						close(request.connection);
-						std::cout << "Erase2 " << request_map.size() << std::endl;
 						request_map.erase(request.connection);
-						std::cout << "Erase2 " << request_map.size() << std::endl;
 					}
+					// update map
 					request_map[request.connection] = request;
-				
 				}
 			}
 		}
@@ -200,7 +140,6 @@ void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 			error("Select:", strerror(errno), NULL);		
 
 	}
-
 	return;
 }
 

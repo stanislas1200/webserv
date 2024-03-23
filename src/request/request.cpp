@@ -40,11 +40,10 @@ void printRequest(s_request request) {
 }
 
 int parseRequest(std::string header, s_request *request) {
-	std::cout << "Check request" << std::endl;
+	// Parse request header if needed
 	int connection = request->connection;
 	if (request->method.empty())
 	{
-		std::cout << "Parsing request" << std::endl;
 		std::istringstream requestStream(header);
 		std::string line;
 
@@ -63,14 +62,8 @@ int parseRequest(std::string header, s_request *request) {
 			request->headers[headerName] = headerValue;
 		}
 	}
-
-	// // Parse the body
-	// std::stringstream ss;
-	// ss << requestStream.rdbuf();
-	// request->body = ss.str();
-
-	std::cout << MB "METHOD: " GREEN << request->method << C << std::endl;
-	
+	// handle methode
+	std::cout << C"[" DV "parseRequest" C "] " << MB "METHOD" C ": " GREEN << request->method << C << std::endl;
 	if (request->method == "GET")
 		return handleGetRequest(connection, *request);
 	else if (request->method == "POST")
