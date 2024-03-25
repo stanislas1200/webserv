@@ -6,7 +6,7 @@
 /*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:33:10 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/02/16 16:28:48 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/03/23 14:54:00 by gduchesn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ class ServConfig {
         // std::vector<std::string>    methode;
         std::map<int, std::string> _errorpages;
         void    wrongFormatError(const char *msg, const char *line);
+        void    initializeVariable(std::vector<std::string> tokens, std::string line);
     public:
         ServConfig(void);
         ServConfig(const ServConfig &src);
@@ -39,6 +40,10 @@ class ServConfig {
         std::map<int, std::string> getErrorPages(void) const;
         
 		class wrongFormat : public std::exception {
+			public :
+				virtual const char* what(void) const throw();
+		};
+		class MultipleServerOpen : public std::exception {
 			public :
 				virtual const char* what(void) const throw();
 		};

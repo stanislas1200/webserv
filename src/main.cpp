@@ -33,7 +33,7 @@ void getConfig(std::vector<ServConfig> *configClass, std::string file) {
 	std::ifstream confFile(file.c_str());
 	ServConfig  newElement;
 
-    // try {
+    try {
         while (confFile.eof() != 1) {
             // ServConfig  newElement;
             std::cout << "hello" << std::endl;
@@ -46,10 +46,10 @@ void getConfig(std::vector<ServConfig> *configClass, std::string file) {
 		for (std::vector<ServConfig>::iterator it = configClass->begin(); it != configClass->end(); it++) {
 			std::cout << *it << std::endl;
 		}
-	// }
-    // catch (std::exception& e) {
-		// std::cout << e.what() << std::endl;
-	// }
+	}
+    catch (std::exception& e) {
+		std::cout << e.what() << std::endl;
+	}
     confFile.close();
 }
 
