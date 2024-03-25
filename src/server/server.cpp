@@ -143,15 +143,15 @@ void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 	return;
 }
 
-void acceptConnection(s_config config) {
+void acceptConnection(std::vector<ServConfig> config) {
 	(void)config;
     std::vector<s_server> servers;
-	s_server server1;
-	s_server server2;
-	server1.port = 8090;
-	server2.port = 8091;
-	servers.push_back(server1);
-	servers.push_back(server2);
+	for (unsigned long i = 0; i < config.size(); i++)
+	{
+		s_server server;
+		server.port = config[i].getPort();
+		servers.push_back(server);
+	}
 
 	int max_fd;
 	size_t fd_size;

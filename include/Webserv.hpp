@@ -67,6 +67,6 @@ typedef struct s_server {
 
 int parseRequest(std::string header, s_request *request);
 void error(const char *type, const char *msg, const char *bold);
-void acceptConnection(s_config config);
+void acceptConnection(std::vector<ServConfig> config);
 void	sendFile(int connection, std::ifstream *file, std::string status, std::string fileName);
 void printRequest(s_request request);

@@ -9,6 +9,6 @@ server {
 	errorpages 404 src/pages/errorpages/error_404.html
 	listen 8081
     methodes GET
-    server_names littleCloud
+    server_names bigCloud
     client_size 43
 }
