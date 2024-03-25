@@ -2,11 +2,16 @@
 <body>
 	<div class="container">
 		<div class="box">
-			<form method='POST' enctype='multipart/form-data' accept-charset='utf-8'>
+			<form id="upload-form" method='POST' enctype='multipart/form-data' accept-charset='utf-8'>
 				<h1>Upload a file</h1>
+				<input id="file1" name="file1" type="file" />
 				<input id="file2" name="file2" type="file" />
-				<input type="submit">
+				<input id="file3" name="file3" type="file" />
+				<input type="submit" value="Upload File">
 			</form>
+			<div id="progress-bar">
+				<div id="progress">0%</div>
+			</div>
 		</div>
 		<div class="box">
 			<form method='POST' enctype='application/x-www-form-urlencoded' accept-charset='utf-8'>
@@ -24,4 +29,29 @@
 			</form>			
 		</div>
 	</div>
+
+	<script>
+		var defaultUrl = window.location.href; // Default upload URL
+		document.getElementById('upload-form').addEventListener('submit', function(event) {
+		  event.preventDefault(); // Prevent the default form submission
+		  
+		  var xhr = new XMLHttpRequest();
+		  var formData = new FormData(document.getElementById('upload-form'));
+		  
+		  xhr.open('POST', defaultUrl, true);
+		  xhr.upload.onprogress = function(event) {
+			if (event.lengthComputable) {
+			  var progress = Math.round((event.loaded / event.total) * 100);
+			  document.getElementById('progress').style.width = progress + '%';
+			  document.getElementById('progress').innerText = progress + '%';
+			}
+		  };
+		  xhr.onload = function() {
+			if (xhr.status === 200) {
+			  console.log('File uploaded successfully!');
+			}
+		  };
+		  xhr.send(formData);
+		});
+	  </script>
 </body>

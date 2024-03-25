@@ -18,6 +18,7 @@
 # include <fcntl.h>
 # include "ServConfig.hpp"
 
+
 # define RED "\x1b[1m\x1b[38;2;255;0;0m"
 # define MB "\x1b[1m\x1b[38;2;25;25;599m"
 # define GREEN "\x1b[1m\x1b[38;2;0;128;0m"
@@ -42,7 +43,8 @@ typedef struct s_FormDataPart {
 	std::string filename;
 	std::string contentType;
 	std::vector<char> data;
-	int dataLen = 0;
+	size_t bodySize;
+	bool full = false;
 } t_FormDataPart;
 
 typedef struct s_request {
@@ -50,7 +52,9 @@ typedef struct s_request {
 	std::string path;
 	std::map<std::string, std::string> headers;
 	std::string body;
-	struct s_FormDataPart formData;
+	std::string boundary;
+	size_t dataLen = 0;
+	struct s_FormDataPart formData[2];
 	int connection;
 } t_request;
 
@@ -64,5 +68,5 @@ typedef struct s_server {
 int parseRequest(std::string header, s_request *request);
 void error(const char *type, const char *msg, const char *bold);
 void acceptConnection(s_config config);
-void	sendFile(int connection, std::ifstream *file, std::string status);
+void	sendFile(int connection, std::ifstream *file, std::string status, std::string fileName);
 void printRequest(s_request request);
