@@ -15,10 +15,11 @@ int handleGetRequest(int connection, s_request request) {
 	if (!file.is_open()) {
 		status = "404"; // sendfile handle error; make a class ?
 		file.open("src/pages/errorpages/error_404.html", std::ios::binary);
+		path = "error_404.html";
 		error("File:", strerror(errno), fullPath.c_str());
 	}
 	
-	sendFile(connection, &file, status);
+	sendFile(connection, &file, status, path);
 	return 1;
 }
 
@@ -40,11 +41,10 @@ void printRequest(s_request request) {
 }
 
 int parseRequest(std::string header, s_request *request) {
-	std::cout << "Check request" << std::endl;
+	// Parse request header if needed
 	int connection = request->connection;
 	if (request->method.empty())
 	{
-		std::cout << "Parsing request" << std::endl;
 		std::istringstream requestStream(header);
 		std::string line;
 
@@ -63,12 +63,8 @@ int parseRequest(std::string header, s_request *request) {
 			request->headers[headerName] = headerValue;
 		}
 	}
-
-	// // Parse the body
-	// std::stringstream ss;
-	// ss << requestStream.rdbuf();
-	// request->body = ss.str();
-	
+	// handle methode
+	std::cout << C"[" DV "parseRequest" C "] " << MB "METHOD" C ": " GREEN << request->method << C << std::endl;
 	if (request->method == "GET")
 		return handleGetRequest(connection, *request);
 	else if (request->method == "POST")

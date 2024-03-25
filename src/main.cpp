@@ -45,40 +45,63 @@ void getConfig(std::vector<ServConfig> *configClass, std::string file) {
     confFile.close();
 }
 
-void	sendFile(int connection, std::ifstream *file, std::string status) {
+bool stringEnd(std::string file, std::string end) {
+	if (file.size() < end.size())
+		return false;
 
-	std::ifstream templat("src/pages/template.html");
+	int j = end.size();
+	for (unsigned long i = file.size(); i > file.size() - end.size(); i--)
+	{
+		if (file[i] != end[j])
+			return false;
+		j--;
+	}
+	return true;
+}
+
+void	sendFile(int connection, std::ifstream *file, std::string status, std::string fileName) {
+
+	std::string responce;
 	std::stringstream ss;
-	ss << templat.rdbuf();
-	std::string templateStr = ss.str();
-    
-	// Get response content
-	ss.str(""); // emtpy
-	ss << file->rdbuf();
-	std::string fileContent = ss.str();
+	if (stringEnd(fileName, ".html"))
+	{
+		std::ifstream templat("src/pages/template.html");
+		ss << templat.rdbuf();
+		responce = ss.str();
+		
+		// Get response content
+		ss.str(""); // emtpy
+		ss << file->rdbuf();
+		std::string fileContent = ss.str();
 
-	size_t pos = templateStr.find("{{BODY}}");
-	if (pos != std::string::npos) {
-		if (file->is_open())
-			templateStr.replace(pos, pos + 8, fileContent);
+		size_t pos = responce.find("{{BODY}}");
+		if (pos != std::string::npos) {
+			if (file->is_open())
+				responce.replace(pos, pos + 8, fileContent);
+			else
+				responce.replace(pos, pos + 8, "<h1 style=\"text-align:center\">Error 404 Not Found Error</h1>");
+		}
 		else
-			templateStr.replace(pos, pos + 8, "<h1 style=\"text-align:center\">Error 404 Not Found Error</h1>");
+		{
+			status = "500";
+			responce = "<h1 style=\"text-align:center\">Error 500 Internal Server Error</h1>";
+			error("File:", "Error in template file", NULL);
+		}
+		templat.close();
 	}
 	else
 	{
-		status = "500";
-		templateStr = "<h1 style=\"text-align:center\">Error 500 Internal Server Error</h1>";
-		error("File:", "Error in template file", NULL);
+		ss << file->rdbuf();
+		responce = ss.str();
 	}
 	// Send status line
 	std::string statusLine = "HTTP/1.1 " + status + " OK\r\n"; // TODO : map status code and message
 	send(connection, statusLine.c_str(), statusLine.length(), 0);
     send(connection, "Content-Type: text/html\r\n\r\n", strlen("Content-Type: text/html\r\n\r\n"), 0);
 
-	send(connection, templateStr.c_str(), templateStr.size(), 0);
+	send(connection, responce.c_str(), responce.size(), 0);
 
 	file->close();
-	templat.close();
 }
 
 int main(int ac, char **av) {
