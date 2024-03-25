@@ -3,20 +3,6 @@
 // inet_ntoa
 #include <arpa/inet.h>
 
-std::string readHeader(int connection) {
-	std::string header;
-	char buffer[1024];
-	int bytes = 0;
-
-	while ((bytes = recv(connection, buffer, 1, 0)) > 0) {
-		buffer[bytes] = '\0';
-		header += buffer;
-		if (header.find("\r\n\r\n") != std::string::npos)
-			break;
-	}
-	return header;
-}
-
 int handleConnection(s_request *request) {
 	std::string header;
 	if (request->headers.size() == 0)
@@ -49,15 +35,6 @@ int serverSetup(s_server *server) {
 	if (listen(server->fd, 10) == -1)
 		return close(server->fd), error("Listen:", strerror(errno), NULL), -1;
 
-	return 0;
-}
-
-int isServerConnection(std::vector<s_server> servers, int fd) {
-	for (size_t j = 0; j < servers.size(); j++)
-	{
-		if (fd == servers[j].fd)
-			return 1;
-	}
 	return 0;
 }
 

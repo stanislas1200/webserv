@@ -70,3 +70,4 @@ void error(const char *type, const char *msg, const char *bold);
 void acceptConnection(std::vector<ServConfig> config);
 void	sendFile(int connection, std::ifstream *file, std::string status, std::string fileName);
 void printRequest(s_request request);
+std::string readHeader(int connection);

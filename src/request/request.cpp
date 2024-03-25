@@ -1,33 +1,76 @@
 #include "../../include/request.hpp"
 
-int handleGetRequest(int connection, s_request request) {
-	
-	std::string path = request.path;
-	// TODO : CGI
-	if (path == "/") {
-		path = "/index.html";
-	}
+std::string readHeader(int connection) {
+	std::string header;
+	char buffer[1024];
+	int bytes = 0;
 
-	std::string fullPath = "src/pages" + path; // src/pages/../main.cpp
-	std::ifstream file(fullPath.c_str(), std::ios::binary);
-	std::string status = "200";
-
-	if (!file.is_open()) {
-		status = "404"; // sendfile handle error; make a class ?
-		file.open("src/pages/errorpages/error_404.html", std::ios::binary);
-		path = "error_404.html";
-		error("File:", strerror(errno), fullPath.c_str());
+	while ((bytes = recv(connection, buffer, 1, 0)) > 0) {
+		buffer[bytes] = '\0';
+		header += buffer;
+		if (header.find("\r\n\r\n") != std::string::npos)
+			break;
 	}
-	
-	sendFile(connection, &file, status, path);
-	return 1;
+	return header;
 }
 
-int handleDeleteRequest(int connection, s_request request) { // TODO : replace space in filename
-	if (std::remove(("upload/" + request.path).c_str()))
-		error("DELETE:", "no file:", ("upload/" + request.path).c_str());
-	send(connection, "HTTP/1.1 200 OK\r\n", strlen("HTTP/1.1 200 OK\r\n"), 0);
-	return 1;
+bool stringEnd(std::string file, std::string end) {
+	if (file.size() < end.size())
+		return false;
+
+	int j = end.size();
+	for (unsigned long i = file.size(); i > file.size() - end.size(); i--)
+	{
+		if (file[i] != end[j])
+			return false;
+		j--;
+	}
+	return true;
+}
+
+void	sendFile(int connection, std::ifstream *file, std::string status, std::string fileName) {
+
+	std::string responce;
+	std::stringstream ss;
+	if (stringEnd(fileName, ".html"))
+	{
+		std::ifstream templat("src/pages/template.html");
+		ss << templat.rdbuf();
+		responce = ss.str();
+		
+		// Get response content
+		ss.str(""); // emtpy
+		ss << file->rdbuf();
+		std::string fileContent = ss.str();
+
+		size_t pos = responce.find("{{BODY}}");
+		if (pos != std::string::npos) {
+			if (file->is_open())
+				responce.replace(pos, pos + 8, fileContent);
+			else
+				responce.replace(pos, pos + 8, "<h1 style=\"text-align:center\">Error 404 Not Found Error</h1>");
+		}
+		else
+		{
+			status = "500";
+			responce = "<h1 style=\"text-align:center\">Error 500 Internal Server Error</h1>";
+			error("File:", "Error in template file", NULL);
+		}
+		templat.close();
+	}
+	else
+	{
+		ss << file->rdbuf();
+		responce = ss.str();
+	}
+	// Send status line
+	std::string statusLine = "HTTP/1.1 " + status + " OK\r\n"; // TODO : map status code and message
+	send(connection, statusLine.c_str(), statusLine.length(), 0);
+    send(connection, "Content-Type: text/html\r\n\r\n", strlen("Content-Type: text/html\r\n\r\n"), 0);
+
+	send(connection, responce.c_str(), responce.size(), 0);
+
+	file->close();
 }
 
 void printRequest(s_request request) {

@@ -12,6 +12,8 @@
 
 SRCS = src/main.cpp\
 		src/request/request.cpp\
+		src/request/delete.cpp\
+		src/request/get.cpp\
 		src/request/post.cpp\
 		src/server/server.cpp\
 		src/config/ServConfig.cpp
