@@ -105,33 +105,43 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::str
     // line.replace(line.find(";"), line.length() - line.find(";"), "");
     // std::vector<std::string> tokens = split(line, ' ');
     (void) line;
-    if (tokens[0].find("server") != std::string::npos) {
-        std::cout << "end because new serv" << std::endl; //
-        return;
-    }
+    // if (tokens[0].find("server") != std::string::npos) {
+    //     std::cout << "end because new serv" << std::endl; //
+    //     return;
+    // }
     // std::cout << tokens[0] << " " << tokens[0].find("errorpages") << std::endl;
-    if (tokens[0].find("errorpages") == 1) {
+    std::vector<std::string>::iterator it = tokens.begin();
+    if (it->find("errorpages") != std::string::npos) {
         //need exeption when the setting file is not properly design !
+        std::cout << "IN ERROR PAGES " << tokens.size() << std::endl;
+        // displayVector(tokens);
         if (tokens.size() != 3)
             wrongFormatError("errorpages", "");
         _errorpages[stoi(tokens[1])] = tokens[2];
-    }   else if (tokens[0].find("server_names") == 1) {
+    }
+    else if (it->find("server_names") != std::string::npos) {
+        std::cout << "IN SERVER_NAMES " << tokens.size() << std::endl;
         if (tokens.size() != 2)
             wrongFormatError("server_names", "");
         _name = tokens[1];
-    }   else if (tokens[0].find("listen") == 1) {
+        std::cout << "IN NAME " << _name << std::endl;
+    }
+    else if (tokens[0].find("listen")  != std::string::npos) {
         if (tokens.size() != 2)
             wrongFormatError("listen", "");
         _port = stoi(tokens[1]);
-    }   else if (tokens[0].find("methode") == 1) {
+    }
+    else if (tokens[0].find("methode")  != std::string::npos) {
         if (tokens.size() < 2)
             wrongFormatError("methode", "");
-        // _methode = line.erase(line.find("methode"), 8);
-    }   else if (tokens[0].find("client_size") == 1) {
+        _methode = tokens[1];
+    }
+    else if (tokens[0].find("client_size")  != std::string::npos) {
         if (tokens.size() != 2)
             wrongFormatError("client_size", "");
         _maxClient = stoi(tokens[1]);
     }
+    // std::cout << "OEEE: " << _errorpages[503] << std::endl;
 }
 
 void    ServConfig::initializeConfig(std::ifstream *confFile) {
@@ -153,17 +163,22 @@ void    ServConfig::initializeConfig(std::ifstream *confFile) {
             else
                 throw MultipleServerOpen();
         }
-        if (*tokens.begin() == "}")
+        if (*tokens.begin() == "}") {
+            std::cout << std::endl << "-----------End of server---------------" << std::endl;
             return;
+        }
         // tokens.~vector();
         index++;
         initializeVariable(tokens, line);
+        // std::cout << std::endl;
         displayVector(tokens);
         tokens.clear();
-        if (index == 2)
-            break;
+        std::cout << "Initialize: " << _name << std::endl;
+        // if (index == 2)
+            // break;
         // continue ;
         // ss << index;
+        std::cout << "index: " << index << std::endl << std::endl;
     }
     // std::cout << "Port: " << _port << std::endl;
     //print the map
