@@ -51,6 +51,10 @@
 			  console.log('File uploaded successfully!');
 			}
 		  };
+		  xhr.onerror = function() {
+			document.getElementById('progress').style.backgroundColor = '#dc3545';
+			document.getElementById('progress').innerText = "Failed!";
+		  }
 		  xhr.send(formData);
 		});
 	  </script>
