@@ -9,15 +9,17 @@ void error(const char *type, const char *msg, const char *bold) {
 }
 
 void getConfig(s_config *config, std::string file) {
+	std::cout << "Old GetConfig" << std::endl;
+
+	
 	std::ifstream confFILE(file.c_str());
 	if (!confFILE.is_open()) {
 		error("Config:", strerror(errno), NULL);
 		return ;
 	}
-
 	std::string line;
 	while (std::getline(confFILE, line)) {
-		std::cout << line << std::endl;
+		//std::cout << line << std::endl;
 		if (line.find("listen") != std::string::npos) {
 			config->port = atoi(line.substr(line.find(" ") + 1).c_str());
 			if (config->port < 0 || config->port > 65535)
@@ -25,15 +27,22 @@ void getConfig(s_config *config, std::string file) {
 		}
 	}
     confFILE.close();
+}
 
+void getConfig(std::vector<ServConfig> *configClass, std::string file) {
 	std::ifstream confFile(file.c_str());
-    ServConfig  configClass;
+	ServConfig  newElement;
+
     try {
-        configClass.initializeConfig(&confFile);
-    }
+        while (confFile.eof() != 1) {
+            newElement.initializeConfig(&confFile);
+            configClass->push_back(newElement);
+		}
+	}
     catch (std::exception& e) {
 		std::cout << e.what() << std::endl;
 	}
+    confFile.close();
 }
 
 void	sendFile(int connection, std::ifstream *file, std::string status) {
@@ -74,14 +83,20 @@ void	sendFile(int connection, std::ifstream *file, std::string status) {
 
 int main(int ac, char **av) {
 	s_config config;
+    std::vector<ServConfig> configClass;
 
 	if (ac != 2) {
 		// error("Usage:", av[0], "<config_file>");
 		std::cout << GREEN "WebServ: " << MB "Using default config file" C << std::endl;
 		getConfig(&config, "configs/default");
+		getConfig(&configClass, "configs/default");
 	}
-	else
+	else {
 		getConfig(&config, av[1]);
-
+		getConfig(&configClass, av[1]);
+	}
+	for (std::vector<ServConfig>::iterator it = configClass.begin(); it != configClass.end(); it++) {
+		std::cout << *it << std::endl;
+	}
 	acceptConnection(config);
 }

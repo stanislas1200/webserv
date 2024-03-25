@@ -14,7 +14,7 @@ SRCS = src/main.cpp\
 		src/request/request.cpp\
 		src/request/post.cpp\
 		src/server/server.cpp\
-		src/ServConfig.cpp
+		src/config/ServConfig.cpp
 
 INCL = include/Webserv.hpp
 

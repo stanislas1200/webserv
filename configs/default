@@ -1,8 +1,14 @@
 server {
-	errorpages 404 src/pages/errorpages/error_404.html;
-	errorpages 503 src/pages/errorpages/error_503.html;
-	listen 8080;
-    methodes GET POST AGAIN;
-    server_names littleCloud;
-    client_size 42;
+	errorpages 503 src/pages/errorpages/error_503.html
+	listen 8080
+    methodes GET POST AGAIN
+    server_names littleCloud
+    client_size 42
+}
+server {
+	errorpages 404 src/pages/errorpages/error_404.html
+	listen 8081
+    methodes GET
+    server_names littleCloud
+    client_size 43
 }
