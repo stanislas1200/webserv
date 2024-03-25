@@ -32,35 +32,16 @@ void getConfig(s_config *config, std::string file) {
 void getConfig(std::vector<ServConfig> *configClass, std::string file) {
 	std::ifstream confFile(file.c_str());
 	ServConfig  newElement;
-	std::vector<ServConfig> config;
 
     try {
         while (confFile.eof() != 1) {
-            // ServConfig  newElement;
-            // std::cout << "hello" << std::endl;
             newElement.initializeConfig(&confFile);
             configClass->push_back(newElement);
-			config.push_back(newElement);
-			std::cout << "Initialize: " << newElement.getName() << std::endl;
-			std::vector<ServConfig>::iterator it = config.begin();
-			std::cout << "Initialize: configclass: " << it->getName() << configClass->size() << std::endl;
-			// for (std::vector<ServConfig>::iterator it = configClass->begin(); it != configClass->end(); it++) {
-			// 	std::cout << *it << std::endl;
-			// }
-            // std::cout << "size of configclass " << configClass->front().getPort() << " size " << configClass->size() << std::endl;
-			break;
 		}
-		// std::cout << std::endl << "Class after being filled" << std::endl;
-		// for (std::vector<ServConfig>::iterator it = configClass->begin(); it != configClass->end(); it++) {
-		// 	std::cout << *it << std::endl;
-		// }
-		// std::cout << "OEEE: " << configClass[0][0].getErrorPages()[503] << std::endl;
 	}
     catch (std::exception& e) {
 		std::cout << e.what() << std::endl;
 	}
-	std::cout << "Initialize: " << newElement.getName() << std::endl;
-	std::cout << "Initialize: configclass: " << configClass->front().getName() << configClass->size() << std::endl;
     confFile.close();
 }
 
@@ -107,16 +88,15 @@ int main(int ac, char **av) {
 	if (ac != 2) {
 		// error("Usage:", av[0], "<config_file>");
 		std::cout << GREEN "WebServ: " << MB "Using default config file" C << std::endl;
-		// getConfig(&config "configs/default");
+		getConfig(&config, "configs/default");
 		getConfig(&configClass, "configs/default");
 	}
 	else {
-		// getConfig(&config, av[1]);
+		getConfig(&config, av[1]);
 		getConfig(&configClass, av[1]);
 	}
 	for (std::vector<ServConfig>::iterator it = configClass.begin(); it != configClass.end(); it++) {
 		std::cout << *it << std::endl;
 	}
-	exit(0);
 	acceptConnection(config);
 }

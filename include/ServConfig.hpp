@@ -47,7 +47,6 @@ class ServConfig {
 			public :
 				virtual const char* what(void) const throw();
 		};
-
 };
 
 template<typename T>
