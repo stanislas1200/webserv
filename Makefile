@@ -12,6 +12,7 @@
 
 SRCS = src/main.cpp\
 		src/request/request.cpp\
+		src/request/post.cpp\
 		src/server/server.cpp\
 		src/config/ServConfig.cpp
 
@@ -19,7 +20,7 @@ INCL = include/Webserv.hpp
 
 NAME =  webserv
 
-GCC = c++ -std=c++11 -Wall -Wextra -Werror -g
+GCC = c++ -std=c++11 -Wall -Wextra -Werror -g -fsanitize=address
 
 OBJS_DIR = ./objects/
 OBJS = $(addprefix $(OBJS_DIR), $(SRCS:.cpp=.o))
