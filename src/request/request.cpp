@@ -15,10 +15,11 @@ int handleGetRequest(int connection, s_request request) {
 	if (!file.is_open()) {
 		status = "404"; // sendfile handle error; make a class ?
 		file.open("src/pages/errorpages/error_404.html", std::ios::binary);
+		path = "error_404.html";
 		error("File:", strerror(errno), fullPath.c_str());
 	}
 	
-	sendFile(connection, &file, status);
+	sendFile(connection, &file, status, path);
 	return 1;
 }
 

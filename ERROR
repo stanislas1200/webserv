@@ -1,6 +1,5 @@
 Connection reset if NO_BLOCKING
 CLIENT CLOSED CONNECTION : SERVER abord
-Template send whataver file type
 // recv blocking
 delete space = %20;
 
