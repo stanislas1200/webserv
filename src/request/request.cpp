@@ -63,7 +63,8 @@ int parseRequest(std::string header, s_request *request) {
 		}
 	}
 	// handle methode
-	std::cout << C"[" DV "parseRequest" C "] " << MB "METHOD" C ": " GREEN << request->method << C << std::endl;
+	// std::cout << C"[" DV "parseRequest" C "] " << MB "METHOD" C ": " GREEN << request->method << C << std::endl;
+	printRequest(*request);
 	if (request->method == "GET")
 		return handleGetRequest(connection, *request);
 	else if (request->method == "POST")
