@@ -1,28 +1,28 @@
 #include "../../include/cgi.hpp"
 
-std::map<std::string, std:string>	mapToMap(const std::map<std::string, std::string>& headers)
+std::map<std::string, std::string>	mapToMap(std::map<std::string, std::string>& headers)
 {
 	std::map<std::string, std::string>				env;
-	std::map<std::string, std::string>::iterator	it;
+	// std::map<std::string, std::string>::iterator	it;
 
-	for (it = headers.begin(); it != headers.end(); ++it)
+	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
 	{
 		if (it->first == "Accept")
-			env.insert("HTTP_ACCEPT=", it->second);
+			env["HTTP_ACCEPT="] = it->second;
 		else if (it->first == "Accept-Encoding")
-			env.insert("HTTP_ACCEPT_ENCODING=", it->second);
+			env["HTTP_ACCEPT_ENCODING="] = it->second;
 		else if (it->first == "Accept-Language")
-			env.insert("HTTP_ACCEPT_LANGUAGE=", it->second);
+			env["HTTP_ACCEPT_LANGUAGE="] = it->second;
 		else if (it->first == "Connection")
-			env.insert("HTTP_CONNECTION=", it->second);
+			env["HTTP_CONNECTION="] = it->second;
 		else if (it->first == "Content-Length")
-			env.insert("CONTENT_LENGTH=", it->second);
+			env["CONTENT_LENGTH="] = it->second;
 		else if (it->first == "Content-Type")
-			env.insert("CONTENT_TYPE=", it->second);
+			env["CONTENT_TYPE="] = it->second;
 		else if (it->first == "Host")
-			env.insert("HTTP_HOST=", it->second);
+			env["HTTP_HOST="] = it->second;
 		else if (it->first == "User-Agent")
-			env.insert("HTTP_USER_AGENT=", it->second);
+			env["HTTP_USER_AGENT="] = it->second;
 	}
 	env.insert("SERVER_PROTOCOL=", "HTTP/1.1");
 	return (env);
@@ -30,7 +30,7 @@ std::map<std::string, std:string>	mapToMap(const std::map<std::string, std::stri
 
 std::string	getOutput(int fd)
 {
-	std::string	outputString == "";
+	std::string	outputString = "";
 	char		buff[1024];
 	int			check;
 
@@ -47,7 +47,7 @@ std::string	getOutput(int fd)
 	return (outputString);
 }
 
-std::string	runCgi(request& request)
+std::string	runCgi(s_request& request)
 {
 	int	fd[2];
 
