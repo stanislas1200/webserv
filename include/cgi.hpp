@@ -7,7 +7,7 @@
 class tempThrow : public std::exception
 {
 	public:
-		const char*	what(void) const throw
+		const char*	what(void) const throw()
 		{
 			return ("TEMP THROW -- TO DELETE LATER");
 		}
