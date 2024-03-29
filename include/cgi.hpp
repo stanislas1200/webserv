@@ -3,6 +3,7 @@
 # include "Webserv.hpp"
 # include <cstdio>
 # include <cstdlib>
+#include <sys/wait.h>
 
 class tempThrow : public std::exception
 {
