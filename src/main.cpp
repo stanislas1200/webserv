@@ -36,25 +36,16 @@ void getConfig(s_config *config, std::string file) {
 	}
 }
 
-void	sendFile(int connection, std::ifstream *file, std::string status) {
+void	sendFile(int connection, std::string fileContent, std::string status) {
 
 	std::ifstream templat("src/pages/template.html");
 	std::stringstream ss;
 	ss << templat.rdbuf();
 	std::string templateStr = ss.str();
-    
-	// Get response content
-	ss.str(""); // emtpy
-	ss << file->rdbuf();
-	std::string fileContent = ss.str();
 
 	size_t pos = templateStr.find("{{BODY}}");
 	if (pos != std::string::npos) {
-		if (file->is_open())
-			templateStr.replace(pos, pos + 8, fileContent);
-		else
-			templateStr.replace(pos, pos + 8, "<h1 style=\"text-align:center\">Error 404 Not Found Error</h1>");
-	}
+		templateStr.replace(pos, pos + 8, fileContent);}
 	else
 	{
 		status = "500";
@@ -68,7 +59,6 @@ void	sendFile(int connection, std::ifstream *file, std::string status) {
 
 	send(connection, templateStr.c_str(), templateStr.size(), 0);
 
-	file->close();
 	templat.close();
 }
 

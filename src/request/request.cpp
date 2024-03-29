@@ -4,22 +4,50 @@ std::string	runCgi(s_request& request);
 int handleGetRequest(int connection, s_request request) {
 	
 	std::string path = request.path;
-	// TODO : CGI
-	if (path == "/") {
-		path = "/index.html";
-	}
-
-	std::string fullPath = "src/pages" + path; // src/pages/../main.cpp
-	std::ifstream file(fullPath.c_str(), std::ios::binary);
+	std::string fileContent;
 	std::string status = "200";
 
-	if (!file.is_open()) {
-		status = "404"; // sendfile handle error; make a class ?
-		file.open("src/pages/errorpages/error_404.html", std::ios::binary);
-		error("File:", strerror(errno), fullPath.c_str());
+	// CGI
+	if (path.find("/cgi/") == 0) { // TODO : special path for cgi or extension set in config file?
+		std::cout << C"[" GREEN "handleGetRequest" C "] " << YELLOW "CGI" C << std::endl;
+		try {
+			fileContent = runCgi(request);
+		} catch (const std::exception& e) {
+			fileContent = "<h1 style=\"text-align:center\">500 Internal Server Error</h1>";
+			status = "500";
+			std::cerr << RED "Error: " YELLOW << e.what() << C << std::endl;
+		}
+	}
+	else // FILE
+	{
+		if (path == "/") {
+			path = "/index.html";
+		}
+
+		std::string fullPath = "src/pages" + path; // src/pages/../main.cpp
+		std::ifstream file(fullPath.c_str(), std::ios::binary);
+
+		std::stringstream ss;
+
+		if (!file.is_open()) {
+			status = "404"; // sendfile handle error; make a class ?
+			file.open("src/pages/errorpages/error_404.html", std::ios::binary);
+			error("File:", strerror(errno), fullPath.c_str());
+		}
+		if (file.is_open())
+		{
+			ss << file.rdbuf();
+			fileContent = ss.str();
+			file.close();
+		}
+		else
+		{
+			ss << "<h1 style=\"text-align:center\">Error 404 Not Found Error</h1>";
+			fileContent = ss.str();
+		}
 	}
 	
-	sendFile(connection, &file, status);
+	sendFile(connection, fileContent, status);
 	return 1;
 }
 
@@ -66,7 +94,6 @@ int parseRequest(std::string header, s_request *request) {
 	// handle methode
 	// std::cout << C"[" DV "parseRequest" C "] " << MB "METHOD" C ": " GREEN << request->method << C << std::endl;
 	printRequest(*request);
-	std::cout << DV << runCgi(*request) << C << std::endl;
 	if (request->method == "GET")
 		return handleGetRequest(connection, *request);
 	else if (request->method == "POST")
