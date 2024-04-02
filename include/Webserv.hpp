@@ -17,6 +17,7 @@
 # include <iostream>
 # include <fcntl.h>
 # include "ServConfig.hpp"
+# include "Location.hpp"
 
 
 # define RED "\x1b[1m\x1b[38;2;255;0;0m"

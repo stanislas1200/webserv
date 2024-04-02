@@ -6,7 +6,7 @@
 /*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:33:10 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/03/23 14:54:00 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/03/30 00:09:38 by gduchesn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,8 @@ class ServConfig {
         // std::vector<std::string>    methode;
         std::map<int, std::string> _errorpages;
         void    wrongFormatError(const char *msg, const char *line);
-        void    initializeVariable(std::vector<std::string> tokens, std::string line);
+        void    initializeVariable(std::vector<std::string> tokens, std::string line, std::ifstream *confFile);
+        void    initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile);
     public:
         ServConfig(void);
         ServConfig(const ServConfig &src);

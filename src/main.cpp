@@ -26,6 +26,9 @@ void getConfig(std::vector<ServConfig> *configClass, std::string file) {
 
 int main(int ac, char **av) {
     std::vector<ServConfig> configClass;
+	Location test;
+	std::cout << test;
+	exit(0);
 
 	if (ac != 2) {
 		// error("Usage:", av[0], "<config_file>");
@@ -38,5 +41,6 @@ int main(int ac, char **av) {
 	for (std::vector<ServConfig>::iterator it = configClass.begin(); it != configClass.end(); it++) {
 		std::cout << *it << std::endl;
 	}
+	exit(0);
 	acceptConnection(configClass);
 }

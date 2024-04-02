@@ -6,7 +6,7 @@
 /*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:43:18 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/03/25 01:32:45 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/04/02 11:52:52 by gduchesn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ void    ServConfig::wrongFormatError(const char *msg, const char *line) {
     throw ServConfig::wrongFormat();
 }
 
-void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::string line) {  
+void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::string line, std::ifstream *confFile) {  
     (void) line;
     std::vector<std::string>::iterator it = tokens.begin();
     if (it->find("errorpages") != std::string::npos) {
@@ -60,7 +60,28 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::str
             wrongFormatError("client_size", "");
         _maxClient = std::atoi(tokens[1].c_str());
     }
+    else if (tokens[0].find("Location")  != std::string::npos) {
+        if (tokens.size() != 3)
+            wrongFormatError("Location", "");
+        Location Location;
+        Location.init(tokens, confFile);
+    }
 }
+
+void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile) {
+    std::string tabFonction[6] = {"errorpages", "server_names", "listen", "methode", "client_size", "Location"};
+    std::vector<std::string> variables = {"apple", "banana", "orange", "grape", "pear", "kiwi"};
+    switch (0)
+    {
+    case 0:
+        /* code */
+        break;
+    
+    default:
+        break;
+    }
+}  
+
 
 void    ServConfig::initializeConfig(std::ifstream *confFile) {
     std::string line;
@@ -82,7 +103,7 @@ void    ServConfig::initializeConfig(std::ifstream *confFile) {
             std::cout << std::endl << "-----------End of config server---------------" << std::endl;
             return;
         }
-        initializeVariable(tokens, line);
+        initializeVariable(tokens, line, confFile);
         // displayVector(tokens);
         tokens.clear();
     }
