@@ -26,7 +26,7 @@ class ServConfig {
         std::map<int, std::string>  _errorpages;
         void    wrongFormatError(const char *msg, const char *line);
         void    initializeVariable(std::vector<std::string> tokens, std::string line, std::ifstream *confFile);
-        void    initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile);
+        // void    initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile);
     public:
         ServConfig(void);
         ServConfig(const ServConfig &src);

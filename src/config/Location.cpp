@@ -35,14 +35,11 @@ Location& Location::operator=(const Location &rhs) {
 
 void Location::init(std::vector<std::string> tokens, std::ifstream *confFile) {
     std::vector<std::string> variables = {"methodes", "redirection", "FUTURE PATH CGI", "FUTURE EXTENTION CGI"};
-    // std::vector<std::string> tokens;
     std::string line, tmp;
-    (void)  tokens;
-    (void)  confFile;
     
     if (tokens.size() >= 3) {
         _path = tokens[1];
-        std::cout << "PATH acquire" << std::endl;
+        // std::cout << "PATH acquire" << std::endl;
     }
     tokens.clear();
     while (std::getline(*confFile, line)) {
@@ -67,24 +64,24 @@ void Location::init(std::vector<std::string> tokens, std::ifstream *confFile) {
         line = tmp;
         switch (index) {
             case METHODE:
-                std::cout << "METHODE acquire" << std::endl;
+                // std::cout << "METHODE acquire" << std::endl;
                 _methode = line;
                 break;
             case REDIRECTION:
-                std::cout << "REDIRECTION acquire" << std::endl;
+                // std::cout << "REDIRECTION acquire" << std::endl;
                 _redirection = *(++tokens.begin());
                 break;
             case PATHTOCGI:
-                std::cout << "PATHTOCGI acquire" << std::endl;
+                // std::cout << "PATHTOCGI acquire" << std::endl;
                 _pathToCgi = line;
                 break;
             case EXCGI:
-                std::cout << "EXCGI acquire" << std::endl;
+                // std::cout << "EXCGI acquire" << std::endl;
                 _exCgi = line;
                 break;
             default:
-                if (tokens[0] == "}")
-                    std::cout << "location closed" << std::endl;
+                // if (tokens[0] == "}")
+                    // std::cout << "location closed" << std::endl;
                 break;
         }
         if (tokens[0] == "}")

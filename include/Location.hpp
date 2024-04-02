@@ -41,10 +41,6 @@ class Location : public ServConfig {
         std::string getPathToCgi(void) const;
         std::string getExCgi(void) const;
 
-		// class wrongFormat : public std::exception {
-		// 	public :
-		// 		virtual const char* what(void) const throw();
-		// };
         class Error : public std::exception {
 			public :
 				virtual const char* what(void) const throw();

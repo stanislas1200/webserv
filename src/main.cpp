@@ -14,8 +14,6 @@ void getConfig(std::vector<ServConfig> *configClass, std::string file) {
     try {
         while (confFile.eof() != 1) {
 			ServConfig  newElement;
-			// ServConfig	tmp;
-			// newElement = tmp;
             newElement.initializeConfig(&confFile);
             configClass->push_back(newElement);
 		}
@@ -28,12 +26,9 @@ void getConfig(std::vector<ServConfig> *configClass, std::string file) {
 
 int main(int ac, char **av) {
     std::vector<ServConfig> configClass;
-	// Location test;
-	// std::cout << test;
-	// exit(0);
 
 	if (ac != 2) {
-		// error("Usage:", av[0], "<config_file>");
+		error("Usage:", av[0], "<config_file>");
 		std::cout << GREEN "WebServ: " << MB "Using default config file" C << std::endl;
 		getConfig(&configClass, "configs/default");
 	}
@@ -44,6 +39,5 @@ int main(int ac, char **av) {
 		std::cout << *it << std::endl;
 	}
 	std::cout << "Number of server: " << configClass.size() << std::endl;
-	exit(0);
 	acceptConnection(configClass);
 }

@@ -75,26 +75,26 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::str
         Location Location;
         Location.init(tokens, confFile);
         _location.push_back(Location);
-        std::cout << Location;
+        // std::cout << Location;
         // exit(0);
     }
 }
 
-void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile) {
-    (void)  tokens;
-    (void)  confFile;
-    std::string tabFonction[6] = {"errorpages", "server_names", "listen", "methode", "client_size", "Location"};
-    std::vector<std::string> variables = {"errorpages", "server_names", "listen", "methode", "client_size", "Location"};
-    switch (0)
-    {
-    case 0:
-        /* code */
-        break;
+// void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile) {
+//     (void)  tokens;
+//     (void)  confFile;
+//     std::string tabFonction[6] = {"errorpages", "server_names", "listen", "methode", "client_size", "Location"};
+//     std::vector<std::string> variables = {"errorpages", "server_names", "listen", "methode", "client_size", "Location"};
+//     switch (0)
+//     {
+//     case 0:
+//         /* code */
+//         break;
     
-    default:
-        break;
-    }
-}  
+//     default:
+//         break;
+//     }
+// }  
 
 
 void    ServConfig::initializeConfig(std::ifstream *confFile) {
@@ -114,7 +114,7 @@ void    ServConfig::initializeConfig(std::ifstream *confFile) {
                 throw MultipleServerOpen();
         }
         if (*tokens.begin() == "}") {
-            std::cout << std::endl << "-----------End of config server---------------" << std::endl << std::endl;
+            // std::cout << std::endl << "-----------End of config server---------------" << std::endl << std::endl;
             return;
         }
         initializeVariable(tokens, line, confFile);
@@ -135,12 +135,12 @@ std::string ServConfig::pathToErrorPage(int pageToFind) {
 //// Operator ////
 
 std::ostream& operator<<(std::ostream& os, const ServConfig& obj) {
-    os << MB "------" GREEN "Serveur Description" MB "------" C << std::endl;
+    os << MB "------" GREEN " Serveur Description " MB "------" C << std::endl;
     os << "Name: " << obj.getName() << std::endl;
     os << "Methode: " << obj.getMethode() << std::endl;
     os << "Port: " << obj.getPort() << std::endl;
     os << "MaxClient: " << obj.getMaxClient() << std::endl;
-    os << std::endl << MB "--" C "Start " RED "Error" C " Pages" MB "--" C << std::endl;
+    os << std::endl << MB "--" C " Start " RED "Error" C " Pages " MB "--" C << std::endl;
     std::map<int, std::string> errorPages = obj.getErrorPages();
     for (std::map<int, std::string>::iterator it = errorPages.begin(); it != errorPages.end(); it++) {
         os << "error " << it->first << " = " << it->second << std::endl;
@@ -150,7 +150,7 @@ std::ostream& operator<<(std::ostream& os, const ServConfig& obj) {
     for (std::vector<Location>::iterator it = location.begin(); it != location.end(); it++) {
         os << *it;
     }
-    os << MB "------" RED "End     Description" MB "------" C << std::endl;
+    os << MB "------" RED "   End   Description " MB "------" C << std::endl;
     return (os);
 }
 
