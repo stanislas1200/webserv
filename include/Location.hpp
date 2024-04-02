@@ -13,18 +13,34 @@
 #pragma once
 
 # include "Webserv.hpp"
+# define METHODE        0
+# define REDIRECTION    1
+# define PATHTOCGI      2
+# define EXCGI          3
 
 class Location : public ServConfig {
     private:
-        std::string tmp; 
+        std::string _path;
+        std::string _methode;
+        std::string _redirection;
+        std::string _pathToCgi;
+        std::string _exCgi;
     public:
         Location(void);
         Location(const Location &src);
-        ~Location(void);
+        virtual ~Location(void);
         Location& operator=(const Location &rhs);
 
         void init(std::vector<std::string> tokens, std::ifstream *confFile);
         
+        //////  getter //////
+
+        std::string getPath(void) const;
+        std::string getMethode(void) const;
+        std::string getRedirection(void) const;
+        std::string getPathToCgi(void) const;
+        std::string getExCgi(void) const;
+
 		// class wrongFormat : public std::exception {
 		// 	public :
 		// 		virtual const char* what(void) const throw();

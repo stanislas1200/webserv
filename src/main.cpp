@@ -10,10 +10,12 @@ void error(const char *type, const char *msg, const char *bold) {
 
 void getConfig(std::vector<ServConfig> *configClass, std::string file) {
 	std::ifstream confFile(file.c_str());
-	ServConfig  newElement;
 
     try {
         while (confFile.eof() != 1) {
+			ServConfig  newElement;
+			// ServConfig	tmp;
+			// newElement = tmp;
             newElement.initializeConfig(&confFile);
             configClass->push_back(newElement);
 		}
@@ -26,9 +28,9 @@ void getConfig(std::vector<ServConfig> *configClass, std::string file) {
 
 int main(int ac, char **av) {
     std::vector<ServConfig> configClass;
-	Location test;
-	std::cout << test;
-	exit(0);
+	// Location test;
+	// std::cout << test;
+	// exit(0);
 
 	if (ac != 2) {
 		// error("Usage:", av[0], "<config_file>");
@@ -41,6 +43,7 @@ int main(int ac, char **av) {
 	for (std::vector<ServConfig>::iterator it = configClass.begin(); it != configClass.end(); it++) {
 		std::cout << *it << std::endl;
 	}
+	std::cout << "Number of server: " << configClass.size() << std::endl;
 	exit(0);
 	acceptConnection(configClass);
 }

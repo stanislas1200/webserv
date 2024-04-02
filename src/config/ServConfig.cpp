@@ -14,15 +14,23 @@
 
 ServConfig::ServConfig() : _name(""), _methode(""), _port(0), _maxClient(0) {}
 
-ServConfig::ServConfig(const ServConfig &src) {*this = src;}
-
 ServConfig::~ServConfig() {}
+
+ServConfig::ServConfig(const ServConfig &src) {
+    _name = src._name;
+    _methode = src._methode;
+    _port = src._port;
+    _maxClient = src._maxClient;
+    _location = src._location;
+    _errorpages = src._errorpages;
+}
 
 ServConfig& ServConfig::operator=(const ServConfig &rhs) {
     _name = rhs._name;
     _methode = rhs._methode;
     _port = rhs._port;
     _maxClient = rhs._maxClient;
+    _location = rhs._location;
     _errorpages = rhs._errorpages;
     return (*this);
 }
@@ -60,17 +68,23 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::str
             wrongFormatError("client_size", "");
         _maxClient = std::atoi(tokens[1].c_str());
     }
-    else if (tokens[0].find("Location")  != std::string::npos) {
+    else if (tokens[0].find("location")  != std::string::npos) {
+        // std::cout << "OOOOOOEEEEE" << std::endl;
         if (tokens.size() != 3)
-            wrongFormatError("Location", "");
+            wrongFormatError("location", "");
         Location Location;
         Location.init(tokens, confFile);
+        _location.push_back(Location);
+        std::cout << Location;
+        // exit(0);
     }
 }
 
 void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile) {
+    (void)  tokens;
+    (void)  confFile;
     std::string tabFonction[6] = {"errorpages", "server_names", "listen", "methode", "client_size", "Location"};
-    std::vector<std::string> variables = {"apple", "banana", "orange", "grape", "pear", "kiwi"};
+    std::vector<std::string> variables = {"errorpages", "server_names", "listen", "methode", "client_size", "Location"};
     switch (0)
     {
     case 0:
@@ -86,9 +100,9 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifs
 void    ServConfig::initializeConfig(std::ifstream *confFile) {
     std::string line;
     bool        inServ = false;
+    std::vector<std::string> tokens;
     
     while (std::getline(*confFile, line)) {
-        std::vector<std::string> tokens;
         std::stringstream SplitedLine(line);
         while (SplitedLine >> line) {
             tokens.push_back(line);
@@ -100,7 +114,7 @@ void    ServConfig::initializeConfig(std::ifstream *confFile) {
                 throw MultipleServerOpen();
         }
         if (*tokens.begin() == "}") {
-            std::cout << std::endl << "-----------End of config server---------------" << std::endl;
+            std::cout << std::endl << "-----------End of config server---------------" << std::endl << std::endl;
             return;
         }
         initializeVariable(tokens, line, confFile);
@@ -121,14 +135,22 @@ std::string ServConfig::pathToErrorPage(int pageToFind) {
 //// Operator ////
 
 std::ostream& operator<<(std::ostream& os, const ServConfig& obj) {
+    os << MB "------" GREEN "Serveur Description" MB "------" C << std::endl;
     os << "Name: " << obj.getName() << std::endl;
     os << "Methode: " << obj.getMethode() << std::endl;
     os << "Port: " << obj.getPort() << std::endl;
     os << "MaxClient: " << obj.getMaxClient() << std::endl;
+    os << std::endl << MB "--" C "Start " RED "Error" C " Pages" MB "--" C << std::endl;
     std::map<int, std::string> errorPages = obj.getErrorPages();
     for (std::map<int, std::string>::iterator it = errorPages.begin(); it != errorPages.end(); it++) {
         os << "error " << it->first << " = " << it->second << std::endl;
     }
+    os << std::endl;
+    std::vector<Location> location = obj.getLocation();
+    for (std::vector<Location>::iterator it = location.begin(); it != location.end(); it++) {
+        os << *it;
+    }
+    os << MB "------" RED "End     Description" MB "------" C << std::endl;
     return (os);
 }
 
@@ -148,6 +170,10 @@ int         ServConfig::getPort(void) const {
 
 int         ServConfig::getMaxClient(void) const {
     return (this->_maxClient);
+}
+
+std::vector<Location>   ServConfig::getLocation(void) const {
+    return (this->_location);
 }
 
 std::map<int, std::string> ServConfig::getErrorPages(void) const {
