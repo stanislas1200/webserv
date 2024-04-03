@@ -1,0 +1,34 @@
+Pour Cree un configfile actuellement on a pas besoin de rentrer tout les parametres
+Mais il faut bien tout orthographier
+
+Commencer un server: 
+
+```
+Server {
+
+}
+```
+
+6 parametre possible
+
+Name:       server_names name
+methode:    methodes suivie de tous ce qui est accepté
+port:       listen XXXX
+maxClient:  client_size XX
+errorpages: errorpages XXX path/
+location:   Une location doit etre dans un serveur
+    Etre declaré de la sorte:
+
+    ```
+    Location path/ {
+
+    }
+    ```
+
+    4 parametre possible
+    methodes                tout les parametres necessaires
+    redirection             path/
+    FUTURE PATH CGI         path jusqu au CGI
+    FUTURE EXTENTION CGI    .extention
+
+PS: Pour le moment ne pas laisser de emptyline a la fin du fichier
