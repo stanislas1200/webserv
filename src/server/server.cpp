@@ -38,6 +38,15 @@ int serverSetup(s_server *server) {
 	return 0;
 }
 
+int isServerConnection(std::vector<s_server> servers, int fd) {
+	for (size_t j = 0; j < servers.size(); j++)
+	{
+		if (fd == servers[j].fd)
+			return 1;
+	}
+	return 0;
+}
+
 # include <poll.h>
 void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 	std::cout << C"[" DV "serverRun" C "] " << YELLOW "---START---" C << std::endl;

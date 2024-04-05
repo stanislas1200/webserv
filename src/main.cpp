@@ -10,10 +10,10 @@ void error(const char *type, const char *msg, const char *bold) {
 
 void getConfig(std::vector<ServConfig> *configClass, std::string file) {
 	std::ifstream confFile(file.c_str());
-	ServConfig  newElement;
 
     try {
         while (confFile.eof() != 1) {
+			ServConfig  newElement;
             newElement.initializeConfig(&confFile);
             configClass->push_back(newElement);
 		}
@@ -28,7 +28,7 @@ int main(int ac, char **av) {
     std::vector<ServConfig> configClass;
 
 	if (ac != 2) {
-		// error("Usage:", av[0], "<config_file>");
+		error("Usage:", av[0], "<config_file>");
 		std::cout << GREEN "WebServ: " << MB "Using default config file" C << std::endl;
 		getConfig(&configClass, "configs/default");
 	}
@@ -38,5 +38,6 @@ int main(int ac, char **av) {
 	for (std::vector<ServConfig>::iterator it = configClass.begin(); it != configClass.end(); it++) {
 		std::cout << *it << std::endl;
 	}
+	std::cout << "Number of server: " << configClass.size() << std::endl;
 	acceptConnection(configClass);
 }
