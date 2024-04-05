@@ -16,9 +16,9 @@ int serverSetup(s_server *server) {
 		return error("Socket:", strerror(errno), NULL), -1;
 
 	// non blocking // The connection was reset RIP
-	// int flag = fcntl(server->fd, F_GETFL, 0);
-	// if (fcntl(server->fd, F_SETFL, flag | O_NONBLOCK) < 0)
-	// 	return close(server->fd), error("Sock opt:", strerror(errno), NULL), -1;
+	int flag = fcntl(server->fd, F_GETFL, 0);
+	if (fcntl(server->fd, F_SETFL, flag | O_NONBLOCK) < 0)
+		return close(server->fd), error("Sock opt:", strerror(errno), NULL), -1;
 
 	// reusable sd
 	int on = 1;
@@ -38,78 +38,121 @@ int serverSetup(s_server *server) {
 	return 0;
 }
 
+# include <poll.h>
 void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 	std::cout << C"[" DV "serverRun" C "] " << YELLOW "---START---" C << std::endl;
 	std::vector<s_request> requests;
 	std::map<int, s_request> request_map;
+
+	std::vector<pollfd> fds;
 	
+	for (size_t i = 0; i < fd_size; i++)
+	{
+		fds.push_back({servers[i].fd, POLLIN, 0});
+	}
 	while (true)
 	{
-		fd_set reading_set;
-		// fd_set writing_set;
-		struct timeval tv;
+		(void)max_fd;
+		// fd_set reading_set;
+		// // fd_set writing_set;
+		// struct timeval tv;
 		int ret = 0;
 
 		while (!ret)
 		{
-			tv.tv_sec = 1;
-			tv.tv_usec = 0;
+			// tv.tv_sec = 1;
+			// tv.tv_usec = 0;
 			// ft_memcpy(&reading_set, &_fd_set, sizeof(_fd_set));
 			// FD_ZERO(&writing_set);
 			
 
-			for (size_t i = 0; i < fd_size; i++)
-			{
-				FD_SET(servers[i].fd, &reading_set);
-			}
+			// for (size_t i = 0; i < fd_size; i++)
+			// {
+			// 	FD_SET(servers[i].fd, &reading_set);
+			// }
 
 			if (request_map.size() > 0) // handle chuncked data
 			{
+				int j = 0;
 				for (std::map<int, s_request>::iterator it = request_map.begin(); it != request_map.end(); ++it)
 				{
+					j++;
 					if (handleConnection(&it->second))
 					{
 						std::cout << C"[" DV "serverRun" C "] " << MB "close chunck connection" C << std::endl;
 						close(it->second.connection);
 						request_map.erase(it->second.connection);
+						// fds.erase(fds.begin() + j);
+						// --j;
 						break;
 					}
 				}
 			}
 
 			std::cout << C"\r[" DV "serverRun" C "] " << GREEN "waiting a connection" C << std::flush;
-			ret = select(max_fd + 1, &reading_set, NULL, NULL, &tv); // get the number of ready file descriptors
+			// ret = select(max_fd + 1, &reading_set, NULL, NULL, &tv); // get the number of ready file descriptors
+			ret = poll(fds.data(), fds.size(), 10000);
+			std::cout << ret << std::flush;
 		}
 
-		std::cout << "\n" << std::endl;
+		// std::cout << "\n" << std::endl;
 		if (ret > 0)
 		{
 			for (size_t i = 0; i < fd_size; i++)
 			{
-				if (FD_ISSET(servers[i].fd, &reading_set)) // check if the fd is in set
+				if (fds[i].revents & POLLIN) // check if the fd is in set
 				{
 					// new connection
 					int addrlen = sizeof(servers[i].sockaddr);
 					s_request	request;
 					request.connection = accept(servers[i].fd, (struct sockaddr*)&servers[i].sockaddr, (socklen_t*)&addrlen);
+					// non blocking // The connection was reset RIP
+					// int flag = fcntl(request.connection, F_GETFL, 0);
+					// if (fcntl(request.connection, F_SETFL, flag | O_NONBLOCK) < 0)
+					// 	return close(request.connection), error("Sock opt:", strerror(errno), NULL);
+					if (request.connection != 1)
+						fds.push_back({request.connection, POLLIN, 0});
 					std::cout << C"[" DV "serverRun" C "] " << MB "connection fd" C ": " GREEN << request.connection << std::endl;
+					
+					request_map[request.connection] = request;
+
+					for (size_t j = fd_size; j < fd_size; j++)
+					{
+						if (fds[j].revents & POLLIN)
+						{
+
+							request = request_map[fds[j].fd];
+
+							if (handleConnection(&request)) // read using recv return 1 if all is read else 0 if only buffer_size is read
+							{
+								std::cout << C"[" DV "serverRun" C "] " << MB "close connection" C << std::endl;
+								close(request.connection);
+								request_map.erase(request.connection);
+								fds.erase(fds.begin() + j);
+								--j;
+							}
+						}
+					}
+					request_map[request.connection] = request;
+					
+					
 					if (request.connection < 0)
 					{
 						error("Accept:", strerror(errno), NULL);
 					}
 
 					// add connection to map
-					request_map[request.connection] = request;
+					// request_map[request.connection] = request;
 
-					// handle connection
-					if (handleConnection(&request)) // read using recv return 1 if all is read else 0 if only buffer_size is read
-					{
-						std::cout << C"[" DV "serverRun" C "] " << MB "close connection" C << std::endl;
-						close(request.connection);
-						request_map.erase(request.connection);
-					}
-					// update map
-					request_map[request.connection] = request;
+					// // handle connection
+					// if (handleConnection(&request)) // read using recv return 1 if all is read else 0 if only buffer_size is read
+					// {
+					// 	std::cout << C"[" DV "serverRun" C "] " << MB "close connection" C << std::endl;
+					// 	close(request.connection);
+					// 	request_map.erase(request.connection);
+					// }
+					// // update map
+					// request_map[request.connection] = request;
 				}
 			}
 		}
