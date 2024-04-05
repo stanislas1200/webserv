@@ -13,6 +13,14 @@
 #pragma once
 
 # include "Webserv.hpp"
+# define METHODE   0
+# define ERRORPAGES     1
+# define LISTEN         2
+# define SERVER_NAMES   3
+# define CLIENT_SIZE    4
+# define LOCATION       5
+# define TEMPLATE       6
+# define NOT_RIGHT "not right amount of parameter"
 
 class Location;
 
@@ -24,9 +32,11 @@ class ServConfig {
         int                         _maxClient;
         std::vector<Location>       _location;
         std::map<int, std::string>  _errorpages;
-        void    wrongFormatError(const char *msg, const char *line);
+        std::string                 _templatePath; // not mandatory
+        static void    wrongFormatError(const char *msg, const char *line);
         void    initializeVariable(std::vector<std::string> tokens, std::string line, std::ifstream *confFile);
-        // void    initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile);
+        void    initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile);
+
     public:
         ServConfig(void);
         ServConfig(const ServConfig &src);
@@ -51,6 +61,15 @@ class ServConfig {
 			public :
 				virtual const char* what(void) const throw();
 		};
+        class Methode : public std::exception {
+			public :
+				virtual const char* what(void) const throw();
+		};
+};
+
+class OverflowNbr : public std::exception {
+    public :
+        virtual const char* what(void) const throw();
 };
 
 template<typename T>
@@ -64,3 +83,5 @@ void displayVector(const std::vector<T>& vec) {
 }
 
 std::ostream& operator<<(std::ostream& os, const ServConfig& obj);
+int     getKey(std::vector<std::string> key, std::string token);
+std::string vecToString(std::vector<std::string>::iterator begin, std::vector<std::string>::iterator end);

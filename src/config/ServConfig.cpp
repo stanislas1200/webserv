@@ -35,11 +35,6 @@ ServConfig& ServConfig::operator=(const ServConfig &rhs) {
     return (*this);
 }
 
-void    ServConfig::wrongFormatError(const char *msg, const char *line) {
-    std::cerr << msg << " at this line: " << line << std::endl;
-    throw ServConfig::wrongFormat();
-}
-
 void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::string line, std::ifstream *confFile) {  
     (void) line;
     std::vector<std::string>::iterator it = tokens.begin();
@@ -69,7 +64,6 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::str
         _maxClient = std::atoi(tokens[1].c_str());
     }
     else if (tokens[0].find("location")  != std::string::npos) {
-        // std::cout << "OOOOOOEEEEE" << std::endl;
         if (tokens.size() != 3)
             wrongFormatError("location", "");
         Location Location;
@@ -80,21 +74,71 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::str
     }
 }
 
-// void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile) {
-//     (void)  tokens;
-//     (void)  confFile;
-//     std::string tabFonction[6] = {"errorpages", "server_names", "listen", "methode", "client_size", "Location"};
-//     std::vector<std::string> variables = {"errorpages", "server_names", "listen", "methode", "client_size", "Location"};
-//     switch (0)
-//     {
-//     case 0:
-//         /* code */
-//         break;
-    
-//     default:
-//         break;
-//     }
-// }  
+void    ServConfig::wrongFormatError(const char *msg, const char *line) {
+    std::cerr << msg << " " << line << std::endl;
+    throw wrongFormat();
+}
+
+void    isNbrNoOverflow(std::string token, char *msg) {
+    for (int i = 0; i < token.size(); i++) {
+        if (!std::isdigit(token[i]))
+            ServConfig::wrongFormatError(msg, "not a nbr in parameter");
+        if ((std::strlen(token.c_str()) >= 10 && std::strcmp(token.c_str(), "2147483647") > 0) || std::strlen(token.c_str()) > 10)
+            throw OverflowNbr();
+    }
+}
+
+void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile) {
+    (void)  tokens;
+    (void)  confFile;
+    Location Location;
+    std::vector<std::string> keyStack = {"methodes", "errorpages", "listen", "server_names", "client_size", "location", "template"};
+    switch (getKey(keyStack, tokens[0]))
+    {
+        case METHODE:
+            if (tokens.size() < 2) {
+                wrongFormatError("methode", "need at least one methode autorised");
+            }
+            _methode = vecToString(tokens.begin() + 1, tokens.end());
+            break;
+        case ERRORPAGES:
+            if (tokens.size() != 3)
+                wrongFormatError("errorpages", NOT_RIGHT);
+            if ((std::strlen(tokens[1].c_str()) >= 10 && std::strcmp(tokens[1].c_str(), "2147483647") > 0) || std::strlen(tokens[1].c_str()) > 10)
+                throw OverflowNbr();
+            std::atoi(tokens[1].c_str());
+            _errorpages[std::atoi(tokens[1].c_str())] = tokens[2];
+            break;
+        case LISTEN:
+            if (tokens.size() != 2)
+                wrongFormatError("listen", NOT_RIGHT);
+            _port = std::atoi(tokens[1].c_str());
+            break;
+        case SERVER_NAMES:
+            if (tokens.size() != 2)
+                wrongFormatError("server_names", NOT_RIGHT);
+            _name = tokens[1];
+            break;
+        case CLIENT_SIZE:
+            if (tokens.size() != 2)
+                wrongFormatError("client_size", NOT_RIGHT);
+            _maxClient = std::atoi(tokens[1].c_str());
+            break;
+        case LOCATION:
+            if (tokens.size() != 3)
+                wrongFormatError("location", NOT_RIGHT);
+            Location.init(tokens, confFile);
+            _location.push_back(Location);
+            break;
+        case TEMPLATE:
+            if (tokens.size() != 2)
+                wrongFormatError("Temlate path", NOT_RIGHT);
+            
+            break;
+        default:
+            break;
+    }
+}  
 
 
 void    ServConfig::initializeConfig(std::ifstream *confFile) {
@@ -107,6 +151,8 @@ void    ServConfig::initializeConfig(std::ifstream *confFile) {
         while (SplitedLine >> line) {
             tokens.push_back(line);
         }
+        if (tokens.empty())
+            continue;
         if (*tokens.begin() == "server") {
             if (!inServ)
                 inServ = true;
@@ -117,7 +163,8 @@ void    ServConfig::initializeConfig(std::ifstream *confFile) {
             // std::cout << std::endl << "-----------End of config server---------------" << std::endl << std::endl;
             return;
         }
-        initializeVariable(tokens, line, confFile);
+        // initializeVariable(tokens, line, confFile);
+        initializeVariable(tokens, confFile);
         // displayVector(tokens);
         tokens.clear();
     }
@@ -188,4 +235,32 @@ const char* ServConfig::wrongFormat::what(void) const throw() {
 
 const char* ServConfig::MultipleServerOpen::what(void) const throw() {
 	return ("Config file: Multiple servers declared at the same time");
+}
+
+const char* OverflowNbr::what(void) const throw() {
+	return ("Config file: Number overflow");
+}
+
+int getKey(std::vector<std::string> keyStack, std::string token) {
+    int index = 0;
+    
+    for (std::vector<std::string>::iterator it = keyStack.begin(); it != keyStack.end(); ++it) {
+        if (*it == token) {
+            break;
+        }
+        index++;
+    }
+    return (index);
+}
+
+std::string vecToString(std::vector<std::string>::iterator begin, std::vector<std::string>::iterator end) {
+    std::string str;
+    
+    for (std::vector<std::string>::iterator it = begin; it != end; ++it) {
+        str += *it;
+        if (it + 1 != end) {
+            str += " ";
+        }
+    }
+    return (str);
 }

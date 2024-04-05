@@ -20,6 +20,7 @@ void getConfig(std::vector<ServConfig> *configClass, std::string file) {
 	}
     catch (std::exception& e) {
 		std::cout << e.what() << std::endl;
+		exit(1);
 	}
     confFile.close();
 }
@@ -39,5 +40,6 @@ int main(int ac, char **av) {
 		std::cout << *it << std::endl;
 	}
 	std::cout << "Number of server: " << configClass.size() << std::endl;
+	exit(0);
 	acceptConnection(configClass);
 }

@@ -12,7 +12,7 @@
 
 #include "../../include/Location.hpp"
 
-Location::Location() : _methode(""), _redirection(""), _pathToCgi(""), _exCgi("") {}
+Location::Location() {}
 
 Location::Location(const Location &src) {
     _path = src._path;
@@ -34,8 +34,8 @@ Location& Location::operator=(const Location &rhs) {
 }
 
 void Location::init(std::vector<std::string> tokens, std::ifstream *confFile) {
-    std::vector<std::string> variables = {"methodes", "redirection", "FUTURE PATH CGI", "FUTURE EXTENTION CGI"};
-    std::string line, tmp;
+    std::vector<std::string> keyStack = {"methodes", "redirection", "FUTURE PATH CGI", "FUTURE EXTENTION CGI", "template"};
+    std::string line;
     
     if (tokens.size() >= 3) {
         _path = tokens[1];
@@ -44,26 +44,14 @@ void Location::init(std::vector<std::string> tokens, std::ifstream *confFile) {
     tokens.clear();
     while (std::getline(*confFile, line)) {
         std::stringstream SplitedLine(line);
-        while (SplitedLine >> tmp) {
-            tokens.push_back(tmp);
+        while (SplitedLine >> line) {
+            tokens.push_back(line);
         }
-        tmp.clear();
-        int index = 0;
-        for (std::vector<std::string>::iterator it = variables.begin(); it != variables.end(); ++it) {
-            if (*it == tokens[0]) {
-                break;
-            }
-            index++;
-        }
-        for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); ++it) {
-            tmp += *it;
-            if (it + 1 != tokens.end()) {
-                tmp += " ";
-            }
-        }
-        line = tmp;
-        switch (index) {
-            case METHODE:
+        if (tokens.empty())
+            continue;
+        line = vecToString(tokens.begin(), tokens.end());
+        switch (getKey(keyStack, tokens[0])) {
+            case LOCATION_METHODE:
                 // std::cout << "METHODE acquire" << std::endl;
                 _methode = line;
                 break;
@@ -78,6 +66,9 @@ void Location::init(std::vector<std::string> tokens, std::ifstream *confFile) {
             case EXCGI:
                 // std::cout << "EXCGI acquire" << std::endl;
                 _exCgi = line;
+                break;
+            case LOCATION_TEMPLATE:
+                _templatePath = line;
                 break;
             default:
                 // if (tokens[0] == "}")

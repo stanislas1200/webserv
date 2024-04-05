@@ -13,18 +13,20 @@
 #pragma once
 
 # include "Webserv.hpp"
-# define METHODE        0
-# define REDIRECTION    1
-# define PATHTOCGI      2
-# define EXCGI          3
+# define LOCATION_METHODE   0
+# define REDIRECTION        1
+# define PATHTOCGI          2
+# define EXCGI              3
+# define LOCATION_TEMPLATE  4
 
-class Location : public ServConfig {
+class Location {
     private:
         std::string _path;
         std::string _methode;
         std::string _redirection;
         std::string _pathToCgi;
         std::string _exCgi;
+        std::string _templatePath;// not mandatory
     public:
         Location(void);
         Location(const Location &src);
