@@ -21,6 +21,7 @@
 # define LOCATION       5
 # define TEMPLATE       6
 # define NOT_RIGHT "not right amount of parameter"
+# define ERROR_HAPPEND "something wrong in parameters"
 
 class Location;
 
@@ -33,7 +34,6 @@ class ServConfig {
         std::vector<Location>       _location;
         std::map<int, std::string>  _errorpages;
         std::string                 _templatePath; // not mandatory
-        static void    wrongFormatError(const char *msg, const char *line);
         void    initializeVariable(std::vector<std::string> tokens, std::string line, std::ifstream *confFile);
         void    initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile);
 
@@ -43,6 +43,7 @@ class ServConfig {
         virtual ~ServConfig(void);
         ServConfig& operator=(const ServConfig &rhs);
         
+        static void    wrongFormatError(const char *msg, const char *line);
         void        initializeConfig(std::ifstream *confFile);
         std::string pathToErrorPage(int pageToFind);
         

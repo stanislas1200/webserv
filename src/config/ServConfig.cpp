@@ -79,40 +79,41 @@ void    ServConfig::wrongFormatError(const char *msg, const char *line) {
     throw wrongFormat();
 }
 
-void    isNbrNoOverflow(std::string token, char *msg) {
-    for (int i = 0; i < token.size(); i++) {
+bool    isNbrNoOverflow(std::string token, int *result) {
+    for (size_t i = 0; i < token.size(); i++) {
         if (!std::isdigit(token[i]))
-            ServConfig::wrongFormatError(msg, "not a nbr in parameter");
-        if ((std::strlen(token.c_str()) >= 10 && std::strcmp(token.c_str(), "2147483647") > 0) || std::strlen(token.c_str()) > 10)
-            throw OverflowNbr();
+            return (false);
+            // ServConfig::wrongFormatError(msg, "not a nbr in parameter");
     }
+    if ((std::strlen(token.c_str()) >= 10 && std::strcmp(token.c_str(), "2147483647") > 0) || std::strlen(token.c_str()) > 10)
+        return (false);
+        // throw OverflowNbr();
+    *result = std::atoi(token.c_str());
+    return (true);
 }
 
 void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile) {
     (void)  tokens;
     (void)  confFile;
-    Location Location;
+    int         result = 0;
+    Location    Location;
     std::vector<std::string> keyStack = {"methodes", "errorpages", "listen", "server_names", "client_size", "location", "template"};
     switch (getKey(keyStack, tokens[0]))
     {
         case METHODE:
-            if (tokens.size() < 2) {
+            if (tokens.size() < 2)
                 wrongFormatError("methode", "need at least one methode autorised");
-            }
             _methode = vecToString(tokens.begin() + 1, tokens.end());
             break;
         case ERRORPAGES:
-            if (tokens.size() != 3)
-                wrongFormatError("errorpages", NOT_RIGHT);
-            if ((std::strlen(tokens[1].c_str()) >= 10 && std::strcmp(tokens[1].c_str(), "2147483647") > 0) || std::strlen(tokens[1].c_str()) > 10)
-                throw OverflowNbr();
-            std::atoi(tokens[1].c_str());
-            _errorpages[std::atoi(tokens[1].c_str())] = tokens[2];
+            if (tokens.size() != 3 || !isNbrNoOverflow(tokens[1], &result))
+                wrongFormatError("errorpages", ERROR_HAPPEND);
+            _errorpages[result] = tokens[2];
             break;
         case LISTEN:
-            if (tokens.size() != 2)
-                wrongFormatError("listen", NOT_RIGHT);
-            _port = std::atoi(tokens[1].c_str());
+            if (tokens.size() != 2 || !isNbrNoOverflow(tokens[1], &result))
+                wrongFormatError("listen", ERROR_HAPPEND);
+            _port = result;
             break;
         case SERVER_NAMES:
             if (tokens.size() != 2)
@@ -120,9 +121,9 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifs
             _name = tokens[1];
             break;
         case CLIENT_SIZE:
-            if (tokens.size() != 2)
-                wrongFormatError("client_size", NOT_RIGHT);
-            _maxClient = std::atoi(tokens[1].c_str());
+            if (tokens.size() != 2 || !isNbrNoOverflow(tokens[1], &result))
+                wrongFormatError("client_size", ERROR_HAPPEND);
+            _maxClient = result;
             break;
         case LOCATION:
             if (tokens.size() != 3)
@@ -133,9 +134,11 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifs
         case TEMPLATE:
             if (tokens.size() != 2)
                 wrongFormatError("Temlate path", NOT_RIGHT);
-            
             break;
         default:
+            // std::cout << tokens[0] << std::endl;
+            // if (!tokens.empty())
+                wrongFormatError("Incoherent line:", ("\"" + vecToString(tokens.begin(), tokens.end()) + "\"").c_str());
             break;
     }
 }  
@@ -154,8 +157,11 @@ void    ServConfig::initializeConfig(std::ifstream *confFile) {
         if (tokens.empty())
             continue;
         if (*tokens.begin() == "server") {
-            if (!inServ)
+            if (!inServ) {
                 inServ = true;
+                tokens.clear();
+                continue;
+            }
             else
                 throw MultipleServerOpen();
         }
