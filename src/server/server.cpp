@@ -65,15 +65,15 @@ void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 		while (!ret)
 		{
 
-			std::cout << C"\r[" DV "serverRun" C "] " << GREEN "waiting a connection" C << std::flush;
-			ret = poll(fds.data(), fds.size(), -1);
+			std::cout << C"\r[" DV "serverRun" C "] " << GREEN "waiting a connection, in queue : " C << request_map.size() << std::flush;
+			ret = poll(fds.data(), fds.size(), 1);
 			
 			if (request_map.size() > 0) // handle client connection
 			{
 				int j = 0;
 				for (std::map<int, s_request>::iterator it = request_map.begin(); it != request_map.end(); ++it)
 				{
-					if (fds[fd_size + j].revents & POLLIN)
+					if (fds[fd_size + j].revents & POLLIN || it->second.formData[0].full)
 					{
 						if (handleConnection(&it->second))
 						{
