@@ -55,6 +55,57 @@ std::string parseFormData(s_request *request) { // FIXME : response to each file
 	return "200";
 }
 
+int chunckData(s_request *request, s_FormDataPart *formDataPart) {
+	if (formDataPart->data.size() > request->boundary.size())
+	{
+		std::vector<char>::iterator bpos;
+		if ((bpos = std::search(formDataPart->data.begin() + request->boundary.size(), formDataPart->data.end(), request->boundary.begin(), request->boundary.end())) != formDataPart->data.end())
+		{
+			// check multiple file
+			int boundaryCount = 0;
+			std::vector<char>::iterator cbpos = bpos;
+			while ((cbpos = std::search(cbpos, formDataPart->data.end(), request->boundary.begin(), request->boundary.end())) != formDataPart->data.end())
+			{
+				++boundaryCount;
+				// Move the iterator past the current found boundary for the next search
+				cbpos += request->boundary.size();
+			}
+			std::cout << boundaryCount << std::endl;
+
+			std::cout << GREEN << "[FORMDATA-READ] FIND BOUNDARY" << std::endl;
+
+			// NEXT BODY
+			request->formData[1].data.clear();
+			request->formData[1].data.insert(request->formData[1].data.end(), bpos, formDataPart->data.end());
+
+			// HEADER
+			const char *crlf2 = "\r\n\r\n";
+			std::string head(formDataPart->data.begin(), std::search(formDataPart->data.begin(), formDataPart->data.end(), crlf2, crlf2 + 4)) ;
+			formDataPart->header = head;
+			// BODY 
+			formDataPart->data.erase(bpos, formDataPart->data.end()); // next file data
+			formDataPart->data.erase(formDataPart->data.begin(), std::search(formDataPart->data.begin(), formDataPart->data.end(), crlf2, crlf2 + 4) + 4);
+			
+			formDataPart->full = true;
+			std::cout << request->dataLen << " " << request->headers["Content-Length"] << std::endl;
+			if (request->dataLen < stoul(request->headers["Content-Length"]) || boundaryCount > 1) // TODO : split file
+			{
+				parseFormData(request);
+				std::cout << RED "Unfinished upload" C<< std::endl;
+				return 0; // chunk
+			}
+			std::cout << GREEN "Finished upload" C << std::endl;
+			return 1;
+		}
+		else
+			std::cout << RED << "[FORMDATA-READ] NOT FIND BOUNDARY" << std::endl;
+	}
+
+	if (request->dataLen < stoul(request->headers["Content-Length"]))
+		return 0; // chunk
+	return 1; // TODO : idk but check this function
+}
+
 int readFormData(s_request *request) {
 	size_t bufferSize = 100000;
 	char buffer[bufferSize + 1];
@@ -69,52 +120,17 @@ int readFormData(s_request *request) {
 		std::cout << YELLOW << request->boundary << C << std::endl;
 	}
 
-	if ((bytes = recv(request->connection, buffer, bufferSize, 0)) > 0 && bytes != std::string::npos)
+	if ((bytes = recv(request->connection, buffer, bufferSize, 0)) > 0 && bytes != std::string::npos) // TODO : check error
 	{
 		std::cout << "byte: " << bytes << std::endl;
 		buffer[bytes] = '\0';
 		request->dataLen += bytes;
 		formDataPart->data.insert(formDataPart->data.end(), buffer, buffer + bytes);
 
-		if (formDataPart->data.size() > request->boundary.size())
-		{
-			std::vector<char>::iterator bpos;
-			if ((bpos = std::search(formDataPart->data.begin() + request->boundary.size(), formDataPart->data.end(), request->boundary.begin(), request->boundary.end())) != formDataPart->data.end())
-			{
-				std::cout << GREEN << "[FORMDATA-READ] FIND BOUNDARY" << std::endl;
-				// NEXT HEADER // TODO : removed header builder
-				// request->formData[1].header.clear();
-				// request->formData[1].header = std::string(bpos, formDataPart->data.end());
-				// NEXT BODY
-				request->formData[1].data.clear();
-				request->formData[1].data.insert(request->formData[1].data.end(), bpos, formDataPart->data.end());
-
-				// HEADER
-				const char *crlf2 = "\r\n\r\n";
-				std::string head(formDataPart->data.begin(), std::search(formDataPart->data.begin(), formDataPart->data.end(), crlf2, crlf2 + 4)) ;
-				formDataPart->header = head;
-				// BODY 
-				formDataPart->data.erase(bpos, formDataPart->data.end()); // next file data
-				// std::vector<char> body(std::search(formDataPart->data.begin(), formDataPart->data.end(), crlf2, crlf2 + 4), formDataPart->data.end());
-				// formDataPart->data = body;
-				formDataPart->data.erase(formDataPart->data.begin(), std::search(formDataPart->data.begin(), formDataPart->data.end(), crlf2, crlf2 + 4) + 4);
-				
-				formDataPart->full = true;
-				if (request->dataLen < stoul(request->headers["Content-Length"]))
-				{
-					parseFormData(request);
-					return 0; // chunk
-				}
-				return 1;
-			}
-			else
-				std::cout << RED << "[FORMDATA-READ] NOT FIND BOUNDARY" << std::endl;
-		}
-
-		if (request->dataLen < stoul(request->headers["Content-Length"]))
-			return 0; // chunk
+		return chunckData(request, formDataPart);
 	}
-	std::cout << formDataPart->header << std::endl;
+	
+	return chunckData(request, formDataPart);
 	return 1;
 }
 

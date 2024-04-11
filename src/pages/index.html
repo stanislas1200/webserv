@@ -28,10 +28,39 @@
 				<input type="submit">
 			</form>			
 		</div>
+		<div class="box">
+			<form id="delete", enctype="text/plain">
+				<h1>Delete a file</h1>
+				<input id="file" name="file" type="text">
+				<input type="submit">
+			</form>
+		</div>	
 	</div>
 
 	<script>
 		var defaultUrl = window.location.href; // Default upload URL
+		document.getElementById('delete').addEventListener('submit', function(event) {
+			event.preventDefault(); // Prevent the default form submission
+			var fileName = document.getElementById('file').value;
+			var xhr = new XMLHttpRequest();
+			var formData = new FormData(document.getElementById('delete'));
+			xhr.open('DELETE', fileName, true);
+			xhr.onload = function() {
+				if (xhr.status === 200) {
+					console.log('File deleted successfully!');
+					alert('File deleted successfully!');
+				}
+				if (xhr.status === 404) {
+					console.log('File not found!');
+					alert('File not found!');
+				}
+			};
+			xhr.onerror = function() {
+				console.log('Failed to delete file!');
+				alert('Failed to delete file!');
+			}
+			xhr.send();
+		});
 		document.getElementById('upload-form').addEventListener('submit', function(event) {
 		  event.preventDefault(); // Prevent the default form submission
 		  

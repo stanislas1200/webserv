@@ -18,7 +18,7 @@
 # define PATHTOCGI      2
 # define EXCGI          3
 
-class Location : public ServConfig {
+class Location {
     private:
         std::string _path;
         std::string _methode;
