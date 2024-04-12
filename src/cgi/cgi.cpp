@@ -70,6 +70,7 @@ std::string	getOutput(int fd)
 
 	while ((check = read(fd, buff, 1024)))
 	{
+		buff[check] = '\0';
 		if (check == -1)
 		{
 			std::cerr << RED "CGI read failed" C << std::endl;

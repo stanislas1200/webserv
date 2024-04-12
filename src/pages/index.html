@@ -49,7 +49,7 @@
 			// Only fetch the list of files if the select element is empty
 			if (select.options.length === 1) {
 				var xhr = new XMLHttpRequest();
-				xhr.open('GET', '/listFiles', true);
+				xhr.open('GET', '/cgi/listUpload', true);
 				xhr.onload = function () {
 					if (xhr.status === 200) {
 						var files = JSON.parse(xhr.responseText);
@@ -64,6 +64,13 @@
 				xhr.send();
 			}
 		});
+
+		// Function to clear select options
+		function clearSelectOptions() {
+			for(let i = select.options.length - 1 ; i >= 1 ; i--) {
+				select.remove(i);
+			}
+		}
 		// window.onload = function() {
 		// var xhr = new XMLHttpRequest();
 		// xhr.open('GET', '/listFiles', true);
@@ -93,6 +100,7 @@
 			xhr.onload = function () {
 				if (xhr.status === 200) {
 					console.log('File deleted successfully!');
+					clearSelectOptions();
 					alert('File deleted successfully!');
 				}
 				if (xhr.status === 404) {
@@ -102,6 +110,7 @@
 			};
 			xhr.onerror = function () {
 				console.log('Failed to delete file!');
+				clearSelectOptions();
 				alert('Failed to delete file!');
 			}
 			xhr.send();
@@ -124,6 +133,7 @@
 			};
 			xhr.onload = function () {
 				if (xhr.status === 200) {
+					clearSelectOptions();
 					console.log('File uploaded successfully!');
 				}
 			};
