@@ -1,18 +1,5 @@
-
 <body>
 	<div class="container">
-		<div class="box">
-			<form id="upload-form" method='POST' enctype='multipart/form-data' accept-charset='utf-8'>
-				<h1>Upload a file</h1>
-				<input id="file1" name="file1" type="file" />
-				<input id="file2" name="file2" type="file" />
-				<input id="file3" name="file3" type="file" />
-				<input type="submit" value="Upload File">
-			</form>
-			<div id="progress-bar">
-				<div id="progress">0%</div>
-			</div>
-		</div>
 		<div class="box">
 			<form method='POST' enctype='application/x-www-form-urlencoded' accept-charset='utf-8'>
 				<h1>Send a message</h1>
@@ -26,28 +13,94 @@
 				<h1>Send a JSON</h1>
 				<input id="json" name="json" type="text">
 				<input type="submit">
-			</form>			
+			</form>
 		</div>
 		<div class="box">
-			<form id="delete", enctype="text/plain">
+			<form id="delete" , enctype="text/plain">
 				<h1>Delete a file</h1>
-				<input id="file" name="file" type="text">
+				<div class="select">
+					<select id="file" name="file">
+						<option value="" disabled selected>Select a file</option>
+					</select>
+				</div>
 				<input type="submit">
 			</form>
-		</div>	
+		</div>
+		<div class="box">
+			<form id="upload-form" method='POST' enctype='multipart/form-data' accept-charset='utf-8'>
+				<h1>Upload a file</h1>
+				<input id="file1" name="file1" type="file" />
+				<input id="file2" name="file2" type="file" />
+				<input id="file3" name="file3" type="file" />
+				<input type="submit" value="Upload File">
+			</form>
+			<div id="progress-bar">
+				<div id="progress">0%</div>
+			</div>
+		</div>
 	</div>
 
 	<script>
 		var defaultUrl = window.location.href; // Default upload URL
-		document.getElementById('delete').addEventListener('submit', function(event) {
+
+		// GET uploaded files
+		var select = document.getElementById('file');
+		select.addEventListener('click', function () {
+			// Only fetch the list of files if the select element is empty
+			if (select.options.length === 1) {
+				var xhr = new XMLHttpRequest();
+				xhr.open('GET', '/cgi/listUpload', true);
+				xhr.onload = function () {
+					if (xhr.status === 200) {
+						var files = JSON.parse(xhr.responseText);
+						for (var i = 0; i < files.length; i++) {
+							var option = document.createElement('option');
+							option.value = files[i];
+							option.text = files[i];
+							select.appendChild(option);
+						}
+					}
+				};
+				xhr.send();
+			}
+		});
+
+		// Function to clear select options
+		function clearSelectOptions() {
+			for(let i = select.options.length - 1 ; i >= 1 ; i--) {
+				select.remove(i);
+			}
+		}
+		// window.onload = function() {
+		// var xhr = new XMLHttpRequest();
+		// xhr.open('GET', '/listFiles', true);
+		// xhr.onload = function() {
+		// 	if (xhr.status === 200) {
+		// 	var files = JSON.parse(xhr.responseText);
+		// 	console.log(files);
+		// 	var select = document.getElementById('file');
+		// 	for (var i = 0; i < files.length; i++) {
+		// 		var option = document.createElement('option');
+		// 		option.value = files[i];
+		// 		option.text = files[i];
+		// 		select.appendChild(option);
+		// 	}
+		// 	}
+		// };
+		// xhr.send();
+		// };
+
+		// Delete file
+		document.getElementById('delete').addEventListener('submit', function (event) {
 			event.preventDefault(); // Prevent the default form submission
 			var fileName = document.getElementById('file').value;
 			var xhr = new XMLHttpRequest();
 			var formData = new FormData(document.getElementById('delete'));
 			xhr.open('DELETE', fileName, true);
-			xhr.onload = function() {
+			xhr.onload = function () {
 				if (xhr.status === 200) {
 					console.log('File deleted successfully!');
+					clearSelectOptions();
 					alert('File deleted successfully!');
 				}
 				if (xhr.status === 404) {
@@ -55,36 +108,40 @@
 					alert('File not found!');
 				}
 			};
-			xhr.onerror = function() {
+			xhr.onerror = function () {
 				console.log('Failed to delete file!');
+				clearSelectOptions();
 				alert('Failed to delete file!');
 			}
 			xhr.send();
 		});
-		document.getElementById('upload-form').addEventListener('submit', function(event) {
-		  event.preventDefault(); // Prevent the default form submission
-		  
-		  var xhr = new XMLHttpRequest();
-		  var formData = new FormData(document.getElementById('upload-form'));
-		  
-		  xhr.open('POST', defaultUrl, true);
-		  xhr.upload.onprogress = function(event) {
-			if (event.lengthComputable) {
-			  var progress = Math.round((event.loaded / event.total) * 100);
-			  document.getElementById('progress').style.width = progress + '%';
-			  document.getElementById('progress').innerText = progress + '%';
+
+		// Upload file
+		document.getElementById('upload-form').addEventListener('submit', function (event) {
+			event.preventDefault(); // Prevent the default form submission
+
+			var xhr = new XMLHttpRequest();
+			var formData = new FormData(document.getElementById('upload-form'));
+
+			xhr.open('POST', defaultUrl, true);
+			xhr.upload.onprogress = function (event) {
+				if (event.lengthComputable) {
+					var progress = Math.round((event.loaded / event.total) * 100);
+					document.getElementById('progress').style.width = progress + '%';
+					document.getElementById('progress').innerText = progress + '%';
+				}
+			};
+			xhr.onload = function () {
+				if (xhr.status === 200) {
+					clearSelectOptions();
+					console.log('File uploaded successfully!');
+				}
+			};
+			xhr.onerror = function () {
+				document.getElementById('progress').style.backgroundColor = '#dc3545';
+				document.getElementById('progress').innerText = "Failed!";
 			}
-		  };
-		  xhr.onload = function() {
-			if (xhr.status === 200) {
-			  console.log('File uploaded successfully!');
-			}
-		  };
-		  xhr.onerror = function() {
-			document.getElementById('progress').style.backgroundColor = '#dc3545';
-			document.getElementById('progress').innerText = "Failed!";
-		  }
-		  xhr.send(formData);
+			xhr.send(formData);
 		});
-	  </script>
+	</script>
 </body>
