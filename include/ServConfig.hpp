@@ -22,6 +22,7 @@
 # define TEMPLATE       6
 # define NOT_RIGHT "not right amount of parameter"
 # define ERROR_HAPPEND "something wrong in parameters"
+# define MISSING "mandatory information missing"
 
 class Location;
 
@@ -43,10 +44,10 @@ class ServConfig {
         virtual ~ServConfig(void);
         ServConfig& operator=(const ServConfig &rhs);
         
-        static void    wrongFormatError(const char *msg, const char *line);
+        static void wrongFormatError(const char *msg, const char *line);
         void        initializeConfig(std::ifstream *confFile);
         std::string pathToErrorPage(int pageToFind);
-        bool    AccessUsage(std::string filename);
+        void        checkUpConfig(void);
         
         std::string getName(void) const;
         std::string getMethode(void) const;
@@ -88,3 +89,4 @@ void displayVector(const std::vector<T>& vec) {
 std::ostream& operator<<(std::ostream& os, const ServConfig& obj);
 int     getKey(std::vector<std::string> key, std::string token);
 std::string vecToString(std::vector<std::string>::iterator begin, std::vector<std::string>::iterator end);
+bool    isNbrNoOverflow(std::string token, int *result);

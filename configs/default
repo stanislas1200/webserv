@@ -20,13 +20,13 @@ server {
         template /pages/template.html
     }
     location /about {
-        methodes GET POST DELETE
         redirection /pages/about.html
     }
 }
 server {
 	errorpages 404 src/pages/errorpages/error_404.html
 	errorpages 505 src/pages/errorpages/error_404.html
+    methodes GET POST DELETE
 	listen 8081
     location / {
         methodes GET POST

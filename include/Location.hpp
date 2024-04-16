@@ -44,6 +44,11 @@ class Location {
         std::string getPathToCgi(void) const;
         std::string getExCgi(void) const;
         std::string getTemplate(void) const;
+        
+        //////  setter  //////
+
+        void    setMethode(std::string str);
+        void    setTemplate(std::string str);
 
         class Error : public std::exception {
 			public :

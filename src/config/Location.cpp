@@ -111,6 +111,16 @@ std::string Location::getTemplate(void) const {
     return (this->_templatePath);
 }
 
+//// Setter ////
+
+void    Location::setMethode(std::string str) {
+    _methode = str;
+}
+
+void    Location::setTemplate(std::string str) {
+    _templatePath = str;
+}
+
 std::ostream& operator<<(std::ostream& os, const Location& obj) {
     os << "----Location----" << std::endl;
     

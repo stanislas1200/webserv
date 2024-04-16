@@ -12,7 +12,7 @@
 
 #include "../../include/Webserv.hpp"
 
-ServConfig::ServConfig() : _name(""), _methode(""), _port(0), _maxClient(0) {}
+ServConfig::ServConfig() : _methode(""), _port(-1), _maxClient(-1) {}
 
 ServConfig::~ServConfig() {}
 
@@ -79,27 +79,6 @@ void    ServConfig::wrongFormatError(const char *msg, const char *line) {
     throw wrongFormat();
 }
 
-bool    isNbrNoOverflow(std::string token, int *result) {
-    for (size_t i = 0; i < token.size(); i++) {
-        if (!std::isdigit(token[i]))
-            return (false);
-            // ServConfig::wrongFormatError(msg, "not a nbr in parameter");
-    }
-    if ((std::strlen(token.c_str()) >= 10 && std::strcmp(token.c_str(), "2147483647") > 0) || std::strlen(token.c_str()) > 10)
-        return (false);
-        // throw OverflowNbr();
-    *result = std::atoi(token.c_str());
-    return (true);
-}
-
-bool    ServConfig::AccessUsage(std::string filename) {
-    if (access(filename.c_str(), F_OK | R_OK) == 0) {
-        return (true);
-    }
-    std::cout << "This file: " + filename + " is not openable/readable" << std::endl;
-    return (false);
-}
-
 void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile) {
     (void)  tokens;
     (void)  confFile;
@@ -114,7 +93,7 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifs
             _methode = vecToString(tokens.begin() + 1, tokens.end());
             break;
         case ERRORPAGES:
-            if (tokens.size() != 3 || !isNbrNoOverflow(tokens[1], &result) || !AccessUsage(tokens[2]))
+            if (tokens.size() != 3 || !isNbrNoOverflow(tokens[1], &result))
                 wrongFormatError("errorpages", ERROR_HAPPEND);
             _errorpages[result] = tokens[2];
             break;
@@ -140,10 +119,8 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifs
             for (std::vector<Location>::iterator it = _location.begin(); it != _location.end(); it++) {
                 if (_location.empty())
                     break;
-                if (location == *it) {
+                if (location == *it)
                     _location.erase(it);
-                    // it = _location.begin();
-                }
             }
             _location.push_back(location);
             break;
@@ -160,6 +137,28 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifs
     }
 }  
 
+void    ServConfig::checkUpConfig(void) {
+    if (_methode.empty())
+        wrongFormatError("methode", MISSING);
+    if (_port == -1)
+        wrongFormatError("port", MISSING);
+    if (_maxClient == -1)
+        wrongFormatError("max client", MISSING);
+    if (_location.empty())
+        wrongFormatError("location", MISSING);
+    if (_errorpages.empty())
+        wrongFormatError("error pages", MISSING);
+    for (std::vector<Location>::iterator it = _location.begin(); it != _location.end(); it++) {
+        if (it->getPath().empty())
+            wrongFormatError("Location: path", MISSING);
+        if (it->getRedirection().empty())
+            wrongFormatError("Location: redirection", MISSING);
+        if (it->getMethode().empty())
+            it->setMethode(_methode);
+        if (it->getTemplate().empty() && !_templatePath.empty())
+            it->setTemplate(_templatePath);
+    }
+}
 
 void    ServConfig::initializeConfig(std::ifstream *confFile) {
     std::string line;
@@ -184,13 +183,14 @@ void    ServConfig::initializeConfig(std::ifstream *confFile) {
         }
         if (*tokens.begin() == "}") {
             // std::cout << std::endl << "-----------End of config server---------------" << std::endl << std::endl;
-            return;
+            break;
         }
         // initializeVariable(tokens, line, confFile);
         initializeVariable(tokens, confFile);
         // displayVector(tokens);
         tokens.clear();
     }
+    checkUpConfig();
 }
 
 std::string ServConfig::pathToErrorPage(int pageToFind) {
@@ -291,4 +291,17 @@ std::string vecToString(std::vector<std::string>::iterator begin, std::vector<st
         }
     }
     return (str);
+}
+
+bool    isNbrNoOverflow(std::string token, int *result) {
+    for (size_t i = 0; i < token.size(); i++) {
+        if (!std::isdigit(token[i]))
+            return (false);
+            // ServConfig::wrongFormatError(msg, "not a nbr in parameter");
+    }
+    if ((std::strlen(token.c_str()) >= 10 && std::strcmp(token.c_str(), "2147483647") > 0) || std::strlen(token.c_str()) > 10)
+        return (false);
+        // throw OverflowNbr();
+    *result = std::atoi(token.c_str());
+    return (true);
 }
