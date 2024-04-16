@@ -23,6 +23,7 @@ ServConfig::ServConfig(const ServConfig &src) {
     _maxClient = src._maxClient;
     _location = src._location;
     _errorpages = src._errorpages;
+    _templatePath = src._templatePath;
 }
 
 ServConfig& ServConfig::operator=(const ServConfig &rhs) {
@@ -32,6 +33,7 @@ ServConfig& ServConfig::operator=(const ServConfig &rhs) {
     _maxClient = rhs._maxClient;
     _location = rhs._location;
     _errorpages = rhs._errorpages;
+    _templatePath = rhs._templatePath;
     return (*this);
 }
 
@@ -69,8 +71,6 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::str
         Location Location;
         Location.init(tokens, confFile);
         _location.push_back(Location);
-        // std::cout << Location;
-        // exit(0);
     }
 }
 
@@ -92,11 +92,19 @@ bool    isNbrNoOverflow(std::string token, int *result) {
     return (true);
 }
 
+bool    ServConfig::AccessUsage(std::string filename) {
+    if (access(filename.c_str(), F_OK | R_OK) == 0) {
+        return (true);
+    }
+    std::cout << "This file: " + filename + " is not openable/readable" << std::endl;
+    return (false);
+}
+
 void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile) {
     (void)  tokens;
     (void)  confFile;
     int         result = 0;
-    Location    Location;
+    Location    location;
     std::vector<std::string> keyStack = {"methodes", "errorpages", "listen", "server_names", "client_size", "location", "template"};
     switch (getKey(keyStack, tokens[0]))
     {
@@ -106,7 +114,7 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifs
             _methode = vecToString(tokens.begin() + 1, tokens.end());
             break;
         case ERRORPAGES:
-            if (tokens.size() != 3 || !isNbrNoOverflow(tokens[1], &result))
+            if (tokens.size() != 3 || !isNbrNoOverflow(tokens[1], &result) || !AccessUsage(tokens[2]))
                 wrongFormatError("errorpages", ERROR_HAPPEND);
             _errorpages[result] = tokens[2];
             break;
@@ -128,12 +136,21 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifs
         case LOCATION:
             if (tokens.size() != 3)
                 wrongFormatError("location", NOT_RIGHT);
-            Location.init(tokens, confFile);
-            _location.push_back(Location);
+            location.init(tokens, confFile);
+            for (std::vector<Location>::iterator it = _location.begin(); it != _location.end(); it++) {
+                if (_location.empty())
+                    break;
+                if (location == *it) {
+                    _location.erase(it);
+                    // it = _location.begin();
+                }
+            }
+            _location.push_back(location);
             break;
         case TEMPLATE:
             if (tokens.size() != 2)
                 wrongFormatError("Temlate path", NOT_RIGHT);
+            _templatePath = tokens[1];
             break;
         default:
             // std::cout << tokens[0] << std::endl;
@@ -189,10 +206,11 @@ std::string ServConfig::pathToErrorPage(int pageToFind) {
 
 std::ostream& operator<<(std::ostream& os, const ServConfig& obj) {
     os << MB "------" GREEN " Serveur Description " MB "------" C << std::endl;
-    os << "Name: " << obj.getName() << std::endl;
-    os << "Methode: " << obj.getMethode() << std::endl;
-    os << "Port: " << obj.getPort() << std::endl;
+    os << "Name     : " << obj.getName() << std::endl;
+    os << "Methode  : " << obj.getMethode() << std::endl;
+    os << "Port     : " << obj.getPort() << std::endl;
     os << "MaxClient: " << obj.getMaxClient() << std::endl;
+    os << "Template : " << obj.getTemplate() << std::endl;
     os << std::endl << MB "--" C " Start " RED "Error" C " Pages " MB "--" C << std::endl;
     std::map<int, std::string> errorPages = obj.getErrorPages();
     for (std::map<int, std::string>::iterator it = errorPages.begin(); it != errorPages.end(); it++) {
@@ -231,6 +249,10 @@ std::vector<Location>   ServConfig::getLocation(void) const {
 
 std::map<int, std::string> ServConfig::getErrorPages(void) const {
     return (this->_errorpages);
+}
+
+std::string ServConfig::getTemplate(void) const {
+    return (this->_templatePath);
 }
 
 //// Throw ////

@@ -31,7 +31,8 @@ class Location {
         Location(void);
         Location(const Location &src);
         virtual ~Location(void);
-        Location& operator=(const Location &rhs);
+        Location&   operator=(const Location &rhs);
+        bool        operator==(const Location &rhs);
 
         void init(std::vector<std::string> tokens, std::ifstream *confFile);
         
@@ -42,6 +43,7 @@ class Location {
         std::string getRedirection(void) const;
         std::string getPathToCgi(void) const;
         std::string getExCgi(void) const;
+        std::string getTemplate(void) const;
 
         class Error : public std::exception {
 			public :
@@ -49,4 +51,4 @@ class Location {
 		};
 };
 
-std::ostream& operator<<(std::ostream& os, const Location& obj);
+std::ostream&   operator<<(std::ostream& os, const Location& obj);

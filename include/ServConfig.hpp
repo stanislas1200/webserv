@@ -13,7 +13,7 @@
 #pragma once
 
 # include "Webserv.hpp"
-# define METHODE   0
+# define METHODE        0
 # define ERRORPAGES     1
 # define LISTEN         2
 # define SERVER_NAMES   3
@@ -46,11 +46,13 @@ class ServConfig {
         static void    wrongFormatError(const char *msg, const char *line);
         void        initializeConfig(std::ifstream *confFile);
         std::string pathToErrorPage(int pageToFind);
+        bool    AccessUsage(std::string filename);
         
         std::string getName(void) const;
         std::string getMethode(void) const;
         int         getPort(void) const;
         int         getMaxClient(void) const;
+        std::string getTemplate(void) const;
         std::vector<Location>   getLocation(void) const;
         std::map<int, std::string> getErrorPages(void) const;
         

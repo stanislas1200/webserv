@@ -4,12 +4,24 @@ server {
     methodes GET POST AGAIN
     server_names littleCloud
     client_size 42
+    template /pages/template.html
     location /about {
         redirection /pages/about.html
+    }
+    location /about {
+        methodes GET
+        redirection /pages
     }
     location / {
         methodes GET POST
         redirection /pages/index.html
+        FUTUREPATHCGI   /pathCgi
+        FUTUREEXTENTIONCGI  extention
+        template /pages/template.html
+    }
+    location /about {
+        methodes GET POST DELETE
+        redirection /pages/about.html
     }
 }
 server {
