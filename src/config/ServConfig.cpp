@@ -37,51 +37,12 @@ ServConfig& ServConfig::operator=(const ServConfig &rhs) {
     return (*this);
 }
 
-void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::string line, std::ifstream *confFile) {  
-    (void) line;
-    std::vector<std::string>::iterator it = tokens.begin();
-    if (it->find("errorpages") != std::string::npos) {
-        if (tokens.size() != 3)
-            wrongFormatError("errorpages", "");
-        _errorpages[std::atoi(tokens[1].c_str())] = tokens[2];
-    }
-    else if (it->find("server_names") != std::string::npos) {
-        if (tokens.size() != 2)
-            wrongFormatError("server_names", "");
-        _name = tokens[1];
-    }
-    else if (tokens[0].find("listen")  != std::string::npos) {
-        if (tokens.size() != 2)
-            wrongFormatError("listen", "");
-        _port = std::atoi(tokens[1].c_str());
-    }
-    else if (tokens[0].find("methode")  != std::string::npos) {
-        if (tokens.size() < 2)
-            wrongFormatError("methode", "");
-        _methode = tokens[1];
-    }
-    else if (tokens[0].find("client_size")  != std::string::npos) {
-        if (tokens.size() != 2)
-            wrongFormatError("client_size", "");
-        _maxClient = std::atoi(tokens[1].c_str());
-    }
-    else if (tokens[0].find("location")  != std::string::npos) {
-        if (tokens.size() != 3)
-            wrongFormatError("location", "");
-        Location Location;
-        Location.init(tokens, confFile);
-        _location.push_back(Location);
-    }
-}
-
 void    ServConfig::wrongFormatError(const char *msg, const char *line) {
     std::cerr << msg << " " << line << std::endl;
     throw wrongFormat();
 }
 
 void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile) {
-    (void)  tokens;
-    (void)  confFile;
     int         result = 0;
     Location    location;
     std::vector<std::string> keyStack = {"methodes", "errorpages", "listen", "server_names", "client_size", "location", "template"};
@@ -130,9 +91,7 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifs
             _templatePath = tokens[1];
             break;
         default:
-            // std::cout << tokens[0] << std::endl;
-            // if (!tokens.empty())
-                wrongFormatError("Incoherent line:", ("\"" + vecToString(tokens.begin(), tokens.end()) + "\"").c_str());
+            wrongFormatError("Incoherent line:", ("\"" + vecToString(tokens.begin(), tokens.end()) + "\"").c_str());
             break;
     }
 }  
@@ -182,12 +141,9 @@ void    ServConfig::initializeConfig(std::ifstream *confFile) {
                 throw MultipleServerOpen();
         }
         if (*tokens.begin() == "}") {
-            // std::cout << std::endl << "-----------End of config server---------------" << std::endl << std::endl;
             break;
         }
-        // initializeVariable(tokens, line, confFile);
         initializeVariable(tokens, confFile);
-        // displayVector(tokens);
         tokens.clear();
     }
     checkUpConfig();
@@ -295,13 +251,12 @@ std::string vecToString(std::vector<std::string>::iterator begin, std::vector<st
 
 bool    isNbrNoOverflow(std::string token, int *result) {
     for (size_t i = 0; i < token.size(); i++) {
-        if (!std::isdigit(token[i]))
+        if (!std::isdigit(token[i])) {
             return (false);
-            // ServConfig::wrongFormatError(msg, "not a nbr in parameter");
+        }
     }
     if ((std::strlen(token.c_str()) >= 10 && std::strcmp(token.c_str(), "2147483647") > 0) || std::strlen(token.c_str()) > 10)
         return (false);
-        // throw OverflowNbr();
     *result = std::atoi(token.c_str());
     return (true);
 }

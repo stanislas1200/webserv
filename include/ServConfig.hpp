@@ -34,8 +34,7 @@ class ServConfig {
         int                         _maxClient;
         std::vector<Location>       _location;
         std::map<int, std::string>  _errorpages;
-        std::string                 _templatePath; // not mandatory
-        void    initializeVariable(std::vector<std::string> tokens, std::string line, std::ifstream *confFile);
+        std::string                 _templatePath;
         void    initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile);
 
     public:

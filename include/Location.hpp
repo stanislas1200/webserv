@@ -26,7 +26,7 @@ class Location {
         std::string _redirection;
         std::string _pathToCgi;
         std::string _exCgi;
-        std::string _templatePath;// not mandatory
+        std::string _templatePath;
     public:
         Location(void);
         Location(const Location &src);

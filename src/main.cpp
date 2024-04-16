@@ -5,7 +5,6 @@ void error(const char *type, const char *msg, const char *bold) {
 	if (bold)
 		std::cerr << DV " " << bold << C;
 	std::cerr << C << std::endl;
-	// exit(1);
 }
 
 void getConfig(std::vector<ServConfig> *configClass, std::string file) {
@@ -40,6 +39,5 @@ int main(int ac, char **av) {
 		std::cout << *it << std::endl;
 	}
 	std::cout << "Number of server: " << configClass.size() << std::endl;
-	exit(0);
 	acceptConnection(configClass);
 }
