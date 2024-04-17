@@ -15,8 +15,8 @@ server {
     location / {
         methodes GET POST
         redirection /pages/index.html
-        FUTUREPATHCGI   /pathCgi
-        FUTUREEXTENTIONCGI  extention
+        cgi_path   /pathCgi
+        cgi_extention  .cgi .py sdfdfs 
         template /pages/template.html
     }
     location /about {

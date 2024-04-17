@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Location.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
+/*   By: sgodin <sgodin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 15:17:10 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/03/29 23:58:49 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/04/17 15:29:43 by sgodin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,11 +22,11 @@
 class Location {
     private:
         std::string _path;
-        std::string _methode;
+        std::string _methode; // nop
         std::string _redirection;
-        std::string _pathToCgi;
-        std::string _exCgi;
-        std::string _templatePath;
+        std::string _pathToCgi; //nop
+        std::string _exCgi; // nop
+        std::string _templatePath; // nop
     public:
         Location(void);
         Location(const Location &src);

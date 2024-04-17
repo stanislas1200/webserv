@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
+/*   By: sgodin <sgodin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 15:17:47 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/03/30 00:02:11 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/04/17 15:43:17 by sgodin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ Location& Location::operator=(const Location &rhs) {
 }
 
 void Location::init(std::vector<std::string> tokens, std::ifstream *confFile) {
-    std::vector<std::string> keyStack = {"methodes", "redirection", "FUTUREPATHCGI", "FUTUREEXTENTIONCGI", "template"};
+    std::vector<std::string> keyStack = {"methodes", "redirection", "cgi_path", "cgi_extention", "template"};
     std::string line;
     
     _path = tokens[1];

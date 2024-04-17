@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServConfig.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
+/*   By: sgodin <sgodin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:33:10 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/03/30 00:09:38 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/04/17 16:10:20 by sgodin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,18 +26,25 @@
 
 class Location;
 
+struct s_request ;
+
 class ServConfig {
     private:
-        std::string                 _name;
+        std::string                 _name; // nop
         std::string                 _methode;
         int                         _port;
         int                         _maxClient;
         std::vector<Location>       _location;
         std::map<int, std::string>  _errorpages;
-        std::string                 _templatePath;
+        std::string                 _templatePath; // nop
+        // up
+	    int _fd;
+        
         void    initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile);
 
     public:
+        std::vector<s_request> _requests;
+        sockaddr_in _sockaddr;
         ServConfig(void);
         ServConfig(const ServConfig &src);
         virtual ~ServConfig(void);
@@ -52,6 +59,14 @@ class ServConfig {
         std::string getMethode(void) const;
         int         getPort(void) const;
         int         getMaxClient(void) const;
+        // up
+        int         getFd(void) const;
+        // sockaddr_in         getSockaddr(void) const;
+        // std::vector<s_request>         getRequests(void) const;
+        void         setFd(int fd);
+        // void         setSockaddr(sockaddr_in addr);
+        // void         setRequests(std::vector<s_request> req);
+        
         std::string getTemplate(void) const;
         std::vector<Location>   getLocation(void) const;
         std::map<int, std::string> getErrorPages(void) const;

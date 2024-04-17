@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServConfig.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
+/*   By: sgodin <sgodin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:43:18 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/02 11:52:52 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/04/17 16:26:34 by sgodin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,9 @@ ServConfig::ServConfig(const ServConfig &src) {
     _location = src._location;
     _errorpages = src._errorpages;
     _templatePath = src._templatePath;
+    _fd = src._fd;
+    _sockaddr = src._sockaddr;
+    _requests = src._requests;
 }
 
 ServConfig& ServConfig::operator=(const ServConfig &rhs) {
@@ -34,6 +37,9 @@ ServConfig& ServConfig::operator=(const ServConfig &rhs) {
     _location = rhs._location;
     _errorpages = rhs._errorpages;
     _templatePath = rhs._templatePath;
+    _fd = rhs._fd;
+    _sockaddr = rhs._sockaddr;
+    _requests = rhs._requests;
     return (*this);
 }
 
@@ -210,6 +216,29 @@ std::map<int, std::string> ServConfig::getErrorPages(void) const {
 std::string ServConfig::getTemplate(void) const {
     return (this->_templatePath);
 }
+// up
+int ServConfig::getFd(void) const {
+    std::cout << "conf  " << this->_fd << std::endl;
+    return (this->_fd);
+}
+// sockaddr_in ServConfig::getSockaddr(void) const {
+//     return (this->_sockaddr);
+// }
+// std::vector<s_request> ServConfig::getRequests(void) const {
+//     return (this->_requests);
+// }
+//// Setter ////
+void ServConfig::setFd(int fd) {
+    std::cout << "conf2  " << fd << std::endl;
+
+    this->_fd = fd;
+}
+// void ServConfig::setSockaddr(sockaddr_in addr) {
+//     this->_sockaddr = addr;
+// }
+// void ServConfig::setRequests(std::vector<s_request> req) {
+//     this->_requests = req;
+// }
 
 //// Throw ////
 

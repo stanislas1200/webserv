@@ -62,9 +62,6 @@ typedef struct s_request {
 
 typedef struct s_server {
 	int port;
-	int fd;
-	sockaddr_in sockaddr;
-	std::vector<s_request> requests;
 } t_server;
 
 int parseRequest(std::string header, s_request *request);
