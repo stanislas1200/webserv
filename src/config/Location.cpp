@@ -35,10 +35,22 @@ Location& Location::operator=(const Location &rhs) {
     return (*this);
 }
 
+std::vector<std::string>    Location::fillVectorInitialisation(void) {
+    std::vector<std::string> vec;
+    
+    vec.push_back("methodes");
+    vec.push_back("redirection");
+    vec.push_back("cgi_path");
+    vec.push_back("cgi_extention");
+    vec.push_back("template");
+    return (vec);
+}
+
 void Location::init(std::vector<std::string> tokens, std::ifstream *confFile) {
-    std::vector<std::string> keyStack = {"methodes", "redirection", "FUTUREPATHCGI", "FUTUREEXTENTIONCGI", "template"};
+    std::vector<std::string> keyStack;
     std::string line;
     
+    keyStack = fillVectorInitialisation();
     _path = tokens[1];
     tokens.clear();
     while (std::getline(*confFile, line)) {

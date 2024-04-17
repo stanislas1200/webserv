@@ -36,6 +36,7 @@ class ServConfig {
         std::map<int, std::string>  _errorpages;
         std::string                 _templatePath;
         void    initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile);
+        std::vector<std::string>    fillVectorInitialisation(void);
 
     public:
         ServConfig(void);

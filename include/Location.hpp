@@ -27,6 +27,7 @@ class Location {
         std::string _pathToCgi;
         std::string _exCgi;
         std::string _templatePath;
+        std::vector<std::string>    fillVectorInitialisation(void);
     public:
         Location(void);
         Location(const Location &src);
