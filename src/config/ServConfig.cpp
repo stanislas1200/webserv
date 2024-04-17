@@ -6,7 +6,7 @@
 /*   By: sgodin <sgodin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:43:18 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/17 16:26:34 by sgodin           ###   ########.fr       */
+/*   Updated: 2024/04/17 19:41:01 by sgodin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,6 @@ ServConfig::ServConfig(const ServConfig &src) {
     _templatePath = src._templatePath;
     _fd = src._fd;
     _sockaddr = src._sockaddr;
-    _requests = src._requests;
 }
 
 ServConfig& ServConfig::operator=(const ServConfig &rhs) {
@@ -39,7 +38,6 @@ ServConfig& ServConfig::operator=(const ServConfig &rhs) {
     _templatePath = rhs._templatePath;
     _fd = rhs._fd;
     _sockaddr = rhs._sockaddr;
-    _requests = rhs._requests;
     return (*this);
 }
 
@@ -233,7 +231,6 @@ std::string ServConfig::getTemplate(void) const {
 }
 // up
 int ServConfig::getFd(void) const {
-    std::cout << "conf  " << this->_fd << std::endl;
     return (this->_fd);
 }
 // sockaddr_in ServConfig::getSockaddr(void) const {
@@ -244,8 +241,6 @@ int ServConfig::getFd(void) const {
 // }
 //// Setter ////
 void ServConfig::setFd(int fd) {
-    std::cout << "conf2  " << fd << std::endl;
-
     this->_fd = fd;
 }
 // void ServConfig::setSockaddr(sockaddr_in addr) {

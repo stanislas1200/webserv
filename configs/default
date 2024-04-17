@@ -1,26 +1,41 @@
 server {
 	errorpages 503 src/pages/errorpages/error_503.html
 	listen 8080
-    methodes GET POST AGAIN
+    methodes GET AGAIN
     server_names littleCloud
     client_size 42
-    template /pages/template.html
+    template src/pages/template.html
     location /about {
-        redirection /pages/about.html
+        redirection src/pages/about.html
     }
     location /about {
         methodes GET
         redirection /pages
     }
     location / {
-        methodes GET POST
-        redirection /pages/index.html
-        cgi_path   /pathCgi
-        cgi_extention  .cgi .py sdfdfs 
-        template /pages/template.html
+        methodes GET POST DELETE
+        redirection src/pages/index.html
+        cgi_path   cgiFiles/
+        cgi_extention  .cgi .py sdfdfs
+        template src/pages/template.html
     }
     location /about {
-        redirection /pages/about.html
+        redirection src/pages/about.html
+    }
+    location /cgi {
+        redirection cgiFiles/test.cgi
+        cgi_path   cgiFiles/
+        cgi_extention   .cgi
+    }
+    location /cgi/test {
+        redirection cgiFiles/cgi_tester.cgi
+        cgi_path   cgiFiles/
+        cgi_extention   .cgi
+    }
+    location /listUpload {
+        redirection cgiFiles/listUpload.py
+        cgi_path   cgiFiles/
+        cgi_extention   .cgi .py
     }
 }
 server {
@@ -30,7 +45,7 @@ server {
 	listen 8081
     location / {
         methodes GET POST
-        redirection /pages/index.html
+        redirection src/pages/index.html
     }
     server_names bigCloud
     client_size 43

@@ -6,11 +6,12 @@ int handleGetRequest(int connection, s_request request) {
 	std::string status = "200";
 
 	// CGI
-	std::string path = request.path;
+	std::string path = request.loc.getRedirection();
 	std::string fileContent;
-	if (path.find("/cgi/") == 0) { // TODO : special path for cgi or extension set in config file?
+	if (path.substr(0, request.loc.getPathToCgi().size()) == request.loc.getPathToCgi() && request.loc.getExCgi().find(path.substr(path.find_last_of('.') + 1)) != std::string::npos) {
 		std::cout << C"[" GREEN "handleGetRequest" C "] " << YELLOW "CGI" C << std::endl;
 		try {
+			request.path = path;
 			fileContent = runCgi(request);
 		} catch (const std::exception& e) {
 			fileContent = "<h1 style=\"text-align:center\">500 Internal Server Error</h1>";
@@ -25,20 +26,16 @@ int handleGetRequest(int connection, s_request request) {
 	}
 
 	// FILE
-	if (path == "/") {
-		path = "/index.html";
-	}
 
-	std::string fullPath = "src/pages" + path; // src/pages/../main.cpp
-	std::ifstream file(fullPath.c_str(), std::ios::binary);
+	std::ifstream file(path.c_str(), std::ios::binary);
 
 	if (!file.is_open()) {
+		error("File:", strerror(errno), path.c_str());
 		status = "404"; // sendfile handle error; make a class ?
-		file.open("src/pages/errorpages/error_404.html", std::ios::binary);
-		path = "error_404.html";
-		error("File:", strerror(errno), fullPath.c_str());
+		path = request.conf.getErrorPages()[404];
+		file.open(path, std::ios::binary);
 	}
 	
-	sendFile(connection, &file, status, path);
+	sendFile(connection, &file, status, path, request);
 	return 1;
 }

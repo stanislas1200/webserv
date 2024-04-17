@@ -36,20 +36,11 @@ int serverSetup(ServConfig *server) {
 	if (bind(server->getFd(), (struct sockaddr*)&server->_sockaddr, sizeof(server->_sockaddr)) == -1)
 		return close(server->getFd()), error("Bind:", strerror(errno), NULL), -1;
 
-	if (listen(server->getFd(), 10) == -1)
+	if (listen(server->getFd(), 10) == -1) // TODO : check max 
 		return close(server->getFd()), error("Listen:", strerror(errno), NULL), -1;
 
 	return 0;
 }
-
-// int isServerConnection(std::vector<s_server> servers, int fd) {
-// 	for (size_t j = 0; j < servers.size(); j++)
-// 	{
-// 		if (fd == servers[j].fd)
-// 			return 1;
-// 	}
-// 	return 0;
-// }
 
 # include <poll.h>
 void serverRun(std::vector<ServConfig> servers, int max_fd, size_t fd_size) {
@@ -103,6 +94,7 @@ void serverRun(std::vector<ServConfig> servers, int max_fd, size_t fd_size) {
 					int addrlen = sizeof(servers[i]._sockaddr);
 					s_request	request;
 					request.connection = accept(servers[i].getFd(), (struct sockaddr*)&servers[i]._sockaddr, (socklen_t*)&addrlen);
+					request.conf = servers[i];
 					// non blocking // The connection was reset RIP
 					int flag = fcntl(request.connection, F_GETFL, 0);
 					if (fcntl(request.connection, F_SETFL, flag | O_NONBLOCK) < 0)
@@ -137,15 +129,6 @@ void serverRun(std::vector<ServConfig> servers, int max_fd, size_t fd_size) {
 }
 
 void acceptConnection(std::vector<ServConfig> servers) {
-	// (void)config;
-    // std::vector<ServConfig> servers;
-	// for (unsigned long i = 0; i < config.size(); i++)
-	// {
-	// 	s_server server;
-	// 	server.port = config[i].getPort();
-	// 	servers.push_back(server);
-	// }
-
 	int max_fd;
 	size_t fd_size;
 	fd_size = servers.size();
