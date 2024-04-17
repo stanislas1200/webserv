@@ -41,6 +41,7 @@ class ServConfig {
 	    int _fd;
         
         void    initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile);
+        std::vector<std::string>    fillVectorInitialisation(void);
 
     public:
         std::vector<s_request> _requests;

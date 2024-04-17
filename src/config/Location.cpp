@@ -6,7 +6,7 @@
 /*   By: sgodin <sgodin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 15:17:47 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/17 15:43:17 by sgodin           ###   ########.fr       */
+/*   Updated: 2024/04/17 16:51:26 by sgodin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,10 +35,22 @@ Location& Location::operator=(const Location &rhs) {
     return (*this);
 }
 
+std::vector<std::string>    Location::fillVectorInitialisation(void) {
+    std::vector<std::string> vec;
+    
+    vec.push_back("methodes");
+    vec.push_back("redirection");
+    vec.push_back("cgi_path");
+    vec.push_back("cgi_extention");
+    vec.push_back("template");
+    return (vec);
+}
+
 void Location::init(std::vector<std::string> tokens, std::ifstream *confFile) {
-    std::vector<std::string> keyStack = {"methodes", "redirection", "cgi_path", "cgi_extention", "template"};
+    std::vector<std::string> keyStack;
     std::string line;
     
+    keyStack = fillVectorInitialisation();
     _path = tokens[1];
     tokens.clear();
     while (std::getline(*confFile, line)) {

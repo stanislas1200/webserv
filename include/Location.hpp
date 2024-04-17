@@ -6,7 +6,7 @@
 /*   By: sgodin <sgodin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 15:17:10 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/17 15:29:43 by sgodin           ###   ########.fr       */
+/*   Updated: 2024/04/17 16:51:13 by sgodin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ class Location {
         std::string _pathToCgi; //nop
         std::string _exCgi; // nop
         std::string _templatePath; // nop
+        std::vector<std::string>    fillVectorInitialisation(void);
     public:
         Location(void);
         Location(const Location &src);

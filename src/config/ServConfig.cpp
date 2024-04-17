@@ -48,10 +48,25 @@ void    ServConfig::wrongFormatError(const char *msg, const char *line) {
     throw wrongFormat();
 }
 
+std::vector<std::string>    ServConfig::fillVectorInitialisation(void) {
+    std::vector<std::string> vec;
+
+    vec.push_back("methodes");
+    vec.push_back("errorpages");
+    vec.push_back("listen");
+    vec.push_back("server_names");
+    vec.push_back("client_size");
+    vec.push_back("location");
+    vec.push_back("template");
+    return (vec);
+}
+
 void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile) {
     int         result = 0;
     Location    location;
-    std::vector<std::string> keyStack = {"methodes", "errorpages", "listen", "server_names", "client_size", "location", "template"};
+    std::vector<std::string> keyStack;
+    
+    keyStack = fillVectorInitialisation();
     switch (getKey(keyStack, tokens[0]))
     {
         case METHODE:
