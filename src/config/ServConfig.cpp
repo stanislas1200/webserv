@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "../../include/Webserv.hpp"
+#include <cstring> // src/config/ServConfig.cpp:298:15: error: ‘strlen’ is not a member of ‘std’; did you mean ‘strlen’?
 
 ServConfig::ServConfig() : _methode(""), _port(-1), _maxClient(-1) {}
 

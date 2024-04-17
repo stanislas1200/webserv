@@ -50,7 +50,7 @@ std::string parseFormData(s_request *request) { // FIXME : response to each file
 	outputFile.write(&formDataPart->data[0], formDataPart->data.size());
 	std::cout << MB "File uploaded!" << std::endl;
 	outputFile.close();
-	// handleGetRequest(request->connection, *request);
+	handleGetRequest(request->connection, *request); // TODO : check send pages or just ok
 	send(request->connection, "File uploaded! ", strlen("File uploaded! "), 0);
 	return "200";
 }

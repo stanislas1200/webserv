@@ -1,3 +1,4 @@
+#!/bin/python3
 #!/Library/Developer/CommandLineTools/usr/bin/python3
 
 import os

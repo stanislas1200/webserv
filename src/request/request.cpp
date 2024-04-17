@@ -84,6 +84,28 @@ void printRequest(s_request request) {
 	std::cout << YELLOW "Body:\n" MB << request.body << std::endl;
 }
 
+std::string	replaceHexAndAmp(std::string src)
+{
+	std::string	str;
+	int		 	hexValue;
+	size_t 		length = src.length();
+	
+	for (size_t i = 0; i < length; ++i)
+	{
+		if (src[i] == '%' && i + 2 < length && isxdigit(src[i + 1]) && isxdigit(src[i + 2]))
+		{
+			sscanf(src.substr(i + 1, 2).c_str(), "%x", &hexValue);
+			str += static_cast<char>(hexValue);
+			i += 2;
+		}
+		else if (src[i] == '&')
+			str += '\n';
+		else
+			str += src[i];
+	}
+	return (str);
+}
+
 int parseRequest(std::string header, s_request *request) {
 	// Parse request header if needed
 	int connection = request->connection;
@@ -96,6 +118,7 @@ int parseRequest(std::string header, s_request *request) {
 		std::getline(requestStream, line);
 		std::istringstream firstLineStream(line);
 		firstLineStream >> request->method >> request->path;
+		request->path = replaceHexAndAmp(request->path);
 
 		// Parse the headers
 		while (std::getline(requestStream, line) && line != "\r") {
@@ -109,7 +132,7 @@ int parseRequest(std::string header, s_request *request) {
 	}
 	// handle methode
 	std::cout << C"[" DV "parseRequest" C "] " << MB "METHOD" C ": " GREEN << request->method << C << std::endl;
-	printRequest(*request);
+	// printRequest(*request);
 	std::vector<Location> loc = request->conf.getLocation();
 	std::string response = "HTTP/1.0 404 Not found\r\nContent-type:text/html\r\n\r\n <h1 style=\"text-align:center\">404 Not Found</h1>";
 	std::string fileName;
@@ -127,9 +150,9 @@ int parseRequest(std::string header, s_request *request) {
 			request->loc = loc[i];
 			if (request->method == "GET" && loc[i].getMethode().find("GET") != std::string::npos)
 				return handleGetRequest(connection, *request);
-			else if (request->method == "POST" && loc[i].getMethode().find("POST") != std::string::npos)
+			else if (request->method == "POST" && loc[i].getMethode().find("POST") != std::string::npos) // TODO : cgi ? cgi outside methode ?
 				return handlePostRequest(connection, request);
-			else if (request->method == "DELETE" && loc[i].getMethode().find("DELETE") != std::string::npos)
+			else if (request->method == "DELETE" && loc[i].getMethode().find("DELETE") != std::string::npos) // TODO : cgi
 			{
 				request->path += fileName;
 				return handleDeleteRequest(connection, *request);
