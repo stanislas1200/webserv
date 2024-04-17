@@ -28,13 +28,13 @@ bool stringEnd(std::string file, std::string end) {
 	return true;
 }
 
-void	sendFile(int connection, std::ifstream *file, std::string status, std::string fileName) {
+void	sendFile(int connection, std::ifstream *file, std::string status, std::string path, s_request request) {
 
 	std::string responce;
 	std::stringstream ss;
-	if (stringEnd(fileName, ".html"))
+	if (!request.loc.getTemplate().empty() && stringEnd(path, ".html"))
 	{
-		std::ifstream templat("src/pages/template.html");
+		std::ifstream templat(request.loc.getTemplate());
 		ss << templat.rdbuf();
 		responce = ss.str();
 		
@@ -64,11 +64,12 @@ void	sendFile(int connection, std::ifstream *file, std::string status, std::stri
 		responce = ss.str();
 	}
 	// Send status line
-	std::string statusLine = "HTTP/1.1 " + status + " OK\r\n"; // TODO : map status code and message
-	send(connection, statusLine.c_str(), statusLine.length(), 0);
-    send(connection, "Content-Type: text/html\r\n\r\n", strlen("Content-Type: text/html\r\n\r\n"), 0);
-
-	send(connection, responce.c_str(), responce.size(), 0);
+	std::string ret;
+	ret = "HTTP/1.1 " + status + " OK\r\n" + "Content-Type: text/html\r\n\r\n" + responce; // TODO : map status code and message
+	// send(connection, statusLine.c_str(), statusLine.length(), 0);
+    // send(connection, "Content-Type: text/html\r\n\r\n", strlen("Content-Type: text/html\r\n\r\n"), 0);
+	 
+	send(connection, ret.c_str(), ret.size(), 0);
 
 	file->close();
 }
@@ -109,16 +110,34 @@ int parseRequest(std::string header, s_request *request) {
 	// handle methode
 	std::cout << C"[" DV "parseRequest" C "] " << MB "METHOD" C ": " GREEN << request->method << C << std::endl;
 	printRequest(*request);
-	if (request->method == "GET")
-		return handleGetRequest(connection, *request);
-	else if (request->method == "POST")
-		return handlePostRequest(connection, request);
-	else if (request->method == "DELETE")
-		return handleDeleteRequest(connection, *request);
-	else
+	std::vector<Location> loc = request->conf.getLocation();
+	std::string response = "HTTP/1.0 404 Not found\r\nContent-type:text/html\r\n\r\n <h1 style=\"text-align:center\">404 Not Found</h1>";
+	std::string fileName;
+	if (request->method == "DELETE")
 	{
-		std::string response = "HTTP/1.0 505 Not supported\r\nContent-type:text/html\r\n\r\n";
-		send(connection, response.c_str(), response.length(), 0);
+		fileName = request->path.substr(request->path.find_last_of("/"));
+		request->path = request->path.substr(0, request->path.find_last_of("/"));
+		if (request->path.empty())
+			request->path = "/";
 	}
+	for (size_t i = 0; i < loc.size(); i++)
+	{
+		if (loc[i].getPath() == request->path)
+		{
+			request->loc = loc[i];
+			if (request->method == "GET" && loc[i].getMethode().find("GET") != std::string::npos)
+				return handleGetRequest(connection, *request);
+			else if (request->method == "POST" && loc[i].getMethode().find("POST") != std::string::npos)
+				return handlePostRequest(connection, request);
+			else if (request->method == "DELETE" && loc[i].getMethode().find("DELETE") != std::string::npos)
+			{
+				request->path += fileName;
+				return handleDeleteRequest(connection, *request);
+			}
+			else
+				response = "HTTP/1.0 505 Not supported\r\nContent-type:text/html\r\n\r\n <h1 style=\"text-align:center\">505 Not Supported</h1>";
+		}
+	}
+	send(connection, response.c_str(), response.length(), 0); // TODO : change error page logic
 	return 1;
 }

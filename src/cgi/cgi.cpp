@@ -109,7 +109,7 @@ std::string	runCgi(s_request& request)
 		close(fd[0]);
 		dup2(fd[1], STDOUT_FILENO);
 		close(fd[1]);
-		std::string fullPath = "src/cgi" + request.path; // src/cgi/..
+		std::string fullPath = request.path;
 
 		char *argv[] = {const_cast<char*>(fullPath.c_str()), NULL};
 		if (execve(fullPath.c_str(), argv, env.data()) == -1)

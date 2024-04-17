@@ -49,7 +49,7 @@
 			// Only fetch the list of files if the select element is empty
 			if (select.options.length === 1) {
 				var xhr = new XMLHttpRequest();
-				xhr.open('GET', '/cgi/listUpload', true);
+				xhr.open('GET', '/listUpload', true);
 				xhr.onload = function () {
 					if (xhr.status === 200) {
 						var files = JSON.parse(xhr.responseText);

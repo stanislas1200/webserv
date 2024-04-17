@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   ServConfig.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
+/*   By: sgodin <sgodin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:43:18 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/02 11:52:52 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/04/17 19:41:01 by sgodin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/Webserv.hpp"
 
-ServConfig::ServConfig() : _name(""), _methode(""), _port(0), _maxClient(0) {}
+ServConfig::ServConfig() : _methode(""), _port(-1), _maxClient(-1) {}
 
 ServConfig::~ServConfig() {}
 
@@ -23,6 +23,9 @@ ServConfig::ServConfig(const ServConfig &src) {
     _maxClient = src._maxClient;
     _location = src._location;
     _errorpages = src._errorpages;
+    _templatePath = src._templatePath;
+    _fd = src._fd;
+    _sockaddr = src._sockaddr;
 }
 
 ServConfig& ServConfig::operator=(const ServConfig &rhs) {
@@ -32,70 +35,108 @@ ServConfig& ServConfig::operator=(const ServConfig &rhs) {
     _maxClient = rhs._maxClient;
     _location = rhs._location;
     _errorpages = rhs._errorpages;
+    _templatePath = rhs._templatePath;
+    _fd = rhs._fd;
+    _sockaddr = rhs._sockaddr;
     return (*this);
 }
 
 void    ServConfig::wrongFormatError(const char *msg, const char *line) {
-    std::cerr << msg << " at this line: " << line << std::endl;
-    throw ServConfig::wrongFormat();
+    std::cerr << msg << " " << line << std::endl;
+    throw wrongFormat();
 }
 
-void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::string line, std::ifstream *confFile) {  
-    (void) line;
-    std::vector<std::string>::iterator it = tokens.begin();
-    if (it->find("errorpages") != std::string::npos) {
-        if (tokens.size() != 3)
-            wrongFormatError("errorpages", "");
-        _errorpages[std::atoi(tokens[1].c_str())] = tokens[2];
-    }
-    else if (it->find("server_names") != std::string::npos) {
-        if (tokens.size() != 2)
-            wrongFormatError("server_names", "");
-        _name = tokens[1];
-    }
-    else if (tokens[0].find("listen")  != std::string::npos) {
-        if (tokens.size() != 2)
-            wrongFormatError("listen", "");
-        _port = std::atoi(tokens[1].c_str());
-    }
-    else if (tokens[0].find("methode")  != std::string::npos) {
-        if (tokens.size() < 2)
-            wrongFormatError("methode", "");
-        _methode = tokens[1];
-    }
-    else if (tokens[0].find("client_size")  != std::string::npos) {
-        if (tokens.size() != 2)
-            wrongFormatError("client_size", "");
-        _maxClient = std::atoi(tokens[1].c_str());
-    }
-    else if (tokens[0].find("location")  != std::string::npos) {
-        // std::cout << "OOOOOOEEEEE" << std::endl;
-        if (tokens.size() != 3)
-            wrongFormatError("location", "");
-        Location Location;
-        Location.init(tokens, confFile);
-        _location.push_back(Location);
-        // std::cout << Location;
-        // exit(0);
-    }
+std::vector<std::string>    ServConfig::fillVectorInitialisation(void) {
+    std::vector<std::string> vec;
+
+    vec.push_back("methodes");
+    vec.push_back("errorpages");
+    vec.push_back("listen");
+    vec.push_back("server_names");
+    vec.push_back("client_size");
+    vec.push_back("location");
+    vec.push_back("template");
+    return (vec);
 }
 
-// void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile) {
-//     (void)  tokens;
-//     (void)  confFile;
-//     std::string tabFonction[6] = {"errorpages", "server_names", "listen", "methode", "client_size", "Location"};
-//     std::vector<std::string> variables = {"errorpages", "server_names", "listen", "methode", "client_size", "Location"};
-//     switch (0)
-//     {
-//     case 0:
-//         /* code */
-//         break;
+void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile) {
+    int         result = 0;
+    Location    location;
+    std::vector<std::string> keyStack;
     
-//     default:
-//         break;
-//     }
-// }  
+    keyStack = fillVectorInitialisation();
+    switch (getKey(keyStack, tokens[0]))
+    {
+        case METHODE:
+            if (tokens.size() < 2)
+                wrongFormatError("methode", "need at least one methode autorised");
+            _methode = vecToString(tokens.begin() + 1, tokens.end());
+            break;
+        case ERRORPAGES:
+            if (tokens.size() != 3 || !isNbrNoOverflow(tokens[1], &result))
+                wrongFormatError("errorpages", ERROR_HAPPEND);
+            _errorpages[result] = tokens[2];
+            break;
+        case LISTEN:
+            if (tokens.size() != 2 || !isNbrNoOverflow(tokens[1], &result))
+                wrongFormatError("listen", ERROR_HAPPEND);
+            _port = result;
+            break;
+        case SERVER_NAMES:
+            if (tokens.size() != 2)
+                wrongFormatError("server_names", NOT_RIGHT);
+            _name = tokens[1];
+            break;
+        case CLIENT_SIZE:
+            if (tokens.size() != 2 || !isNbrNoOverflow(tokens[1], &result))
+                wrongFormatError("client_size", ERROR_HAPPEND);
+            _maxClient = result;
+            break;
+        case LOCATION:
+            if (tokens.size() != 3)
+                wrongFormatError("location", NOT_RIGHT);
+            location.init(tokens, confFile);
+            for (std::vector<Location>::iterator it = _location.begin(); it != _location.end(); it++) {
+                if (_location.empty())
+                    break;
+                if (location == *it)
+                    _location.erase(it);
+            }
+            _location.push_back(location);
+            break;
+        case TEMPLATE:
+            if (tokens.size() != 2)
+                wrongFormatError("Temlate path", NOT_RIGHT);
+            _templatePath = tokens[1];
+            break;
+        default:
+            wrongFormatError("Incoherent line:", ("\"" + vecToString(tokens.begin(), tokens.end()) + "\"").c_str());
+            break;
+    }
+}  
 
+void    ServConfig::checkUpConfig(void) {
+    if (_methode.empty())
+        wrongFormatError("methode", MISSING);
+    if (_port == -1)
+        wrongFormatError("port", MISSING);
+    if (_maxClient == -1)
+        wrongFormatError("max client", MISSING);
+    if (_location.empty())
+        wrongFormatError("location", MISSING);
+    if (_errorpages.empty())
+        wrongFormatError("error pages", MISSING);
+    for (std::vector<Location>::iterator it = _location.begin(); it != _location.end(); it++) {
+        if (it->getPath().empty())
+            wrongFormatError("Location: path", MISSING);
+        if (it->getRedirection().empty())
+            wrongFormatError("Location: redirection", MISSING);
+        if (it->getMethode().empty())
+            it->setMethode(_methode);
+        if (it->getTemplate().empty() && !_templatePath.empty())
+            it->setTemplate(_templatePath);
+    }
+}
 
 void    ServConfig::initializeConfig(std::ifstream *confFile) {
     std::string line;
@@ -107,20 +148,24 @@ void    ServConfig::initializeConfig(std::ifstream *confFile) {
         while (SplitedLine >> line) {
             tokens.push_back(line);
         }
+        if (tokens.empty())
+            continue;
         if (*tokens.begin() == "server") {
-            if (!inServ)
+            if (!inServ) {
                 inServ = true;
+                tokens.clear();
+                continue;
+            }
             else
                 throw MultipleServerOpen();
         }
         if (*tokens.begin() == "}") {
-            // std::cout << std::endl << "-----------End of config server---------------" << std::endl << std::endl;
-            return;
+            break;
         }
-        initializeVariable(tokens, line, confFile);
-        // displayVector(tokens);
+        initializeVariable(tokens, confFile);
         tokens.clear();
     }
+    checkUpConfig();
 }
 
 std::string ServConfig::pathToErrorPage(int pageToFind) {
@@ -136,10 +181,11 @@ std::string ServConfig::pathToErrorPage(int pageToFind) {
 
 std::ostream& operator<<(std::ostream& os, const ServConfig& obj) {
     os << MB "------" GREEN " Serveur Description " MB "------" C << std::endl;
-    os << "Name: " << obj.getName() << std::endl;
-    os << "Methode: " << obj.getMethode() << std::endl;
-    os << "Port: " << obj.getPort() << std::endl;
+    os << "Name     : " << obj.getName() << std::endl;
+    os << "Methode  : " << obj.getMethode() << std::endl;
+    os << "Port     : " << obj.getPort() << std::endl;
     os << "MaxClient: " << obj.getMaxClient() << std::endl;
+    os << "Template : " << obj.getTemplate() << std::endl;
     os << std::endl << MB "--" C " Start " RED "Error" C " Pages " MB "--" C << std::endl;
     std::map<int, std::string> errorPages = obj.getErrorPages();
     for (std::map<int, std::string>::iterator it = errorPages.begin(); it != errorPages.end(); it++) {
@@ -180,6 +226,30 @@ std::map<int, std::string> ServConfig::getErrorPages(void) const {
     return (this->_errorpages);
 }
 
+std::string ServConfig::getTemplate(void) const {
+    return (this->_templatePath);
+}
+// up
+int ServConfig::getFd(void) const {
+    return (this->_fd);
+}
+// sockaddr_in ServConfig::getSockaddr(void) const {
+//     return (this->_sockaddr);
+// }
+// std::vector<s_request> ServConfig::getRequests(void) const {
+//     return (this->_requests);
+// }
+//// Setter ////
+void ServConfig::setFd(int fd) {
+    this->_fd = fd;
+}
+// void ServConfig::setSockaddr(sockaddr_in addr) {
+//     this->_sockaddr = addr;
+// }
+// void ServConfig::setRequests(std::vector<s_request> req) {
+//     this->_requests = req;
+// }
+
 //// Throw ////
 
 const char* ServConfig::wrongFormat::what(void) const throw() {
@@ -188,4 +258,44 @@ const char* ServConfig::wrongFormat::what(void) const throw() {
 
 const char* ServConfig::MultipleServerOpen::what(void) const throw() {
 	return ("Config file: Multiple servers declared at the same time");
+}
+
+const char* OverflowNbr::what(void) const throw() {
+	return ("Config file: Number overflow");
+}
+
+int getKey(std::vector<std::string> keyStack, std::string token) {
+    int index = 0;
+    
+    for (std::vector<std::string>::iterator it = keyStack.begin(); it != keyStack.end(); ++it) {
+        if (*it == token) {
+            break;
+        }
+        index++;
+    }
+    return (index);
+}
+
+std::string vecToString(std::vector<std::string>::iterator begin, std::vector<std::string>::iterator end) {
+    std::string str;
+    
+    for (std::vector<std::string>::iterator it = begin; it != end; ++it) {
+        str += *it;
+        if (it + 1 != end) {
+            str += " ";
+        }
+    }
+    return (str);
+}
+
+bool    isNbrNoOverflow(std::string token, int *result) {
+    for (size_t i = 0; i < token.size(); i++) {
+        if (!std::isdigit(token[i])) {
+            return (false);
+        }
+    }
+    if ((std::strlen(token.c_str()) >= 10 && std::strcmp(token.c_str(), "2147483647") > 0) || std::strlen(token.c_str()) > 10)
+        return (false);
+    *result = std::atoi(token.c_str());
+    return (true);
 }

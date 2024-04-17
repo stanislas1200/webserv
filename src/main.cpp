@@ -5,7 +5,6 @@ void error(const char *type, const char *msg, const char *bold) {
 	if (bold)
 		std::cerr << DV " " << bold << C;
 	std::cerr << C << std::endl;
-	// exit(1);
 }
 
 void getConfig(std::vector<ServConfig> *configClass, std::string file) {
@@ -20,6 +19,7 @@ void getConfig(std::vector<ServConfig> *configClass, std::string file) {
 	}
     catch (std::exception& e) {
 		std::cout << e.what() << std::endl;
+		exit(1);
 	}
     confFile.close();
 }

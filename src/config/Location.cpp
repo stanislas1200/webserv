@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
+/*   By: sgodin <sgodin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 15:17:47 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/03/30 00:02:11 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/04/17 16:51:26 by sgodin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/Location.hpp"
 
-Location::Location() : _methode(""), _redirection(""), _pathToCgi(""), _exCgi("") {}
+Location::Location() {}
 
 Location::Location(const Location &src) {
     _path = src._path;
@@ -20,6 +20,7 @@ Location::Location(const Location &src) {
     _redirection = src._redirection;
     _pathToCgi = src._pathToCgi;
     _exCgi = src._exCgi;
+    _templatePath = src._templatePath;
 }
 
 Location::~Location() {}
@@ -30,62 +31,68 @@ Location& Location::operator=(const Location &rhs) {
     _redirection = rhs._redirection;
     _pathToCgi = rhs._pathToCgi;
     _exCgi = rhs._exCgi;
+    _templatePath = rhs._templatePath;
     return (*this);
 }
 
-void Location::init(std::vector<std::string> tokens, std::ifstream *confFile) {
-    std::vector<std::string> variables = {"methodes", "redirection", "FUTURE PATH CGI", "FUTURE EXTENTION CGI"};
-    std::string line, tmp;
+std::vector<std::string>    Location::fillVectorInitialisation(void) {
+    std::vector<std::string> vec;
     
-    if (tokens.size() >= 3) {
-        _path = tokens[1];
-        // std::cout << "PATH acquire" << std::endl;
-    }
+    vec.push_back("methodes");
+    vec.push_back("redirection");
+    vec.push_back("cgi_path");
+    vec.push_back("cgi_extention");
+    vec.push_back("template");
+    return (vec);
+}
+
+void Location::init(std::vector<std::string> tokens, std::ifstream *confFile) {
+    std::vector<std::string> keyStack;
+    std::string line;
+    
+    keyStack = fillVectorInitialisation();
+    _path = tokens[1];
     tokens.clear();
     while (std::getline(*confFile, line)) {
         std::stringstream SplitedLine(line);
-        while (SplitedLine >> tmp) {
-            tokens.push_back(tmp);
+        while (SplitedLine >> line) {
+            tokens.push_back(line);
         }
-        tmp.clear();
-        int index = 0;
-        for (std::vector<std::string>::iterator it = variables.begin(); it != variables.end(); ++it) {
-            if (*it == tokens[0]) {
-                break;
-            }
-            index++;
-        }
-        for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); ++it) {
-            tmp += *it;
-            if (it + 1 != tokens.end()) {
-                tmp += " ";
-            }
-        }
-        line = tmp;
-        switch (index) {
-            case METHODE:
-                // std::cout << "METHODE acquire" << std::endl;
+        if (tokens.empty())
+            continue;
+        line = vecToString(tokens.begin(), tokens.end());
+        switch (getKey(keyStack, tokens[0])) {
+            case LOCATION_METHODE:
                 _methode = line;
+                if (tokens.size() < 2)
+                    ServConfig::wrongFormatError("Location: methode", "need at least one methode autorised");
+                _methode = vecToString(tokens.begin() + 1, tokens.end());
                 break;
             case REDIRECTION:
-                // std::cout << "REDIRECTION acquire" << std::endl;
-                _redirection = *(++tokens.begin());
+                if (tokens.size() != 2)
+                    ServConfig::wrongFormatError("Location: redirection", ERROR_HAPPEND);
+                _redirection = tokens[1];
                 break;
             case PATHTOCGI:
-                // std::cout << "PATHTOCGI acquire" << std::endl;
-                _pathToCgi = line;
+                if (tokens.size() != 2)
+                    ServConfig::wrongFormatError("Location: pathToCgi", ERROR_HAPPEND);
+                _pathToCgi = tokens[1];
                 break;
             case EXCGI:
-                // std::cout << "EXCGI acquire" << std::endl;
-                _exCgi = line;
+                if (tokens.size() < 2)
+                    ServConfig::wrongFormatError("Location: exCgi", ERROR_HAPPEND);
+                _exCgi = vecToString(tokens.begin() + 1, tokens.end());
+                break;
+            case LOCATION_TEMPLATE:
+                if (tokens.size() != 2)
+                    ServConfig::wrongFormatError("Location: template", ERROR_HAPPEND);
+                _templatePath = tokens[1];
                 break;
             default:
-                // if (tokens[0] == "}")
-                    // std::cout << "location closed" << std::endl;
-                break;
+                    if (tokens[0] == "}")
+                        return;
+                    ServConfig::wrongFormatError("Location: Incoherent line:", ("\"" + vecToString(tokens.begin(), tokens.end()) + "\"").c_str());
         }
-        if (tokens[0] == "}")
-            break;
         tokens.clear();
     }
 }
@@ -112,6 +119,20 @@ std::string Location::getExCgi(void) const {
     return (this->_exCgi);
 }
 
+std::string Location::getTemplate(void) const {
+    return (this->_templatePath);
+}
+
+//// Setter ////
+
+void    Location::setMethode(std::string str) {
+    _methode = str;
+}
+
+void    Location::setTemplate(std::string str) {
+    _templatePath = str;
+}
+
 std::ostream& operator<<(std::ostream& os, const Location& obj) {
     os << "----Location----" << std::endl;
     
@@ -120,9 +141,16 @@ std::ostream& operator<<(std::ostream& os, const Location& obj) {
     os << "Redirection : " << obj.getRedirection() << std::endl;
     os << "PathToCgi   : " << obj.getPathToCgi() << std::endl;
     os << "ExCgi       : " << obj.getExCgi() << std::endl;
+    os << "Template    : " << obj.getTemplate() << std::endl;
     
     os << "----End----" << std::endl;
     return (os);
+}
+
+bool            Location::operator==(const Location &rhs) {
+    if (this->_path == rhs.getPath())
+        return (true);
+    return (false);
 }
 
 const char* Location::Error::what(void) const throw() {

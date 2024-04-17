@@ -10,45 +10,40 @@ int handleConnection(s_request *request) {
 	return (parseRequest(header, request));
 }
 
-int serverSetup(s_server *server) {
-	server->fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (server->fd == -1)
+int serverSetup(ServConfig *server) {
+	server->setFd(socket(AF_INET, SOCK_STREAM, 0));
+	if (server->getFd() == -1)
 		return error("Socket:", strerror(errno), NULL), -1;
 
 	// non blocking // The connection was reset RIP
-	int flag = fcntl(server->fd, F_GETFL, 0);
-	if (fcntl(server->fd, F_SETFL, flag | O_NONBLOCK) < 0)
-		return close(server->fd), error("Sock opt:", strerror(errno), NULL), -1;
+	int flag = fcntl(server->getFd(), F_GETFL, 0);
+	if (fcntl(server->getFd(), F_SETFL, flag | O_NONBLOCK) < 0)
+		return close(server->getFd()), error("Sock opt:", strerror(errno), NULL), -1;
 
 	// reusable sd
 	int on = 1;
-	if (setsockopt(server->fd, SOL_SOCKET, SO_REUSEADDR, (char *)&(on), sizeof(on)) < 0)
-		return close(server->fd), error("Sock opt:", strerror(errno), NULL), -1;
+	if (setsockopt(server->getFd(), SOL_SOCKET, SO_REUSEADDR, (char *)&(on), sizeof(on)) < 0)
+		return close(server->getFd()), error("Sock opt:", strerror(errno), NULL), -1;
 
-	server->sockaddr.sin_family = AF_INET;
-	server->sockaddr.sin_addr.s_addr = INADDR_ANY;
-	server->sockaddr.sin_port = htons(server->port);
+	// sockaddr_in addr;
+
+	server->_sockaddr.sin_family = AF_INET;
+	server->_sockaddr.sin_addr.s_addr = INADDR_ANY;
+	server->_sockaddr.sin_port = htons(server->getPort());
+
+	// server->setSockaddr(addr);
 	
-	if (bind(server->fd, (struct sockaddr*)&server->sockaddr, sizeof(server->sockaddr)) == -1)
-		return close(server->fd), error("Bind:", strerror(errno), NULL), -1;
+	if (bind(server->getFd(), (struct sockaddr*)&server->_sockaddr, sizeof(server->_sockaddr)) == -1)
+		return close(server->getFd()), error("Bind:", strerror(errno), NULL), -1;
 
-	if (listen(server->fd, 10) == -1)
-		return close(server->fd), error("Listen:", strerror(errno), NULL), -1;
+	if (listen(server->getFd(), 10) == -1) // TODO : check max 
+		return close(server->getFd()), error("Listen:", strerror(errno), NULL), -1;
 
-	return 0;
-}
-
-int isServerConnection(std::vector<s_server> servers, int fd) {
-	for (size_t j = 0; j < servers.size(); j++)
-	{
-		if (fd == servers[j].fd)
-			return 1;
-	}
 	return 0;
 }
 
 # include <poll.h>
-void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
+void serverRun(std::vector<ServConfig> servers, int max_fd, size_t fd_size) {
 	std::cout << C"[" DV "serverRun" C "] " << YELLOW "---START---" C << std::endl;
 	std::vector<s_request> requests;
 	std::map<int, s_request> request_map;
@@ -56,7 +51,7 @@ void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 	std::vector<pollfd> fds;
 	
 	for (size_t i = 0; i < fd_size; i++)
-		fds.push_back({servers[i].fd, POLLIN, 0});
+		fds.push_back({servers[i].getFd(), POLLIN, 0});
 	while (true)
 	{
 		(void)max_fd;
@@ -67,7 +62,7 @@ void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 
 			std::cout << C"\r[" DV "serverRun" C "] " << GREEN "waiting a connection, in queue : " C << request_map.size() << std::flush;
 			ret = poll(fds.data(), fds.size(), 1);
-			
+
 			if (request_map.size() > 0) // handle client connection
 			{
 				int j = 0;
@@ -96,9 +91,10 @@ void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 				if (fds[i].revents & POLLIN) // check if the fd is ready
 				{
 					// new connection
-					int addrlen = sizeof(servers[i].sockaddr);
+					int addrlen = sizeof(servers[i]._sockaddr);
 					s_request	request;
-					request.connection = accept(servers[i].fd, (struct sockaddr*)&servers[i].sockaddr, (socklen_t*)&addrlen);
+					request.connection = accept(servers[i].getFd(), (struct sockaddr*)&servers[i]._sockaddr, (socklen_t*)&addrlen);
+					request.conf = servers[i];
 					// non blocking // The connection was reset RIP
 					int flag = fcntl(request.connection, F_GETFL, 0);
 					if (fcntl(request.connection, F_SETFL, flag | O_NONBLOCK) < 0)
@@ -132,16 +128,7 @@ void serverRun(std::vector<s_server> servers, int max_fd, size_t fd_size) {
 	return;
 }
 
-void acceptConnection(std::vector<ServConfig> config) {
-	(void)config;
-    std::vector<s_server> servers;
-	for (unsigned long i = 0; i < config.size(); i++)
-	{
-		s_server server;
-		server.port = config[i].getPort();
-		servers.push_back(server);
-	}
-
+void acceptConnection(std::vector<ServConfig> servers) {
 	int max_fd;
 	size_t fd_size;
 	fd_size = servers.size();
@@ -152,9 +139,9 @@ void acceptConnection(std::vector<ServConfig> config) {
 		std::cout << GREEN "server: " MB << i << std::endl;
 		if (serverSetup(&servers[i]) != -1) // socket bind listen
 		{
-			if (servers[i].fd > max_fd) 
-				max_fd = servers[i].fd;
-			std::cout << YELLOW "server port: " MB << servers[i].port << std::endl;
+			if (servers[i].getFd() > max_fd) 
+				max_fd = servers[i].getFd();
+			std::cout << YELLOW "server port: " MB << servers[i].getPort() << std::endl;
 		}
 		else
 			error("Server setup:", "Failed to setup server", NULL);
