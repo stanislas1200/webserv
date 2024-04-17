@@ -1,19 +1,32 @@
 server {
 	errorpages 503 src/pages/errorpages/error_503.html
 	listen 8080
+    methodes GET POST AGAIN
     server_names littleCloud
     client_size 42
+    template /pages/template.html
     location /about {
-        methodes GET POST AGAIN
         redirection /pages/about.html
+    }
+    location /about {
+        methodes GET
+        redirection /pages
     }
     location / {
         methodes GET POST
         redirection /pages/index.html
+        FUTUREPATHCGI   /pathCgi
+        FUTUREEXTENTIONCGI  extention
+        template /pages/template.html
+    }
+    location /about {
+        redirection /pages/about.html
     }
 }
 server {
 	errorpages 404 src/pages/errorpages/error_404.html
+	errorpages 505 src/pages/errorpages/error_404.html
+    methodes GET POST DELETE
 	listen 8081
     location / {
         methodes GET POST
