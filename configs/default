@@ -51,3 +51,17 @@ server {
     server_names bigCloud
     client_size 43
 }
+server {
+    errorpages 505 src/pages/errorpages/error_505.html
+	listen 8082
+    client_size 43
+    methodes GET POST DELETE
+    location /about {
+        redirection src/pages/about.html
+    }
+    location / {
+        methodes GET POST
+        redirection src/pages/index.html
+        template src/pages/template.html
+    }
+}

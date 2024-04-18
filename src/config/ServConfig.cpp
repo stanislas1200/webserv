@@ -93,7 +93,7 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifs
             _maxClient = result;
             break;
         case LOCATION:
-            if (tokens.size() != 3)
+            if (tokens.size() != 3 || tokens[2] != "{")
                 wrongFormatError("location", NOT_RIGHT);
             location.init(tokens, confFile);
             for (std::vector<Location>::iterator it = _location.begin(); it != _location.end(); it++) {
