@@ -188,6 +188,6 @@ struct s_request;
 int parseRequest(std::string header, s_request *request);
 void error(const char *type, const char *msg, const char *bold);
 void acceptConnection(std::vector<ServConfig> config);
-void	sendFile(int connection, std::ifstream *file, std::string status, std::string path, s_request request);
+void	sendFile(int connection, std::ifstream *file, int status, s_request request);
 void printRequest(s_request request);
 std::string readHeader(int connection);
