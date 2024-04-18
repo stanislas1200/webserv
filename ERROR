@@ -1,8 +1,0 @@
-Connection reset if NO_BLOCKING
-CLIENT CLOSED CONNECTION : SERVER abord
-// recv blocking
-delete space = %20;
-
-
-
-TODO : server list
