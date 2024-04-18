@@ -33,6 +33,11 @@ server {
         cgi_path   cgiFiles/
         cgi_extention   .cgi
     }
+    location /cgi/env {
+        redirection cgiFiles/printEnv.py
+        cgi_path   cgiFiles/
+        cgi_extention   .cgi .py
+    }
     location /listUpload {
         redirection cgiFiles/listUpload.py
         cgi_path   cgiFiles/

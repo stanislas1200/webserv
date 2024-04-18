@@ -99,7 +99,6 @@ void sendError(int status, s_request req)
 		}
 	}
 	std::string response = responseHeader(status) + content;
-	std::cout << response << std::endl;
 	send(req.connection, response.c_str(), response.length(), 0);
 }
 
@@ -107,10 +106,12 @@ std::string useTemplate(std::string content, s_request request) {
 	std::string ret;
 	std::string path = request.path;
 	std::stringstream ss;
-
-	if (!request.loc.getTemplate().empty() && stringEnd(path, ".html"))
+	std::string templatePath = request.conf.getTemplate();
+	if (!request.loc.getTemplate().empty())
+		templatePath = request.loc.getTemplate();
+	if (!templatePath.empty() && stringEnd(templatePath, ".html"))
 	{
-		std::ifstream templat(request.loc.getTemplate());
+		std::ifstream templat(templatePath);
 		if (templat.is_open())
 		{
 			ss << templat.rdbuf();
@@ -146,15 +147,15 @@ void	sendFile(int connection, std::ifstream *file, int status, s_request request
 	ss << file->rdbuf();
 
 	std::string fileContent = ss.str();
-	std::string responce = useTemplate(fileContent, request);
-	responce = responseHeader(status) + responce;
-	// if (responce.empty())
-	// 	responce = "HTTP/1.1 " + status + "Content-Type: text/html\r\n\r\n" + fileContent; // TODO : map status code and message
+	std::string response = useTemplate(fileContent, request);
+	response = responseHeader(status) + response;
+	// if (response.empty())
+	// 	response = "HTTP/1.1 " + status + "Content-Type: text/html\r\n\r\n" + fileContent; // TODO : map status code and message
 	// Send status line
 	// send(connection, statusLine.c_str(), statusLine.length(), 0);
     // send(connection, "Content-Type: text/html\r\n\r\n", strlen("Content-Type: text/html\r\n\r\n"), 0);
 	file->close();
-	send(connection, responce.c_str(), responce.size(), 0);
+	send(connection, response.c_str(), response.size(), 0);
 
 }
 
@@ -234,7 +235,7 @@ int parseRequest(std::string header, s_request *request) {
 			if (request->method == "GET" && loc[i].getMethode().find("GET") != std::string::npos)
 				return handleGetRequest(connection, *request);
 			else if (request->method == "POST" && loc[i].getMethode().find("POST") != std::string::npos) // TODO : cgi ? cgi outside methode ?
-				return handlePostRequest(connection, request);
+				return handlePostRequest(connection, request); // TODO : content lenght
 			else if (request->method == "DELETE" && loc[i].getMethode().find("DELETE") != std::string::npos) // TODO : cgi
 			{
 				request->path += fileName;

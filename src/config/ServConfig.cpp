@@ -6,7 +6,7 @@
 /*   By: sgodin <sgodin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:43:18 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/17 19:41:01 by sgodin           ###   ########.fr       */
+/*   Updated: 2024/04/18 18:39:19 by sgodin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,7 +174,7 @@ std::string ServConfig::pathToErrorPage(int pageToFind) {
     if (it != _errorpages.end()) {
         return (it->second);
     } else {
-        return (NULL);
+        return (std::string());
     }
 }
 
