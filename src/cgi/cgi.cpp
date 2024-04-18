@@ -1,66 +1,42 @@
 #include "../../include/cgi.hpp"
 
-std::vector<char *>	mapConvert(std::map<std::string, std::string>& headers)
+char * cstr(std::string s)
 {
-	// std::map<std::string, std::string>				env;
+	char *c = new char[s.size() + 1];
+	strcpy(c, s.c_str());
+	return c;
+}
 
-	// for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
-	// {
-	// 	if (it->first == "Accept")
-	// 		env["HTTP_ACCEPT="] = it->second;
-	// 	else if (it->first == "Accept-Encoding")
-	// 		env["HTTP_ACCEPT_ENCODING="] = it->second;
-	// 	else if (it->first == "Accept-Language")
-	// 		env["HTTP_ACCEPT_LANGUAGE="] = it->second;
-	// 	else if (it->first == "Connection")
-	// 		env["HTTP_CONNECTION="] = it->second;
-	// 	else if (it->first == "Content-Length")
-	// 		env["CONTENT_LENGTH="] = it->second;
-	// 	else if (it->first == "Content-Type")
-	// 		env["CONTENT_TYPE="] = it->second;
-	// 	else if (it->first == "Host")
-	// 		env["HTTP_HOST="] = it->second;
-	// 	else if (it->first == "User-Agent")
-	// 		env["HTTP_USER_AGENT="] = it->second;
-	// }
-	// env["SERVER_PROTOCOL="] = "HTTP/1.1";
-
+std::vector<char *>	mapConvert(std::map<std::string, std::string>& headers, s_request req)
+{
 	std::vector<char *>	env;
 
 	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
 	{
 		if (it->first == "Accept")
-			env.push_back(const_cast<char*>(("HTTP_ACCEPT=" + it->second).c_str()));
+			env.push_back(cstr("HTTP_ACCEPT=" + it->second.substr(1)));
 		else if (it->first == "Accept-Encoding")
-			env.push_back(const_cast<char*>(("HTTP_ACCEPT_ENCODING=" + it->second).c_str()));
+			env.push_back(cstr("HTTP_ACCEPT_ENCODING=" + it->second.substr(1)));
 		else if (it->first == "Accept-Language")
-			env.push_back(const_cast<char*>(("HTTP_ACCEPT_LANGUAGE=" + it->second).c_str()));
+			env.push_back(cstr("HTTP_ACCEPT_LANGUAGE=" + it->second.substr(1)));
 		else if (it->first == "Connection")
-			env.push_back(const_cast<char*>(("HTTP_CONNECTION=" + it->second).c_str()));
+			env.push_back(cstr("HTTP_CONNECTION=" + it->second.substr(1)));
 		else if (it->first == "Content-Length")
-			env.push_back(const_cast<char*>(("CONTENT_LENGTH=" + it->second).c_str()));
+			env.push_back(cstr("CONTENT_LENGTH=" + it->second.substr(1)));
 		else if (it->first == "Content-Type")
-			env.push_back(const_cast<char*>(("CONTENT_TYPE=" + it->second).c_str()));
+			env.push_back(cstr("CONTENT_TYPE=" + it->second.substr(1)));
 		else if (it->first == "Host")
-			env.push_back(const_cast<char*>(("HTTP_HOST=" + it->second).c_str()));
+			env.push_back(cstr("HTTP_HOST=" + it->second.substr(1 , it->second.length() - 2))); // TODO : check -2 (\n)
 		else if (it->first == "User-Agent")
-			env.push_back(const_cast<char*>(("HTTP_USER_AGENT=" + it->second).c_str()));
+			env.push_back(cstr("HTTP_USER_AGENT=" + it->second.substr(1)));
 	}
-	env.push_back(const_cast<char*>("SERVER_PROTOCOL=HTTP/1.1"));
+	env.push_back(cstr("SERVER_PROTOCOL=HTTP/1.1"));
+	env.push_back(cstr("REQUEST_METHOD=" + req.method));
+	env.push_back(cstr("REQUEST_URI=/" + req.path));
+	env.push_back(cstr("PATH_INFO=" + req.path)); // TODO : leave or fix
 	env.push_back(NULL);
 	return (env);
 }
-
-// const char**	vectorToArray(std::vector<std::string> env)
-// {
-// 	int		size = env.size();
-// 	char	**argv = new const char*[size + 1];
-
-// 	for (int j = 0; j < size; ++j)
-// 			argv[j] = env[j].c_str();
-// 	argv [size + 1] = NULL;
-// 	return (argv);
-// }
 
 std::string	getOutput(int fd)
 {
@@ -82,7 +58,7 @@ std::string	getOutput(int fd)
 	return (outputString);
 }
 
-std::string	runCgi(s_request& request)
+std::string	runCgi(s_request& request) // TODO : if POST send body in standard input.
 {
 	int	fd[2];
 
@@ -105,7 +81,7 @@ std::string	runCgi(s_request& request)
 	/***	CHILD	***/
 	if (pid == 0)
 	{
-		std::vector<char *> env = mapConvert(request.headers);
+		std::vector<char *> env = mapConvert(request.headers, request); // TODO : free
 		close(fd[0]);
 		dup2(fd[1], STDOUT_FILENO);
 		close(fd[1]);
