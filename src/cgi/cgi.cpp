@@ -84,6 +84,10 @@ std::string	getOutput(int fd)
 
 std::string	runCgi(s_request& request)
 {
+	// if (request.method == 'POST')
+	// {
+	// 	std::cout << request.body << std::endl;
+	// }
 	int	fd[2];
 
 	if (pipe(fd) == -1)
@@ -139,3 +143,4 @@ std::string	runCgi(s_request& request)
 	close(fd[0]);
 	return (outputString);
 }
+
