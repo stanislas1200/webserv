@@ -30,7 +30,7 @@ std::vector<char *>	mapConvert(std::map<std::string, std::string>& headers, s_re
 		else if (it->first == "User-Agent")
 			env.push_back(cstr("HTTP_USER_AGENT=" + it->second.substr(1)));
 	}
-	env.push_back(const_cast<char*>("SERVER_PROTOCOL=HTTP/1.1"));
+	env.push_back(cstr("SERVER_PROTOCOL=HTTP/1.1"));
 	env.push_back(cstr("REQUEST_METHOD=" + req.method));
 	env.push_back(cstr("REQUEST_URI=/" + req.path));
 	env.push_back(cstr("PATH_INFO=" + req.path)); // TODO : leave or fix
@@ -58,7 +58,7 @@ std::string	getOutput(int fd)
 	return (outputString);
 }
 
-std::string	runCgi(s_request& request)
+std::string	runCgi(s_request& request) // TODO : if POST send body in standard input.
 {
 	int	fd[2];
 

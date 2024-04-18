@@ -43,6 +43,12 @@ server {
         cgi_path   cgiFiles/
         cgi_extention   .cgi .py
     }
+    location /cgi/post {
+        methodes POST 
+        redirection cgiFiles/post.py
+        cgi_path   cgiFiles/
+        cgi_extention   .cgi .py
+    }
 }
 server {
 	errorpages 404 src/pages/errorpages/error_404.html

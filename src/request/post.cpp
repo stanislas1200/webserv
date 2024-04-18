@@ -1,6 +1,7 @@
 #include "../../include/request.hpp"
 
 #include <algorithm>
+std::string	runCgi(s_request& request);
 
 
 void printFile(s_request *request, bool body) {
@@ -20,8 +21,6 @@ std::string parseFormData(s_request *request) { // FIXME : response to each file
 	std::istringstream iss(formDataPart->header);
 	std::string line;
 	std::string boundaryEnd = request->boundary + "--";
-
-	printFile(request, false);
 
 	while (std::getline(iss, line) && !line.empty())
 	{
@@ -242,6 +241,33 @@ int handlePostRequest(int connection, s_request *request) {
 	std::cout << C"[" GREEN "handlePostRequest" C "] " << YELLOW "---START---" C << std::endl;
 	std::string status = "505";
 	int end = 1;
+
+	std::string path = request->loc.getRedirection();
+	if (path.substr(0, request->loc.getPathToCgi().size()) == request->loc.getPathToCgi() && request->loc.getExCgi().find(path.substr(path.find_last_of('.') + 1)) != std::string::npos) {
+		std::cout << C"[" GREEN "handlePostRequest" C "] " << YELLOW "CGI" C << std::endl;
+		size_t length = stoul(request->headers["Content-Length"]);
+		// read body
+		char buffer[1000];
+		size_t bytes = 0;
+
+		while (length > 0 && (bytes = recv(connection, buffer, 999, 0)) > 0 && bytes != std::string::npos) // TODO : function read with chunck for all
+		{
+			buffer[bytes] = '\0';
+			request->body += buffer;
+			length -= bytes;
+		}
+		
+		std::string fileContent;
+		try {
+			request->path = path;
+			fileContent = runCgi(*request);
+		} catch (const std::exception& e) {
+			std::cerr << RED "Error: " YELLOW << e.what() << C << std::endl;
+			return sendError(500, *request), 1;
+		}
+		send(connection, fileContent.c_str(), fileContent.length(), 0);
+		return 1;
+	}
 
 
 	if (request->headers["Content-Type"].find("multipart/form-data") != std::string::npos)
