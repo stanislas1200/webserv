@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServConfig.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sgodin <sgodin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:33:10 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/17 19:42:05 by sgodin           ###   ########.fr       */
+/*   Updated: 2024/04/18 12:25:47 by gduchesn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,7 +165,7 @@ typedef struct s_FormDataPart {
 	std::string contentType;
 	std::vector<char> data;
 	size_t bodySize;
-	bool full = false;
+	bool full;
 } t_FormDataPart;
 
 typedef struct s_request {
@@ -174,7 +174,7 @@ typedef struct s_request {
 	std::map<std::string, std::string> headers;
 	std::string body;
 	std::string boundary;
-	size_t dataLen = 0;
+	size_t dataLen;
 	struct s_FormDataPart formData[2];
 	int connection;
 	ServConfig conf;

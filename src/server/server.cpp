@@ -49,9 +49,14 @@ void serverRun(std::vector<ServConfig> servers, int max_fd, size_t fd_size) {
 	std::map<int, s_request> request_map;
 
 	std::vector<pollfd> fds;
-	
-	for (size_t i = 0; i < fd_size; i++)
-		fds.push_back({servers[i].getFd(), POLLIN, 0});
+	pollfd				fill;
+
+	for (size_t i = 0; i < fd_size; i++) {
+		fill.fd = servers[i].getFd();
+		fill.events = POLLIN;
+		fill.revents = 0;
+		fds.push_back(fill);
+	}
 	while (true)
 	{
 		(void)max_fd;
@@ -93,6 +98,10 @@ void serverRun(std::vector<ServConfig> servers, int max_fd, size_t fd_size) {
 					// new connection
 					int addrlen = sizeof(servers[i]._sockaddr);
 					s_request	request;
+					request.dataLen = 0;
+					request.formData[0].full = false;
+					request.formData[1].full = false;
+
 					request.connection = accept(servers[i].getFd(), (struct sockaddr*)&servers[i]._sockaddr, (socklen_t*)&addrlen);
 					request.conf = servers[i];
 					// non blocking // The connection was reset RIP
@@ -113,7 +122,10 @@ void serverRun(std::vector<ServConfig> servers, int max_fd, size_t fd_size) {
 					}
 					if (request.connection != -1)
 					{
-						fds.push_back({request.connection, POLLIN, 0});
+						fill.fd = request.connection;
+						fill.events = POLLIN;
+						fill.revents = 0;
+						fds.push_back(fill);
 						request_map[request.connection] = request;
 						std::cout << C"[" DV "serverRun" C "] " << MB "connection fd" C ": " GREEN << request.connection << std::endl;
 					}
