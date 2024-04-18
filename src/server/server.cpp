@@ -66,8 +66,12 @@ void serverRun(std::vector<ServConfig> servers, int max_fd, size_t fd_size) {
 		{
 
 			std::cout << C"\r[" DV "serverRun" C "] " << GREEN "waiting a connection, in queue : " C << request_map.size() << std::flush;
-			ret = poll(fds.data(), fds.size(), 1);
-
+			ret = poll(fds.data(), fds.size(), -1);
+			if (ret == -1)
+			{
+				std::cerr << "Error in poll(): " << strerror(errno) << std::endl;
+				continue;
+			}
 			if (request_map.size() > 0) // handle client connection
 			{
 				int j = 0;

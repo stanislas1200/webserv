@@ -37,6 +37,10 @@ server {
         cgi_path   cgiFiles/
         cgi_extention   .cgi .py
     }
+    location /favicon.ico {
+        methodes GET
+        redirection src/pages/favicon.ico
+    }
 }
 server {
     template src/pages/template.html

@@ -81,7 +81,7 @@ void printRequest(s_request request) {
 	for (it = request.headers.begin(); it != request.headers.end(); ++it) {
 		std::cout << MB << it->first << C ": " DV << it->second << std::endl;
 	}
-	std::cout << YELLOW "Body:\n" MB << request.body << std::endl;
+	// std::cout << YELLOW "Body:\n" MB << request.body << std::endl;
 }
 
 int parseRequest(std::string header, s_request *request) {
