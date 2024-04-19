@@ -82,7 +82,7 @@ std::string responseHeader(int status)
 void sendError(int status, s_request req)
 {
 	// check error pages
-	std::string content = "<h1 style=\"text-align:center\">Error " + std::to_string(status) + "</h1>";
+	std::string content = "<!DOCTYPE html> <html>  <h1 style=\"text-align:center\">Error " + std::to_string(status) + "</h1> </html>";
 	if (!req.conf.pathToErrorPage(status).empty())
 	{
 		std::ifstream file(req.conf.pathToErrorPage(status));
@@ -91,7 +91,7 @@ void sendError(int status, s_request req)
 			// read error page
 			std::stringstream ss;
 			ss << file.rdbuf();
-			content += ss.str();
+			content = ss.str();
 			file.close();
 
 			// check template

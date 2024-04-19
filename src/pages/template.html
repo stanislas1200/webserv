@@ -1,3 +1,4 @@
+<!DOCTYPE html> 
 <html>
 
 <style>
@@ -213,6 +214,50 @@
 		/* To center it vertically */
 		color: white;
 	}
+
+	.error {
+        font-family: 'Inconsolata', monospace;
+        h1 {
+            padding-top: 100px;
+            font-size: 55px;
+            color: #fff;
+        }
+        
+        p {
+            font-size: 15px;
+            white-space: nowrap;
+            border-right: solid 3px #fff;
+            overflow: hidden;
+        }
+
+        p {
+            animation: animated-text 3s steps(40) 1s 1 normal both, animated-cursor 600ms steps(40) infinite;
+        }
+        
+    }
+    /* text animations */
+    @keyframes animated-text {
+        from {
+            width: 0;
+        }
+
+        to {
+            width: 410px;
+        }
+    }
+
+    /* cursor animations */
+
+    @keyframes animated-cursor {
+        from {
+            border-right-color: #fff;
+        }
+
+        to {
+            border-right-color: transparent;
+        }
+
+    }
 </style>
 
 <head>
