@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServConfig.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
+/*   By: sgodin <sgodin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:33:10 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/18 12:25:47 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/04/19 14:27:42 by sgodin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,6 +174,7 @@ typedef struct s_request {
 	std::map<std::string, std::string> headers;
 	std::string body;
 	std::string boundary;
+    std::string queryString;
 	size_t dataLen;
 	struct s_FormDataPart formData[2];
 	int connection;

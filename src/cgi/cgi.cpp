@@ -33,6 +33,7 @@ std::vector<char *>	mapConvert(std::map<std::string, std::string>& headers, s_re
 	env.push_back(cstr("SERVER_PROTOCOL=HTTP/1.1"));
 	env.push_back(cstr("REQUEST_METHOD=" + req.method));
 	env.push_back(cstr("REQUEST_URI=/" + req.path));
+	env.push_back(cstr("QUERY_STRING=" + req.queryString));
 	env.push_back(cstr("PATH_INFO=" + req.path)); // TODO : leave or fix
 	env.push_back(NULL);
 	return (env);

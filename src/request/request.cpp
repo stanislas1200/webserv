@@ -194,7 +194,7 @@ std::string	replaceHexAndAmp(std::string src)
 int parseRequest(std::string header, s_request *request) {
 	// Parse request header if needed
 	int connection = request->connection;
-	if (request->method.empty()) // TODO : split path?key=value
+	if (request->method.empty())
 	{
 		std::istringstream requestStream(header);
 		std::string line;
@@ -203,6 +203,15 @@ int parseRequest(std::string header, s_request *request) {
 		std::getline(requestStream, line);
 		std::istringstream firstLineStream(line);
 		firstLineStream >> request->method >> request->path;
+
+		// query string
+		size_t npos = request->path.find("?");
+		if (npos != std::string::npos)
+		{
+			request->queryString = request->path.substr(npos);
+			request->path = request->path.substr(0, npos);
+		}
+
 		request->path = replaceHexAndAmp(request->path);
 
 		// Parse the headers
