@@ -33,7 +33,8 @@ std::vector<char *>	mapConvert(std::map<std::string, std::string>& headers, s_re
 	env.push_back(cstr("SERVER_PROTOCOL=HTTP/1.1"));
 	env.push_back(cstr("REQUEST_METHOD=" + req.method));
 	env.push_back(cstr("REQUEST_URI=/" + req.path));
-	env.push_back(cstr("QUERY_STRING=" + req.queryString));
+	if (!req.queryString.empty())
+		env.push_back(cstr("QUERY_STRING=" + req.queryString.substr(1)));
 	env.push_back(cstr("PATH_INFO=" + req.path)); // TODO : leave or fix
 	env.push_back(NULL);
 	return (env);
@@ -101,7 +102,7 @@ std::string	runCgi(s_request& request) // TODO : if POST send body in standard i
 	std::string	outputString;
 	int			childStatus;
 	
-	if (request.method == "POST")
+	if (request.method == "POST" && !request.body.empty())
 		write(fd[1], request.body.data(), request.body.size());
 
 	close(fd[1]);

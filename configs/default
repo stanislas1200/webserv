@@ -54,6 +54,12 @@ server {
         methodes GET
         redirection src/pages/favicon.ico
     }
+    location /images {
+        methodes GET
+        redirection cgiFiles/getUpload.py
+        cgi_path   cgiFiles/
+        cgi_extention .py
+    }
 }
 server {
     template src/pages/template.html

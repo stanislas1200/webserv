@@ -19,7 +19,7 @@
 			<form id="delete" , enctype="application/x-www-form-urlencoded">
 				<h1>Delete a file</h1>
 				<div class="select">
-					<select id="file" name="file">
+					<select class="file" name="file">
 						<option value="" disabled selected>Select a file</option>
 					</select>
 				</div>
@@ -38,32 +38,55 @@
 				<div id="progress">0%</div>
 			</div>
 		</div>
+		<div class="box">
+			<form id="download" , enctype="application/x-www-form-urlencoded">
+				<h1>Download a file</h1>
+				<div class="select">
+					<select class="file" name="file">
+						<option value="" disabled selected>Select a file</option>
+					</select>
+				</div>
+				<a id="download-file-btn" href="" download=""> download </a>
+			</form>
+		</div>
 	</div>
 
 	<script>
+		// select donwload
+		var dBtn = document.getElementById('download-file-btn');
+
 		var defaultUrl = window.location.href; // Default upload URL
 
 		// GET uploaded files
-		var select = document.getElementById('file');
-		select.addEventListener('click', function () {
-			// Only fetch the list of files if the select element is empty
-			if (select.options.length === 1) {
-				var xhr = new XMLHttpRequest();
-				xhr.open('GET', '/listUpload', true);
-				xhr.onload = function () {
-					if (xhr.status === 200) {
-						var files = JSON.parse(xhr.responseText);
-						for (var i = 0; i < files.length; i++) {
-							var option = document.createElement('option');
-							option.value = files[i];
-							option.text = files[i];
-							select.appendChild(option);
+		var select = document.getElementsByClassName('file');
+		for (var i = 0; i < select.length; i++) {
+			select[i].addEventListener('change', function() {
+				console.log(this.options[this.options.selectedIndex].value)
+				value = this.options[this.options.selectedIndex].value;
+				dBtn.href="/images" + '?name=' + value;
+				dBtn.download=value;
+			});
+			select[i].addEventListener('click', function (target) {
+
+				// Only fetch the list of files if the select element is empty
+				if (target.target.options.length === 1) {
+					var xhr = new XMLHttpRequest();
+					xhr.open('GET', '/listUpload', true);
+					xhr.onload = function () {
+						if (xhr.status === 200) {
+							var files = JSON.parse(xhr.responseText);
+							for (var i = 0; i < files.length; i++) {
+								var option = document.createElement('option');
+								option.value = files[i];
+								option.text = files[i];
+								target.target.appendChild(option);
+							}
 						}
-					}
-				};
-				xhr.send();
-			}
-		});
+					};
+					xhr.send();
+				}
+			}, i);
+		}
 
 		// Function to clear select options
 		function clearSelectOptions() {
