@@ -41,7 +41,7 @@ std::vector<char *>	mapConvert(std::map<std::string, std::string>& headers, s_re
 std::string	getOutput(int fd)
 {
 	std::string	outputString = "";
-	char		buff[1024];
+	char		buff[1025];
 	int			check;
 
 	while ((check = read(fd, buff, 1024)))
@@ -82,6 +82,7 @@ std::string	runCgi(s_request& request) // TODO : if POST send body in standard i
 	if (pid == 0)
 	{
 		std::vector<char *> env = mapConvert(request.headers, request); // TODO : free
+		dup2(fd[0], STDIN_FILENO);
 		close(fd[0]);
 		dup2(fd[1], STDOUT_FILENO);
 		close(fd[1]);
@@ -98,6 +99,9 @@ std::string	runCgi(s_request& request) // TODO : if POST send body in standard i
 	/***	PARENT	***/
 	std::string	outputString;
 	int			childStatus;
+	
+	if (request.method == "POST")
+		write(fd[1], request.body.data(), request.body.size());
 
 	close(fd[1]);
 	waitpid(pid, &childStatus, 0);

@@ -34,6 +34,7 @@ server {
         cgi_extention   .cgi
     }
     location /cgi/env {
+        methodes POST GET
         redirection cgiFiles/printEnv.py
         cgi_path   cgiFiles/
         cgi_extention   .cgi .py
@@ -49,6 +50,10 @@ server {
         cgi_path   cgiFiles/
         cgi_extention   .cgi .py
     }
+    location /favicon.ico {
+        methodes GET
+        redirection src/pages/favicon.ico
+    }
 }
 server {
     template src/pages/template.html
@@ -59,6 +64,10 @@ server {
     location / {
         methodes GET POST
         redirection src/pages/index.html
+    }
+    location /favicon.ico {
+        methodes GET
+        redirection src/pages/favicon.ico
     }
     server_names bigCloud
     client_size 43

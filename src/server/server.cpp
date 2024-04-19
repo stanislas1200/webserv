@@ -15,7 +15,7 @@ int serverSetup(ServConfig *server) {
 	if (server->getFd() == -1)
 		return error("Socket:", strerror(errno), NULL), -1;
 
-	// non blocking // The connection was reset RIP
+	// non blocking // should be ?
 	int flag = fcntl(server->getFd(), F_GETFL, 0);
 	if (fcntl(server->getFd(), F_SETFL, flag | O_NONBLOCK) < 0)
 		return close(server->getFd()), error("Sock opt:", strerror(errno), NULL), -1;
@@ -53,7 +53,7 @@ void serverRun(std::vector<ServConfig> servers, int max_fd, size_t fd_size) {
 
 	for (size_t i = 0; i < fd_size; i++) {
 		fill.fd = servers[i].getFd();
-		fill.events = POLLIN;
+		fill.events = POLLIN | POLLOUT;
 		fill.revents = 0;
 		fds.push_back(fill);
 	}
@@ -66,7 +66,7 @@ void serverRun(std::vector<ServConfig> servers, int max_fd, size_t fd_size) {
 		{
 
 			std::cout << C"\r[" DV "serverRun" C "] " << GREEN "waiting a connection, in queue : " C << request_map.size() << std::flush;
-			ret = poll(fds.data(), fds.size(), 1);
+			ret = poll(fds.data(), fds.size(), 0);
 
 			if (request_map.size() > 0) // handle client connection
 			{
@@ -77,7 +77,7 @@ void serverRun(std::vector<ServConfig> servers, int max_fd, size_t fd_size) {
 					{
 						if (handleConnection(&it->second))
 						{
-							std::cout << C"[" DV "serverRun" C "] " << MB "close chunck connection" C << std::endl;
+							// std::cout << C"[" DV "serverRun" C "] " << MB "close chunck connection" C << std::endl;
 							close(it->second.connection);
 							request_map.erase(it->second.connection);
 							fds.erase(fds.end() - request_map.size() - 1 + j);
@@ -127,14 +127,14 @@ void serverRun(std::vector<ServConfig> servers, int max_fd, size_t fd_size) {
 						fill.revents = 0;
 						fds.push_back(fill);
 						request_map[request.connection] = request;
-						std::cout << C"[" DV "serverRun" C "] " << MB "connection fd" C ": " GREEN << request.connection << std::endl;
+						// std::cout << C"[" DV "serverRun" C "] " << MB "connection fd" C ": " GREEN << request.connection << std::endl;
 					}
 					
 				}
 			}
 		}
 		else
-			error("Select:", strerror(errno), NULL);		
+			error("Poll:", strerror(errno), NULL);		
 
 	}
 	return;
