@@ -84,7 +84,7 @@ std::string	getOutput(int fd)
 
 void	timeoutHandler(int)
 {
-	std:cerr << RED "CGI timed out, killing process." C << std::endl;
+	std::cerr << RED "CGI timed out, killing process." C << std::endl;
 	exit(EXIT_FAILURE);
 }
 
@@ -102,6 +102,9 @@ std::string	runCgi(s_request& request)
 		// Throw error
 		throw (tempThrow());
 	}
+
+	alarm(10);
+	
 	int pid = fork();
 	if (pid == -1)
 	{
@@ -115,6 +118,8 @@ std::string	runCgi(s_request& request)
 	/***	CHILD	***/
 	if (pid == 0)
 	{
+		signal(SIGALRM, timeoutHandler);
+		
 		std::vector<char *> env = mapConvert(request.headers);
 		close(fd[0]);
 		dup2(fd[1], STDOUT_FILENO);
@@ -132,9 +137,6 @@ std::string	runCgi(s_request& request)
 	/***	PARENT	***/
 	std::string	outputString;
 	int			childStatus;
-
-	signal(SIGALRM, timeouHandler);
-	alarm(10);
 
 	close(fd[1]);
 	waitpid(pid, &childStatus, 0);
