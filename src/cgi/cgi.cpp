@@ -1,4 +1,5 @@
 #include "../../include/cgi.hpp"
+#include "../../include/request.hpp"
 
 char * cstr(std::string s)
 {
@@ -33,32 +34,33 @@ std::vector<char *>	mapConvert(std::map<std::string, std::string>& headers, s_re
 	env.push_back(cstr("SERVER_PROTOCOL=HTTP/1.1"));
 	env.push_back(cstr("REQUEST_METHOD=" + req.method));
 	env.push_back(cstr("REQUEST_URI=/" + req.path));
+	if (!req.queryString.empty())
+		env.push_back(cstr("QUERY_STRING=" + req.queryString.substr(1)));
 	env.push_back(cstr("PATH_INFO=" + req.path)); // TODO : leave or fix
 	env.push_back(NULL);
 	return (env);
 }
 
-std::string	getOutput(int fd)
+std::vector<unsigned char>	getOutput(int fd)
 {
-	std::string	outputString = "";
-	char		buff[1025];
+    std::vector<unsigned char> data;
+    unsigned char buffer;
 	int			check;
 
-	while ((check = read(fd, buff, 1024)))
+	while ((check = read(fd, &buffer, 1))) // TODO : check if read bigger is faster
 	{
-		buff[check] = '\0';
 		if (check == -1)
 		{
 			std::cerr << RED "CGI read failed" C << std::endl;
 			// Throw error
 			throw (tempThrow());
 		}
-		outputString.append(buff);
+		data.push_back(buffer);
 	}
-	return (outputString);
+	return (data);
 }
 
-std::string	runCgi(s_request& request) // TODO : if POST send body in standard input.
+std::vector<unsigned char>	runCgi(s_request& request)
 {
 	int	fd[2];
 
@@ -97,10 +99,10 @@ std::string	runCgi(s_request& request) // TODO : if POST send body in standard i
 	}
 
 	/***	PARENT	***/
-	std::string	outputString;
+	std::vector<unsigned char>	outputString;
 	int			childStatus;
 	
-	if (request.method == "POST")
+	if (request.method == "POST" && !request.body.empty())
 		write(fd[1], request.body.data(), request.body.size());
 
 	close(fd[1]);
@@ -118,4 +120,18 @@ std::string	runCgi(s_request& request) // TODO : if POST send body in standard i
 	outputString = getOutput(fd[0]);
 	close(fd[0]);
 	return (outputString);
+}
+
+void requestCgi(s_request& request)
+{
+	std::vector<unsigned char> response;
+	try {
+		response = runCgi(request);
+	} catch (const std::exception& e) {
+		std::cerr << RED "Error: " YELLOW << e.what() << C << std::endl;
+		return sendError(500, request);
+	}
+	std::string header = responseHeader(200);
+	send(request.connection, header.c_str(), header.length(), 0);
+	send(request.connection, response.data(), response.size(), 0);
 }

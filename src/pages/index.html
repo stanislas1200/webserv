@@ -9,17 +9,17 @@
 			</form>
 		</div>
 		<div class="box">
-			<form id="myForm">
-				<h1>Send a JSON</h1>
-				<input id="json" name="json" type="text">
+			<form id="myForm" , enctype="application/x-www-form-urlencoded">
+				<h1>Send a Query String</h1>
+				<input id="param" name="param" type="text">
 				<input type="submit">
 			</form>
 		</div>
 		<div class="box">
-			<form id="delete" , enctype="text/plain">
+			<form id="delete" , enctype="application/x-www-form-urlencoded">
 				<h1>Delete a file</h1>
 				<div class="select">
-					<select id="file" name="file">
+					<select id="delet-file" class="select-el" name="file">
 						<option value="" disabled selected>Select a file</option>
 					</select>
 				</div>
@@ -38,62 +38,66 @@
 				<div id="progress">0%</div>
 			</div>
 		</div>
+		<div class="box">
+			<form id="download" , enctype="application/x-www-form-urlencoded">
+				<h1>Download a file</h1>
+				<div class="select">
+					<select id="download-file" class="select-el" name="file">
+						<option value="" disabled selected>Select a file</option>
+					</select>
+				</div>
+				<a id="download-file-btn" href="" download=""> download </a>
+			</form>
+		</div>
 	</div>
 
 	<script>
 		var defaultUrl = window.location.href; // Default upload URL
 
-		// GET uploaded files
-		var select = document.getElementById('file');
-		select.addEventListener('click', function () {
-			// Only fetch the list of files if the select element is empty
-			if (select.options.length === 1) {
-				var xhr = new XMLHttpRequest();
-				xhr.open('GET', '/listUpload', true);
-				xhr.onload = function () {
-					if (xhr.status === 200) {
-						var files = JSON.parse(xhr.responseText);
-						for (var i = 0; i < files.length; i++) {
-							var option = document.createElement('option');
-							option.value = files[i];
-							option.text = files[i];
-							select.appendChild(option);
+		// Selector
+		var select = document.getElementsByClassName('select-el');
+		for (var i = 0; i < select.length; i++) {
+			// Get Files name
+			select[i].addEventListener('click', function (target) {
+
+				// Only fetch the list of files if the select element is empty
+				if (target.target.options.length === 1) {
+					// Disable the button
+					target.target.disabled = true;
+					var xhr = new XMLHttpRequest();
+					xhr.open('GET', '/listUpload', true);
+					xhr.onload = function () {
+						if (xhr.status === 200) {
+							var files = JSON.parse(xhr.responseText);
+							for (var i = 0; i < files.length; i++) {
+								var option = document.createElement('option');
+								option.value = files[i];
+								option.text = files[i];
+								target.target.appendChild(option);
+							}
 						}
-					}
-				};
-				xhr.send();
-			}
-		});
+           				// Re-enable the button
+						target.target.disabled = false;
+					};
+					xhr.send();
+				}
+			}, i);
+		}
 
 		// Function to clear select options
 		function clearSelectOptions() {
-			for(let i = select.options.length - 1 ; i >= 1 ; i--) {
-				select.remove(i);
+			for (var i = 0; i < select.length; i++) {
+
+				for (let j = select[i].options.length - 1; j >= 1; j--) {
+					select[i].remove(j);
+				}
 			}
 		}
-		// window.onload = function() {
-		// var xhr = new XMLHttpRequest();
-		// xhr.open('GET', '/listFiles', true);
-		// xhr.onload = function() {
-		// 	if (xhr.status === 200) {
-		// 	var files = JSON.parse(xhr.responseText);
-		// 	console.log(files);
-		// 	var select = document.getElementById('file');
-		// 	for (var i = 0; i < files.length; i++) {
-		// 		var option = document.createElement('option');
-		// 		option.value = files[i];
-		// 		option.text = files[i];
-		// 		select.appendChild(option);
-		// 	}
-		// 	}
-		// };
-		// xhr.send();
-		// };
 
 		// Delete file
 		document.getElementById('delete').addEventListener('submit', function (event) {
 			event.preventDefault(); // Prevent the default form submission
-			var fileName = document.getElementById('file').value;
+			var fileName = document.getElementById('delet-file').value;
 			var xhr = new XMLHttpRequest();
 			var formData = new FormData(document.getElementById('delete'));
 			xhr.open('DELETE', fileName, true);
@@ -132,8 +136,8 @@
 				}
 			};
 			xhr.onload = function () {
+				clearSelectOptions();
 				if (xhr.status === 200) {
-					clearSelectOptions();
 					console.log('File uploaded successfully!');
 				}
 			};
@@ -142,6 +146,15 @@
 				document.getElementById('progress').innerText = "Failed!";
 			}
 			xhr.send(formData);
+		});
+		
+		// Download file
+		document.getElementById('download-file').addEventListener('change', function (event) {
+			var dBtn = document.getElementById('download-file-btn');
+			console.log(this.options[this.options.selectedIndex].value)
+			value = this.options[this.options.selectedIndex].value;
+			dBtn.href = "/download" + '?name=' + value;
+			dBtn.download = value;
 		});
 	</script>
 </body>

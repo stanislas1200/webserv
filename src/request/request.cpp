@@ -75,29 +75,33 @@ std::string responseHeader(int status)
 	httpStatusCodes[504] = "Gateway Timeout";
 	httpStatusCodes[505] = "HTTP Version Not Supported";
 
-	std::string response = "HTTP/1.0 " + std::to_string(status) + " " + httpStatusCodes[status] + "\r\nContent-type:text/html\r\n\r\n"; // TODO : Content-type
+	std::stringstream s;
+	s << status;
+	std::string response = "HTTP/1.0 " + s.str() + " " + httpStatusCodes[status] + "\r\n"; // TODO : Content-type
 	return response;
 }
 
 void sendError(int status, s_request req)
 {
 	// check error pages
-	std::string content = "<h1 style=\"text-align:center\">Error " + std::to_string(status) + "</h1>";
+	std::stringstream s;
+	s << status;
+	std::string content = "<!DOCTYPE html> <html>  <h1 style=\"text-align:center\">Error " + s.str() + "</h1> </html>";
 	if (!req.conf.pathToErrorPage(status).empty())
 	{
-		std::ifstream file(req.conf.pathToErrorPage(status));
+		std::ifstream file(req.conf.pathToErrorPage(status).c_str());
 		if (file.is_open())
 		{
 			// read error page
 			std::stringstream ss;
 			ss << file.rdbuf();
-			content += ss.str();
+			content = ss.str();
 			file.close();
 
-			// check template
-			content = useTemplate(content, req);
 		}
 	}
+	// check template
+	content = useTemplate(content, req);
 	std::string response = responseHeader(status) + content;
 	send(req.connection, response.c_str(), response.length(), 0);
 }
@@ -111,7 +115,7 @@ std::string useTemplate(std::string content, s_request request) {
 		templatePath = request.loc.getTemplate();
 	if (!templatePath.empty() && stringEnd(templatePath, ".html"))
 	{
-		std::ifstream templat(templatePath);
+		std::ifstream templat(templatePath.c_str());
 		if (templat.is_open())
 		{
 			ss << templat.rdbuf();
@@ -123,21 +127,8 @@ std::string useTemplate(std::string content, s_request request) {
 				ret.replace(pos, pos + 8, content);
 				return ret;
 			}
-			// else
-			// {
-			// 	status = "500 KO\r\n";
-			// 	ret = "<h1 style=\"text-align:center\">Error 500 Internal Server Error</h1>";
-			// 	error("File:", "Error in template file", NULL);
-			// }
-
 		}
-		// else
-		// {
-		// 	status = "404 KO\r\n";
-		// 	ret.replace(pos, pos + 8, "<h1 style=\"text-align:center\">Error 404 Not Found Error</h1>");
-		// }
 	}
-	// ret = "HTTP/1.1 " + status + "Content-Type: text/html\r\n\r\n" + ret; // TODO : map status code and message
 	return content;
 }
 
@@ -147,7 +138,7 @@ void	sendFile(int connection, std::ifstream *file, int status, s_request request
 	ss << file->rdbuf();
 
 	std::string fileContent = ss.str();
-	std::string response = useTemplate(fileContent, request);
+	std::string response = "Content-type:text/html\r\n\r\n" + useTemplate(fileContent, request);
 	response = responseHeader(status) + response;
 	// if (response.empty())
 	// 	response = "HTTP/1.1 " + status + "Content-Type: text/html\r\n\r\n" + fileContent; // TODO : map status code and message
@@ -194,7 +185,7 @@ std::string	replaceHexAndAmp(std::string src)
 int parseRequest(std::string header, s_request *request) {
 	// Parse request header if needed
 	int connection = request->connection;
-	if (request->method.empty()) // TODO : split path?key=value
+	if (request->method.empty())
 	{
 		std::istringstream requestStream(header);
 		std::string line;
@@ -203,6 +194,15 @@ int parseRequest(std::string header, s_request *request) {
 		std::getline(requestStream, line);
 		std::istringstream firstLineStream(line);
 		firstLineStream >> request->method >> request->path;
+
+		// query string
+		size_t npos = request->path.find("?");
+		if (npos != std::string::npos)
+		{
+			request->queryString = request->path.substr(npos);
+			request->path = request->path.substr(0, npos);
+		}
+
 		request->path = replaceHexAndAmp(request->path);
 
 		// Parse the headers

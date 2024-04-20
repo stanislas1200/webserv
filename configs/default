@@ -1,5 +1,5 @@
 server {
-	errorpages 404 src/pages/errorpages/error_503.html
+	errorpages 404 src/pages/errorpages/error_404.html
 	errorpages 503 src/pages/errorpages/error_503.html
 	listen 8080
     methodes GET AGAIN
@@ -54,10 +54,15 @@ server {
         methodes GET
         redirection src/pages/favicon.ico
     }
+    location /download {
+        methodes GET
+        redirection cgiFiles/getUpload.py
+        cgi_path   cgiFiles/
+        cgi_extention .py
+    }
 }
 server {
     template src/pages/template.html
-	errorpages 404 src/pages/errorpages/error_404.html
 	errorpages 505 src/pages/errorpages/error_505.html
     methodes GET POST DELETE
 	listen 8081
