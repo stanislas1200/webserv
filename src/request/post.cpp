@@ -144,46 +144,46 @@ std::string handleFormData(int connection, s_request *request, int *end) {
 		request->formData[0].full = false;
 		request->formData[0] = request->formData[1];
 	}
-	size_t pos = 0;
+	// size_t pos = 0;
 	*end = readFormData(request);
 	if (*end == 0)
 		return "Chunked";
 	return parseFormData(request);
 
-	// parse header
-	s_FormDataPart *formDataPart = &request->formData[0];
-	std::istringstream iss(formDataPart->header);
-	std::string line;
-	while (std::getline(iss, line) && !line.empty())
-	{
-		if (line == "\r")
-			break;
-		if (line.find("Content-Disposition") != std::string::npos)
-		{
-			line = line.substr(line.find("name=\"") + 6);
-			formDataPart->name = line.substr(0, line.find('"'));
-			line = line.substr(line.find("filename=\"") + 10);
-			formDataPart->filename = line.substr(0, line.find('"'));
-		}
-		if (line.find("Content-Type") != std::string::npos)
-			formDataPart->contentType = line.substr(line.find("Content-Type:") + 14);
-	}
-	// TODO : check malformated request
-	// write in file
-	std::ofstream outputFile(("upload/" + formDataPart->filename).c_str(), std::ios::binary);
-	if (!outputFile.is_open())
-	{
-		error("Open:", strerror(errno), NULL);
-		send(request->connection, "File upload failed! ", strlen("File upload failed! "), 0);
-		return "500";
-	}
-	pos = formDataPart->header.find("\r\n\r\n");
-	outputFile.write(&formDataPart->data[pos + 4], request->dataLen- (pos + 4) - request->boundary.size()); // +2 if end request (--)
-	outputFile.close();
-	handleGetRequest(request->connection, *request);
-	send(request->connection, "File uploaded! ", strlen("File uploaded! "), 0);
-	std::cout << C"[" GREEN "handlePostRequest" C "] " << MB "File uploaded!" C << std::endl;
-	return "200";
+	// // parse header
+	// s_FormDataPart *formDataPart = &request->formData[0];
+	// std::istringstream iss(formDataPart->header);
+	// std::string line;
+	// while (std::getline(iss, line) && !line.empty())
+	// {
+	// 	if (line == "\r")
+	// 		break;
+	// 	if (line.find("Content-Disposition") != std::string::npos)
+	// 	{
+	// 		line = line.substr(line.find("name=\"") + 6);
+	// 		formDataPart->name = line.substr(0, line.find('"'));
+	// 		line = line.substr(line.find("filename=\"") + 10);
+	// 		formDataPart->filename = line.substr(0, line.find('"'));
+	// 	}
+	// 	if (line.find("Content-Type") != std::string::npos)
+	// 		formDataPart->contentType = line.substr(line.find("Content-Type:") + 14);
+	// }
+	// // TODO : check malformated request
+	// // write in file
+	// std::ofstream outputFile(("upload/" + formDataPart->filename).c_str(), std::ios::binary);
+	// if (!outputFile.is_open())
+	// {
+	// 	error("Open:", strerror(errno), NULL);
+	// 	send(request->connection, "File upload failed! ", strlen("File upload failed! "), 0);
+	// 	return "500";
+	// }
+	// pos = formDataPart->header.find("\r\n\r\n");
+	// outputFile.write(&formDataPart->data[pos + 4], request->dataLen- (pos + 4) - request->boundary.size()); // +2 if end request (--)
+	// outputFile.close();
+	// handleGetRequest(request->connection, *request);
+	// send(request->connection, "File uploaded! ", strlen("File uploaded! "), 0);
+	// std::cout << C"[" GREEN "handlePostRequest" C "] " << MB "File uploaded!" C << std::endl;
+	// return "200";
 }
 
 std::string handleUrlEncoded(int connection, s_request request) {

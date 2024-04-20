@@ -54,7 +54,7 @@ server {
         methodes GET
         redirection src/pages/favicon.ico
     }
-    location /images {
+    location /download {
         methodes GET
         redirection cgiFiles/getUpload.py
         cgi_path   cgiFiles/
