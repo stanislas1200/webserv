@@ -106,7 +106,19 @@ std::vector<unsigned char>	runCgi(s_request& request)
 		write(fd[1], request.body.data(), request.body.size());
 
 	close(fd[1]);
-	waitpid(pid, &childStatus, 0);
+
+	int timeout = 10;
+	while (waitpid(pid, &childStatus, WNOHANG) == 0)
+	{
+		if (timeout <= 0)
+		{
+			kill(pid, SIGTERM);
+			// TODO : return error
+		}
+		sleep(1);
+		timeout--;
+	}
+	
 	if (WIFEXITED(childStatus))
 	{
 		if (WEXITSTATUS(childStatus) != 0)
