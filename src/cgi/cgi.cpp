@@ -82,6 +82,12 @@ std::string	getOutput(int fd)
 	return (outputString);
 }
 
+void	timeoutHandler(int)
+{
+	std:cerr << RED "CGI timed out, killing process." C << std::endl;
+	exit(EXIT_FAILURE);
+}
+
 std::string	runCgi(s_request& request)
 {
 	// if (request.method == 'POST')
@@ -127,8 +133,12 @@ std::string	runCgi(s_request& request)
 	std::string	outputString;
 	int			childStatus;
 
+	signal(SIGALRM, timeouHandler);
+	alarm(10);
+
 	close(fd[1]);
 	waitpid(pid, &childStatus, 0);
+	alarm(0);
 	if (WIFEXITED(childStatus))
 	{
 		if (WEXITSTATUS(childStatus) != 0)
