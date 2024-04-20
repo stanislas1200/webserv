@@ -63,7 +63,6 @@ server {
 }
 server {
     template src/pages/template.html
-	errorpages 404 src/pages/errorpages/error_404.html
 	errorpages 505 src/pages/errorpages/error_505.html
     methodes GET POST DELETE
 	listen 8081

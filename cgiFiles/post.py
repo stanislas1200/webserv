@@ -5,7 +5,7 @@ import sys
 import os
 
 # Print the Content-Type header required for CGI scripts
-print("Content-Type: text/plain\r\n")
+print("Content-Type: text/plain\r\n\r\n")
 
 # Read the Content-Length header to determine the length of the POST data
 content_length = int(os.environ.get("CONTENT_LENGTH", 0))
