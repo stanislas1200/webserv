@@ -56,9 +56,9 @@ int main(int ac, char **av) {
 		getConfig(&configClass, av[1]);
 	}
 	checkConfig(configClass);
-	for (std::vector<ServConfig>::iterator it = configClass.begin(); it != configClass.end(); it++) {
-		std::cout << *it << std::endl;
-	}
+	// for (std::vector<ServConfig>::iterator it = configClass.begin(); it != configClass.end(); it++) {
+	// 	std::cout << *it << std::endl;
+	// }
 	std::cout << "Number of server: " << configClass.size() << std::endl;
 	acceptConnection(configClass);
 }

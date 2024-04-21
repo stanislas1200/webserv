@@ -20,6 +20,7 @@
 # define CLIENT_SIZE    4
 # define LOCATION       5
 # define TEMPLATE       6
+# define AUTOINDEX      7
 # define NOT_RIGHT "not right amount of parameter"
 # define ERROR_HAPPEND "something wrong in parameters"
 # define MISSING "mandatory information missing"
@@ -35,6 +36,7 @@ class ServConfig {
         std::vector<Location>       _location;
         std::map<int, std::string>  _errorpages;
         std::string                 _templatePath; // nop
+        bool                        _autoindex; //nop
         // up
 	    int _fd;
         
@@ -66,6 +68,7 @@ class ServConfig {
         // void         setRequests(std::vector<s_request> req);
         
         std::string getTemplate(void) const;
+        bool        getAutoindex(void) const;
         std::vector<Location>   getLocation(void) const;
         std::map<int, std::string> getErrorPages(void) const;
         

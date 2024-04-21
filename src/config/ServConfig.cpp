@@ -12,7 +12,7 @@
 
 #include "../../include/Webserv.hpp"
 
-ServConfig::ServConfig() : _methode(""), _port(-1), _maxClient(-1) {}
+ServConfig::ServConfig() : _methode(""), _port(-1), _maxClient(-1), _autoindex(false) {}
 
 ServConfig::~ServConfig() {}
 
@@ -24,6 +24,7 @@ ServConfig::ServConfig(const ServConfig &src) {
     _location = src._location;
     _errorpages = src._errorpages;
     _templatePath = src._templatePath;
+    _autoindex = src._autoindex;
     _fd = src._fd;
     _sockaddr = src._sockaddr;
 }
@@ -36,6 +37,7 @@ ServConfig& ServConfig::operator=(const ServConfig &rhs) {
     _location = rhs._location;
     _errorpages = rhs._errorpages;
     _templatePath = rhs._templatePath;
+    _autoindex = rhs._autoindex;
     _fd = rhs._fd;
     _sockaddr = rhs._sockaddr;
     return (*this);
@@ -56,6 +58,7 @@ std::vector<std::string>    ServConfig::fillVectorInitialisation(void) {
     vec.push_back("client_size");
     vec.push_back("location");
     vec.push_back("template");
+    vec.push_back("autoindex");
     return (vec);
 }
 
@@ -109,6 +112,14 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifs
                 wrongFormatError("Temlate path", NOT_RIGHT);
             _templatePath = tokens[1];
             break;
+        case AUTOINDEX:
+            if (tokens.size() != 2)
+                wrongFormatError("Autoindex", NOT_RIGHT);
+            if (tokens[1] == "on")
+                _autoindex = true;
+            else if (tokens[1] == "off")
+                _autoindex = false;
+            break;
         default:
             wrongFormatError("Incoherent line:", ("\"" + vecToString(tokens.begin(), tokens.end()) + "\"").c_str());
             break;
@@ -160,11 +171,14 @@ void    ServConfig::initializeConfig(std::ifstream *confFile) {
                 throw MultipleServerOpen();
         }
         if (*tokens.begin() == "}") {
+            inServ = false;
             break;
         }
         initializeVariable(tokens, confFile);
         tokens.clear();
     }
+    if (inServ)
+        wrongFormatError("Server:", "bracket open");
     checkUpConfig();
 }
 
@@ -186,6 +200,7 @@ std::ostream& operator<<(std::ostream& os, const ServConfig& obj) {
     os << "Port     : " << obj.getPort() << std::endl;
     os << "MaxClient: " << obj.getMaxClient() << std::endl;
     os << "Template : " << obj.getTemplate() << std::endl;
+    os << "Autoindex: " << obj.getAutoindex() << std::endl;
     os << std::endl << MB "--" C " Start " RED "Error" C " Pages " MB "--" C << std::endl;
     std::map<int, std::string> errorPages = obj.getErrorPages();
     for (std::map<int, std::string>::iterator it = errorPages.begin(); it != errorPages.end(); it++) {
@@ -228,6 +243,10 @@ std::map<int, std::string> ServConfig::getErrorPages(void) const {
 
 std::string ServConfig::getTemplate(void) const {
     return (this->_templatePath);
+}
+
+bool ServConfig::getAutoindex(void) const {
+    return (this->_autoindex);
 }
 // up
 int ServConfig::getFd(void) const {
