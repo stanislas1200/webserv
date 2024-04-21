@@ -6,7 +6,7 @@
 /*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:33:10 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/18 12:25:47 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/04/21 22:17:43 by gduchesn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ class ServConfig {
         ServConfig& operator=(const ServConfig &rhs);
         
         static void wrongFormatError(const char *msg, const char *line);
-        void        initializeConfig(std::ifstream *confFile);
+        bool        initializeConfig(std::ifstream *confFile);
         std::string pathToErrorPage(int pageToFind);
         void        checkUpConfig(void);
         

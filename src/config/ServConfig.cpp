@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServConfig.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sgodin <sgodin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:43:18 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/17 19:41:01 by sgodin           ###   ########.fr       */
+/*   Updated: 2024/04/21 22:27:24 by gduchesn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,9 +149,9 @@ void    ServConfig::checkUpConfig(void) {
     }
 }
 
-void    ServConfig::initializeConfig(std::ifstream *confFile) {
+bool    ServConfig::initializeConfig(std::ifstream *confFile) {
     std::string line;
-    bool        inServ = false;
+    bool        inServ, started = false;
     std::vector<std::string> tokens;
     
     while (std::getline(*confFile, line)) {
@@ -159,11 +159,12 @@ void    ServConfig::initializeConfig(std::ifstream *confFile) {
         while (SplitedLine >> line) {
             tokens.push_back(line);
         }
-        if (tokens.empty())
+        if (tokens.empty()) {
             continue;
+        }
         if (*tokens.begin() == "server") {
             if (!inServ) {
-                inServ = true;
+                inServ = started = true;
                 tokens.clear();
                 continue;
             }
@@ -177,9 +178,12 @@ void    ServConfig::initializeConfig(std::ifstream *confFile) {
         initializeVariable(tokens, confFile);
         tokens.clear();
     }
+    if (!started)
+        return (false);
     if (inServ)
         wrongFormatError("Server:", "bracket open");
     checkUpConfig();
+    return (true);
 }
 
 std::string ServConfig::pathToErrorPage(int pageToFind) {

@@ -13,8 +13,8 @@ void getConfig(std::vector<ServConfig> *configClass, std::string file) {
     try {
         while (confFile.eof() != 1) {
 			ServConfig  newElement;
-            newElement.initializeConfig(&confFile);
-            configClass->push_back(newElement);
+            if (newElement.initializeConfig(&confFile))
+            	configClass->push_back(newElement);
 		}
 	}
     catch (std::exception& e) {
@@ -56,9 +56,6 @@ int main(int ac, char **av) {
 		getConfig(&configClass, av[1]);
 	}
 	checkConfig(configClass);
-	// for (std::vector<ServConfig>::iterator it = configClass.begin(); it != configClass.end(); it++) {
-	// 	std::cout << *it << std::endl;
-	// }
 	std::cout << "Number of server: " << configClass.size() << std::endl;
 	acceptConnection(configClass);
 }

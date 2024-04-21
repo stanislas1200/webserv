@@ -39,6 +39,8 @@ server {
         cgi_extention   .cgi .py
     }
 }
+
+
 server {
     autoindex on
     template src/pages/template.html
@@ -53,6 +55,8 @@ server {
     server_names bigCloud
     client_size 43
 }
+
+
 server {
     errorpages 505 src/pages/errorpages/error_505.html
 	listen 8082
