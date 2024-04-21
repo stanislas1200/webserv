@@ -1,20 +1,29 @@
 <body>
 	<div class="container">
-		<div class="box">
+		<!-- <div class="box">
 			<form method='POST' enctype='application/x-www-form-urlencoded' accept-charset='utf-8'>
 				<h1>Send a message</h1>
 				<input id="email" name="email" type="email" />
 				<input id="message" name="message" type="text" />
 				<input type="submit">
 			</form>
-		</div>
+		</div> -->
 		<div class="box">
-			<form id="myForm">
-				<h1>Send a JSON</h1>
-				<input id="json" name="json" type="text">
+			<form method='POST' enctype='application/x-www-form-urlencoded' accept-charset='utf-8' onsubmit="saveInputs()">
+				<h1>Send a message</h1>
+				<input id="email" name="email" type="email" />
+				<input id="message" name="message" type="text" />
 				<input type="submit">
 			</form>
 		</div>
+		<script>
+			window.onload = function() {
+				document.getElementById('email').value = localStorage.getItem('savedEmail') || '';
+			};
+			function saveInputs() {
+				localStorage.setItem('savedEmail', document.getElementById('email').value);
+			}
+		</script>
 		<div class="box">
 			<form id="delete" , enctype="text/plain">
 				<h1>Delete a file</h1>
