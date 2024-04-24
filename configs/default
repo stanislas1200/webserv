@@ -26,8 +26,8 @@ server {
         template src/pages/template.html
     }
     location /about {
-        root ./
-        redirection src/pages/about.html
+        root src/pages/
+        redirection about.html
     }
     location /cgi {
         root ./

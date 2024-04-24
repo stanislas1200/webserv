@@ -93,6 +93,9 @@ std::vector<unsigned char>	runCgi(s_request& request)
 		char *argv[] = {const_cast<char*>(fullPath.c_str()), NULL};
 		if (execve(fullPath.c_str(), argv, env.data()) == -1)
 		{
+			for (std::vector<char *>::iterator it = env.begin(); it != env.end(); it++) {
+				delete[] *it;
+			}
 			std::cerr << RED "CGI execve failed" C << std::endl;std::cerr << RED "CGI errno: " MB << strerror(errno) << C << std::endl;
 			std::exit(1);
 		}
