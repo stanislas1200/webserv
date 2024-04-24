@@ -21,6 +21,7 @@
 # define LOCATION       5
 # define TEMPLATE       6
 # define AUTOINDEX      7
+# define TIMEOUTCGI     8
 # define NOT_RIGHT "not right amount of parameter"
 # define ERROR_HAPPEND "something wrong in parameters"
 # define MISSING "mandatory information missing"
@@ -37,8 +38,8 @@ class ServConfig {
         std::map<int, std::string>  _errorpages;
         std::string                 _templatePath; // nop
         bool                        _autoindex; //nop
-        // up
-	    int _fd;
+        int                         _timeoutCgi;
+	    int                         _fd;
         
         void    initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile);
         std::vector<std::string>    fillVectorInitialisation(void);
@@ -55,22 +56,18 @@ class ServConfig {
         std::string pathToErrorPage(int pageToFind);
         void        checkUpConfig(void);
         
+        /// getter ///
         std::string getName(void) const;
         std::string getMethode(void) const;
         int         getPort(void) const;
-        int         getMaxClient(void) const;
-        // up
-        int         getFd(void) const;
-        // sockaddr_in         getSockaddr(void) const;
-        // std::vector<s_request>         getRequests(void) const;
-        void         setFd(int fd);
-        // void         setSockaddr(sockaddr_in addr);
-        // void         setRequests(std::vector<s_request> req);
-        
+        int         getMaxClient(void) const;        
         std::string getTemplate(void) const;
-        bool        getAutoindex(void) const;
         std::vector<Location>   getLocation(void) const;
         std::map<int, std::string> getErrorPages(void) const;
+        bool        getAutoindex(void) const;
+        int         getTimeoutCgi(void) const;        
+        int         getFd(void) const;
+        void         setFd(int fd);
         
 		class wrongFormat : public std::exception {
 			public :

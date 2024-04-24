@@ -7,6 +7,7 @@ server {
     server_names littleCloud
     client_size 42
     template src/pages/template.html
+    timeoutCgi  10
     location /about {
         redirection src/pages/about.html
     }
@@ -70,6 +71,7 @@ server {
 	errorpages 505 src/pages/errorpages/error_505.html
     methodes GET POST DELETE
 	listen 8081
+    timeoutCgi  10
     location / {
         methodes GET POST
         redirection src/pages/index.html
@@ -88,6 +90,7 @@ server {
 	listen 8082
     client_size 43
     methodes GET POST DELETE
+    timeoutCgi  10
     location /about {
         redirection src/pages/about.html
     }

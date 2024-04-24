@@ -13,7 +13,7 @@
 #include "../../include/Webserv.hpp"
 #include <cstring> // src/config/ServConfig.cpp:298:15: error: ‘strlen’ is not a member of ‘std’; did you mean ‘strlen’?
 
-ServConfig::ServConfig() : _methode(""), _port(-1), _maxClient(-1), _autoindex(false) {}
+ServConfig::ServConfig() : _methode(""), _port(-1), _maxClient(-1), _autoindex(false), _timeoutCgi(-1) {}
 
 ServConfig::~ServConfig() {}
 
@@ -26,6 +26,7 @@ ServConfig::ServConfig(const ServConfig &src) {
     _errorpages = src._errorpages;
     _templatePath = src._templatePath;
     _autoindex = src._autoindex;
+    _timeoutCgi = src._timeoutCgi;
     _fd = src._fd;
     _sockaddr = src._sockaddr;
 }
@@ -39,6 +40,7 @@ ServConfig& ServConfig::operator=(const ServConfig &rhs) {
     _errorpages = rhs._errorpages;
     _templatePath = rhs._templatePath;
     _autoindex = rhs._autoindex;
+    _timeoutCgi = rhs._timeoutCgi;
     _fd = rhs._fd;
     _sockaddr = rhs._sockaddr;
     return (*this);
@@ -60,6 +62,7 @@ std::vector<std::string>    ServConfig::fillVectorInitialisation(void) {
     vec.push_back("location");
     vec.push_back("template");
     vec.push_back("autoindex");
+    vec.push_back("timeoutCgi");
     return (vec);
 }
 
@@ -121,6 +124,11 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifs
             else if (tokens[1] == "off")
                 _autoindex = false;
             break;
+        case TIMEOUTCGI:
+            if (tokens.size() != 2 || !isNbrNoOverflow(tokens[1], &result))
+                wrongFormatError("Timeout cgi", NOT_RIGHT);
+            _timeoutCgi = result;
+            break;
         default:
             wrongFormatError("Incoherent line:", ("\"" + vecToString(tokens.begin(), tokens.end()) + "\"").c_str());
             break;
@@ -138,6 +146,8 @@ void    ServConfig::checkUpConfig(void) {
         wrongFormatError("location", MISSING);
     if (_errorpages.empty())
         wrongFormatError("error pages", MISSING);
+    if (_timeoutCgi == -1)
+        wrongFormatError("Timeout cgi", MISSING);
     for (std::vector<Location>::iterator it = _location.begin(); it != _location.end(); it++) {
         if (it->getPath().empty())
             wrongFormatError("Location: path", MISSING);
@@ -206,6 +216,7 @@ std::ostream& operator<<(std::ostream& os, const ServConfig& obj) {
     os << "MaxClient: " << obj.getMaxClient() << std::endl;
     os << "Template : " << obj.getTemplate() << std::endl;
     os << "Autoindex: " << obj.getAutoindex() << std::endl;
+    os << "Timeout  : " << obj.getTimeoutCgi() << std::endl;
     os << std::endl << MB "--" C " Start " RED "Error" C " Pages " MB "--" C << std::endl;
     std::map<int, std::string> errorPages = obj.getErrorPages();
     for (std::map<int, std::string>::iterator it = errorPages.begin(); it != errorPages.end(); it++) {
@@ -253,26 +264,18 @@ std::string ServConfig::getTemplate(void) const {
 bool ServConfig::getAutoindex(void) const {
     return (this->_autoindex);
 }
-// up
+
+int ServConfig::getTimeoutCgi(void) const {
+    return (this->_timeoutCgi);
+}
+
 int ServConfig::getFd(void) const {
     return (this->_fd);
 }
-// sockaddr_in ServConfig::getSockaddr(void) const {
-//     return (this->_sockaddr);
-// }
-// std::vector<s_request> ServConfig::getRequests(void) const {
-//     return (this->_requests);
-// }
-//// Setter ////
+
 void ServConfig::setFd(int fd) {
     this->_fd = fd;
 }
-// void ServConfig::setSockaddr(sockaddr_in addr) {
-//     this->_sockaddr = addr;
-// }
-// void ServConfig::setRequests(std::vector<s_request> req) {
-//     this->_requests = req;
-// }
 
 //// Throw ////
 
