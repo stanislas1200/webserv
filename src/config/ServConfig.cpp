@@ -149,10 +149,13 @@ void    ServConfig::checkUpConfig(void) {
     if (_timeoutCgi == -1)
         wrongFormatError("Timeout cgi", MISSING);
     for (std::vector<Location>::iterator it = _location.begin(); it != _location.end(); it++) {
+        std::cout << "yo" << std::endl;
         if (it->getPath().empty())
             wrongFormatError("Location: path", MISSING);
         if (it->getRedirection().empty())
             wrongFormatError("Location: redirection", MISSING);
+        if (it->getRoot().empty())
+            wrongFormatError("Location: root", MISSING);
         if (it->getMethode().empty())
             it->setMethode(_methode);
         if (it->getTemplate().empty() && !_templatePath.empty())

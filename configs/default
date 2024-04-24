@@ -9,54 +9,65 @@ server {
     template src/pages/template.html
     timeoutCgi  10
     location /about {
-        redirection src/pages/about.html
+        root src/pages/
+        redirection about.html
     }
     location /about {
+        root ./
         methodes GET
         redirection /pages
     }
     location / {
         methodes GET POST DELETE
+        root ./
         redirection src/pages/index.html
         cgi_path   cgiFiles/
         cgi_extention  .cgi .py sdfdfs
         template src/pages/template.html
     }
     location /about {
+        root ./
         redirection src/pages/about.html
     }
     location /cgi {
+        root ./
         redirection cgiFiles/test.cgi
         cgi_path   cgiFiles/
         cgi_extention   .cgi
     }
     location /cgi/test {
+        root ./
         redirection cgiFiles/cgi_tester.cgi
         cgi_path   cgiFiles/
         cgi_extention   .cgi
     }
     location /cgi/env {
+        root ./
         methodes POST GET
         redirection cgiFiles/printEnv.py
         cgi_path   cgiFiles/
         cgi_extention   .cgi .py
     }
     location /listUpload {
+        root ./
         redirection cgiFiles/listUpload.py
         cgi_path   cgiFiles/
         cgi_extention   .cgi .py
     }
     location /cgi/post {
+        root ./
         methodes POST 
         redirection cgiFiles/post.py
         cgi_path   cgiFiles/
         cgi_extention   .cgi .py
     }
     location /favicon.ico {
+        root ./
         methodes GET
         redirection src/pages/favicon.ico
     }
     location /download {
+        root ./
         methodes GET
         redirection cgiFiles/getUpload.py
         cgi_path   cgiFiles/
@@ -73,10 +84,12 @@ server {
 	listen 8081
     timeoutCgi  10
     location / {
+        root ./
         methodes GET POST
         redirection src/pages/index.html
     }
     location /favicon.ico {
+        root ./
         methodes GET
         redirection src/pages/favicon.ico
     }
@@ -92,9 +105,11 @@ server {
     methodes GET POST DELETE
     timeoutCgi  10
     location /about {
+        root ./
         redirection src/pages/about.html
     }
     location / {
+        root ./
         methodes GET POST
         redirection src/pages/index.html
         template src/pages/template.html

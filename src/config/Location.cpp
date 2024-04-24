@@ -12,15 +12,17 @@
 
 #include "../../include/Location.hpp"
 
-Location::Location() {}
+Location::Location() : _autoindex(false) {}
 
 Location::Location(const Location &src) {
     _path = src._path;
     _methode = src._methode;
     _redirection = src._redirection;
+    _root = src._root;
     _pathToCgi = src._pathToCgi;
     _exCgi = src._exCgi;
     _templatePath = src._templatePath;
+    _autoindex = src._autoindex;
 }
 
 Location::~Location() {}
@@ -29,9 +31,11 @@ Location& Location::operator=(const Location &rhs) {
     _path = rhs._path;
     _methode = rhs._methode;
     _redirection = rhs._redirection;
+    _root = rhs._root;
     _pathToCgi = rhs._pathToCgi;
     _exCgi = rhs._exCgi;
     _templatePath = rhs._templatePath;
+    _autoindex = rhs._autoindex;
     return (*this);
 }
 
@@ -40,9 +44,11 @@ std::vector<std::string>    Location::fillVectorInitialisation(void) {
     
     vec.push_back("methodes");
     vec.push_back("redirection");
+    vec.push_back("root");
     vec.push_back("cgi_path");
     vec.push_back("cgi_extention");
     vec.push_back("template");
+    vec.push_back("autoindex");
     return (vec);
 }
 
@@ -73,6 +79,11 @@ void Location::init(std::vector<std::string> tokens, std::ifstream *confFile) {
                     ServConfig::wrongFormatError("Location: redirection", ERROR_HAPPEND);
                 _redirection = tokens[1];
                 break;
+            case ROOT:
+                if (tokens.size() != 2)
+                    ServConfig::wrongFormatError("Location: root", ERROR_HAPPEND);
+                _root = tokens[1];
+                break;
             case PATHTOCGI:
                 if (tokens.size() != 2)
                     ServConfig::wrongFormatError("Location: pathToCgi", ERROR_HAPPEND);
@@ -87,6 +98,14 @@ void Location::init(std::vector<std::string> tokens, std::ifstream *confFile) {
                 if (tokens.size() != 2)
                     ServConfig::wrongFormatError("Location: template", ERROR_HAPPEND);
                 _templatePath = tokens[1];
+                break;
+            case LOCATION_AUTOINDEX:
+                if (tokens.size() != 2)
+                    ServConfig::wrongFormatError("Location: Autoindex", NOT_RIGHT);
+                if (tokens[1] == "on")
+                    _autoindex = true;
+                else if (tokens[1] == "off")
+                    _autoindex = false;
                 break;
             default:
                     if (tokens[0] == "}")
@@ -111,6 +130,10 @@ std::string Location::getRedirection(void) const {
     return (this->_redirection);
 }
 
+std::string Location::getRoot(void) const {
+    return (this->_root);
+}
+
 std::string Location::getPathToCgi(void) const {
     return (this->_pathToCgi);
 }
@@ -121,6 +144,10 @@ std::string Location::getExCgi(void) const {
 
 std::string Location::getTemplate(void) const {
     return (this->_templatePath);
+}
+
+bool Location::getAutoindex(void) const {
+    return (this->_autoindex);
 }
 
 //// Setter ////
@@ -139,9 +166,11 @@ std::ostream& operator<<(std::ostream& os, const Location& obj) {
     os << "Path        : " << obj.getPath() << std::endl;
     os << "Methode     : " << obj.getMethode() << std::endl;
     os << "Redirection : " << obj.getRedirection() << std::endl;
+    os << "Root        : " << obj.getRoot() << std::endl;
     os << "PathToCgi   : " << obj.getPathToCgi() << std::endl;
     os << "ExCgi       : " << obj.getExCgi() << std::endl;
     os << "Template    : " << obj.getTemplate() << std::endl;
+    os << "Autoindex   : " << obj.getAutoindex() << std::endl;
     
     os << "----End----" << std::endl;
     return (os);

@@ -37,7 +37,7 @@ class ServConfig {
         std::vector<Location>       _location;
         std::map<int, std::string>  _errorpages;
         std::string                 _templatePath; // nop
-        bool                        _autoindex; //nop
+        bool                        _autoindex;
         int                         _timeoutCgi;
 	    int                         _fd;
         
@@ -105,18 +105,22 @@ bool    isNbrNoOverflow(std::string token, int *result);
 
 # define LOCATION_METHODE   0
 # define REDIRECTION        1
-# define PATHTOCGI          2
-# define EXCGI              3
-# define LOCATION_TEMPLATE  4
+# define ROOT               2
+# define PATHTOCGI          3
+# define EXCGI              4
+# define LOCATION_TEMPLATE  5
+# define LOCATION_AUTOINDEX 6
 
 class Location {
     private:
         std::string _path;
         std::string _methode; // nop
         std::string _redirection;
+        std::string _root;
         std::string _pathToCgi; //nop
         std::string _exCgi; // nop
         std::string _templatePath; // nop
+        bool        _autoindex; //nop
         std::vector<std::string>    fillVectorInitialisation(void);
     public:
         Location(void);
@@ -132,9 +136,11 @@ class Location {
         std::string getPath(void) const;
         std::string getMethode(void) const;
         std::string getRedirection(void) const;
+        std::string getRoot(void) const;
         std::string getPathToCgi(void) const;
         std::string getExCgi(void) const;
         std::string getTemplate(void) const;
+        bool        getAutoindex(void) const;
         
         //////  setter  //////
 
