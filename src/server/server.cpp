@@ -9,8 +9,8 @@ int handleConnection(s_request *request) {
 	std::string header;
 	if (request->headers.size() == 0)
 		header = readHeader(request->connection);
-	if (header.empty())
-		sendError(505, *request); // TODO : error code
+	if (request->headers.empty() && header.empty())
+		return sendError(500, *request), 1; // TODO : error code
 	return (parseRequest(header, request));
 }
 
