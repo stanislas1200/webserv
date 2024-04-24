@@ -7,9 +7,9 @@ int handleGetRequest(int connection, s_request request) {
 	std::string path = request.loc.getRedirection();
 
 	// CGI
+	request.path = path;
 	if (path.substr(0, request.loc.getPathToCgi().size()) == request.loc.getPathToCgi() && request.loc.getExCgi().find(path.substr(path.find_last_of('.') + 1)) != std::string::npos) {
 		std::cout << C"[" GREEN "handleGetRequest" C "] " << YELLOW "CGI" C << std::endl;
-		request.path = path;
 		return requestCgi(request), 1;
 	}
 

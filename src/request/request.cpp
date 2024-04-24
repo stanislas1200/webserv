@@ -132,13 +132,35 @@ std::string useTemplate(std::string content, s_request request) {
 	return content;
 }
 
+std::string getContentType(s_request request)
+{
+	std::string ret = "Content-type:";
+	size_t pos = request.path.find_last_of(".");
+	if (pos == std::string::npos)
+	{
+		ret += "application/octet-stream\r\n\r\n"; // Default // TODO : check what to send default
+		return ret;
+	}
+	std::string ext = request.path.substr(pos);
+	if (ext == ".html")
+		ret += "text/html";
+	else if (ext == ".css")
+		ret += "text/css";
+	else if (ext == ".js")
+		ret += "text/javascript";
+	else
+		ret += "text"; // Default
+	ret += "\r\n\r\n";
+	return ret;
+}
+
 void	sendFile(int connection, std::ifstream *file, int status, s_request request) {
 
 	std::stringstream ss;
 	ss << file->rdbuf();
 
 	std::string fileContent = ss.str();
-	std::string response = "Content-type:text/html\r\n\r\n" + useTemplate(fileContent, request);
+	std::string response = getContentType(request) + useTemplate(fileContent, request); // TODO : content type
 	response = responseHeader(status) + response;
 	// if (response.empty())
 	// 	response = "HTTP/1.1 " + status + "Content-Type: text/html\r\n\r\n" + fileContent; // TODO : map status code and message

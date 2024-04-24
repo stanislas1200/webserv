@@ -93,7 +93,14 @@ server {
     }
     location / {
         methodes GET POST
-        redirection src/pages/index.html
-        template src/pages/template.html
+        redirection src/pages/index2.html
+    }
+    location /form-styles.css {
+        methodes GET POST
+        redirection src/pages/form-styles.css
+    }
+    location /script.js {
+        methodes GET POST
+        redirection src/pages/js/script.js
     }
 }

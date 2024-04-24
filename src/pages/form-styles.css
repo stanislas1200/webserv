@@ -1,0 +1,129 @@
+.form-container-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.form-container {
+    position: relative;
+    z-index: 1;
+    background-color: #202020e0;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    margin-bottom: 20px;
+    margin-right: 20px;
+    margin-left: 20px;
+    max-width: calc(33.33% - 40px);
+    width: calc(33.33% - 40px);
+    box-sizing: border-box;
+}
+
+.form-container h1 {
+    margin-bottom: 10px;
+    color: #ffffff;
+}
+
+.form-container input[type="text"],
+.form-container input[type="email"],
+.form-container input[type="submit"] {
+    margin: 5px;
+    padding: 8px;
+    width: calc(100% - 20px);
+    box-sizing: border-box;
+    border: 1px solid #202020;
+    border-radius: 5px;
+    outline: none;
+}
+
+.file-input {
+    margin-bottom: 8px;
+}
+
+.form-container label {
+    color: #ffffff;
+    margin: 5px;
+    width: calc(100% - 20px);
+    box-sizing: border-box;
+    outline: none;
+}
+
+#delet-file,
+#download-file {
+    font-weight: bold;
+}
+
+#file1,
+#file2,
+#file3 {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 14px;
+    color: #ffffff;
+}
+
+#progress {
+    color: #ffffff;
+}
+
+.form-container a {
+    display: block;
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin: 10px auto;
+    background-color: #16031f;
+    color: #ffffff;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.form-container a:hover {
+    background-color: #202020;
+}
+
+.form-container input[type="submit"] {
+    background-color: #16031f;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.form-container input[type="submit"]:hover {
+    background-color: #202020;
+}
+
+body, html {
+    font-family: "Times New Roman", Times, serif;;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background-color: #202020;
+}
+
+.background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    perspective: 1000px;
+    z-index: 0;
+}
+
+.container {
+    width: 100vw;
+    height: 100vh;
+    perspective: 1000px;
+    position: fixed;
+}
+
+.cube {
+    width: 20px;
+    height: 20px;
+    position: fixed;
+    background-color: #000000;
+    transform-style: preserve-3d;
+    transition: transform 0.2s ease-out;
+}
