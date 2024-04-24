@@ -16,6 +16,7 @@
 # include <vector>
 # include <iostream>
 # include <fcntl.h>
+# include <signal.h>
 # include "ServConfig.hpp"
 # include "Location.hpp"
 

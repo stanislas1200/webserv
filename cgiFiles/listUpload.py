@@ -1,5 +1,5 @@
-#!/bin/python3
 #!/Library/Developer/CommandLineTools/usr/bin/python3
+#!/bin/python3
 
 import os
 print("Content-Type: text/plain;charset=utf-8\r\n\r\n") # specifies the type of content to be displayed
