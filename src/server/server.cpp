@@ -1,4 +1,6 @@
 #include "../../include/Webserv.hpp"
+void sendError(int status, s_request req);
+
 
 // inet_ntoa
 #include <arpa/inet.h>
@@ -7,6 +9,8 @@ int handleConnection(s_request *request) {
 	std::string header;
 	if (request->headers.size() == 0)
 		header = readHeader(request->connection);
+	if (header.empty())
+		sendError(505, *request); // TODO : error code
 	return (parseRequest(header, request));
 }
 

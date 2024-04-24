@@ -2,15 +2,19 @@
 
 std::string readHeader(int connection) {
 	std::string header;
-	char buffer[1024];
-	int bytes = 0;
-
-	while ((bytes = recv(connection, buffer, 1, 0)) > 0) {
+	char buffer[2];
+	size_t bytes = 0;
+ // TODO : max size for header
+	while ((bytes = recv(connection, buffer, 1, 0)) > 0 && bytes != std::string::npos) {
 		buffer[bytes] = '\0';
 		header += buffer;
 		if (header.find("\r\n\r\n") != std::string::npos)
 			break;
 	}
+
+	if (bytes == (size_t)-1 || bytes == std::string::npos)
+		header.clear();
+
 	return header;
 }
 

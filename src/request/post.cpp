@@ -127,11 +127,13 @@ int readFormData(s_request *request) {
 		request->dataLen += bytes;
 		formDataPart->data.insert(formDataPart->data.end(), buffer, buffer + bytes);
 
-		return chunckData(request, formDataPart);
+		// return chunckData(request, formDataPart);
 	}
+
+	if (bytes == (size_t)-1 || bytes == std::string::npos)
+		return -1;
 	
 	return chunckData(request, formDataPart);
-	return 1;
 }
 
 std::string handleFormData(int connection, s_request *request, int *end) {
@@ -146,6 +148,8 @@ std::string handleFormData(int connection, s_request *request, int *end) {
 	}
 	// size_t pos = 0;
 	*end = readFormData(request);
+	if (*end == -1)
+		return "500";
 	if (*end == 0)
 		return "Chunked";
 	return parseFormData(request);
@@ -201,6 +205,8 @@ std::string handleUrlEncoded(int connection, s_request request) {
 		data += buffer;
 		length -= bytes;
 	}
+	if (bytes == (size_t)-1 || bytes == std::string::npos)
+		return "500";
 
 	// parse data
 	std::map<std::string, std::string> parsedData;
@@ -257,6 +263,10 @@ int handlePostRequest(int connection, s_request *request) {
 			request->body += buffer;
 			length -= bytes;
 		}
+
+		if (bytes == (size_t)-1 || bytes == std::string::npos)
+			return 1;
+			
 		request->path = path;
 		return requestCgi(*request), 1;
 	}
