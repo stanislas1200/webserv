@@ -1,13 +1,21 @@
 <body>
 	<div class="container">
 		<div class="box">
-			<form method='POST' enctype='application/x-www-form-urlencoded' accept-charset='utf-8'>
+			<form method='POST' enctype='application/x-www-form-urlencoded' accept-charset='utf-8' onsubmit="saveInputs()">
 				<h1>Send a message</h1>
 				<input id="email" name="email" type="email" />
 				<input id="message" name="message" type="text" />
 				<input type="submit">
 			</form>
 		</div>
+		<script>
+			window.onload = function() {
+				document.getElementById('email').value = localStorage.getItem('savedEmail') || '';
+			};
+			function saveInputs() {
+				localStorage.setItem('savedEmail', document.getElementById('email').value);
+			}
+		</script>
 		<div class="box">
 			<form id="myForm" , enctype="application/x-www-form-urlencoded">
 				<h1>Send a Query String</h1>
@@ -50,7 +58,7 @@
 			</form>
 		</div>
 	</div>
-
+		
 	<script>
 		var defaultUrl = window.location.href; // Default upload URL
 
@@ -122,6 +130,7 @@
 
 		// Upload file
 		document.getElementById('upload-form').addEventListener('submit', function (event) {
+			document.getElementById("progress").innerText = "0%";
 			event.preventDefault(); // Prevent the default form submission
 
 			var xhr = new XMLHttpRequest();
@@ -146,6 +155,7 @@
 				document.getElementById('progress').innerText = "Failed!";
 			}
 			xhr.send(formData);
+			document.getElementById("upload-form").reset();
 		});
 		
 		// Download file

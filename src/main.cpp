@@ -13,8 +13,8 @@ void getConfig(std::vector<ServConfig> *configClass, std::string file) {
     try {
         while (confFile.eof() != 1) {
 			ServConfig  newElement;
-            newElement.initializeConfig(&confFile);
-            configClass->push_back(newElement);
+            if (newElement.initializeConfig(&confFile))
+            	configClass->push_back(newElement);
 		}
 	}
     catch (std::exception& e) {
@@ -22,6 +22,26 @@ void getConfig(std::vector<ServConfig> *configClass, std::string file) {
 		exit(1);
 	}
     confFile.close();
+}
+
+void	checkConfig(std::vector<ServConfig> configClass) {
+	std::vector<int>	port;
+
+	try {
+		for (std::vector<ServConfig>::iterator it = configClass.begin(); it != configClass.end(); it++) {
+			std::vector<int>::iterator its = std::find(port.begin(), port.end(), it->getPort());
+			if (its != port.end())
+				ServConfig::wrongFormatError("Multiple server", "have same port");
+			port.push_back(it->getPort());
+		}
+	}
+	catch (std::exception& e) {
+		std::cout << e.what() << std::endl;
+		exit(1);
+	}
+	for (std::vector<ServConfig>::iterator it = configClass.begin(); it != configClass.end(); it++) {
+		std::cout << *it << std::endl;
+	}
 }
 
 int main(int ac, char **av) {
@@ -35,9 +55,7 @@ int main(int ac, char **av) {
 	else {
 		getConfig(&configClass, av[1]);
 	}
-	for (std::vector<ServConfig>::iterator it = configClass.begin(); it != configClass.end(); it++) {
-		std::cout << *it << std::endl;
-	}
+	checkConfig(configClass);
 	std::cout << "Number of server: " << configClass.size() << std::endl;
 	acceptConnection(configClass);
 }
