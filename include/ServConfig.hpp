@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServConfig.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sgodin <sgodin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:33:10 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/24 15:06:28 by sgodin           ###   ########.fr       */
+/*   Updated: 2024/04/25 20:16:24 by gduchesn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ class ServConfig {
         std::vector<Location>       _location;
         std::map<int, std::string>  _errorpages;
         std::string                 _templatePath; // nop
-        bool                        _autoindex;
+        int                         _autoindex;
         int                         _timeoutCgi;
 	    int                         _fd;
         
@@ -64,7 +64,7 @@ class ServConfig {
         std::string getTemplate(void) const;
         std::vector<Location>   getLocation(void) const;
         std::map<int, std::string> getErrorPages(void) const;
-        bool        getAutoindex(void) const;
+        int         getAutoindex(void) const;
         int         getTimeoutCgi(void) const;        
         int         getFd(void) const;
         void         setFd(int fd);
@@ -120,7 +120,7 @@ class Location {
         std::string _pathToCgi; //nop
         std::string _exCgi; // nop
         std::string _templatePath; // nop
-        bool        _autoindex; //nop
+        int         _autoindex; //nop
         std::vector<std::string>    fillVectorInitialisation(void);
     public:
         Location(void);
@@ -140,12 +140,13 @@ class Location {
         std::string getPathToCgi(void) const;
         std::string getExCgi(void) const;
         std::string getTemplate(void) const;
-        bool        getAutoindex(void) const;
+        int         getAutoindex(void) const;
         
         //////  setter  //////
 
         void    setMethode(std::string str);
         void    setTemplate(std::string str);
+        void    setAutoindex(int a);
 
         class Error : public std::exception {
 			public :

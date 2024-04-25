@@ -99,6 +99,7 @@ server {
 
 
 server {
+    autoindex on
     errorpages 505 src/pages/errorpages/error_505.html
 	listen 8082
     client_size 43

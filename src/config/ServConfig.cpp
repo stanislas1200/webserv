@@ -6,14 +6,14 @@
 /*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:43:18 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/25 13:43:14 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/04/25 20:17:04 by gduchesn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/Webserv.hpp"
 #include <cstring> // src/config/ServConfig.cpp:298:15: error: ‘strlen’ is not a member of ‘std’; did you mean ‘strlen’?
 
-ServConfig::ServConfig() : _methode(""), _port(-1), _maxClient(-1), _autoindex(false), _timeoutCgi(-1) {}
+ServConfig::ServConfig() : _methode(""), _port(-1), _maxClient(-1), _autoindex(-1), _timeoutCgi(-1) {}
 
 ServConfig::~ServConfig() {}
 
@@ -120,9 +120,9 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifs
             if (tokens.size() != 2)
                 wrongFormatError("Autoindex", NOT_RIGHT);
             if (tokens[1] == "on")
-                _autoindex = true;
+                _autoindex = 1;
             else if (tokens[1] == "off")
-                _autoindex = false;
+                _autoindex = 0;
             break;
         case TIMEOUTCGI:
             if (tokens.size() != 2 || !isNbrNoOverflow(tokens[1], &result))
@@ -146,6 +146,8 @@ void    ServConfig::checkUpConfig(void) {
         wrongFormatError("location", MISSING);
     if (_errorpages.empty())
         wrongFormatError("error pages", MISSING);
+    if (_autoindex == -1)\
+        wrongFormatError("Autoindex", MISSING);
     if (_timeoutCgi == -1)
         wrongFormatError("Timeout cgi", MISSING);
     for (std::vector<Location>::iterator it = _location.begin(); it != _location.end(); it++) {
@@ -159,6 +161,8 @@ void    ServConfig::checkUpConfig(void) {
             it->setMethode(_methode);
         if (it->getTemplate().empty() && !_templatePath.empty())
             it->setTemplate(_templatePath);
+        if (it->getAutoindex() == -1)
+            it->setAutoindex(_autoindex);
     }
 }
 
@@ -263,7 +267,7 @@ std::string ServConfig::getTemplate(void) const {
     return (this->_templatePath);
 }
 
-bool ServConfig::getAutoindex(void) const {
+int ServConfig::getAutoindex(void) const {
     return (this->_autoindex);
 }
 
