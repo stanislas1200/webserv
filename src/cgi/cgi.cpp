@@ -110,7 +110,7 @@ std::vector<unsigned char>	runCgi(s_request& request)
 
 	close(fd[1]);
 
-	int timeout = 10;
+	int timeout = request.conf.getTimeoutCgi();
 	while (waitpid(pid, &childStatus, WNOHANG) == 0)
 	{
 		if (timeout <= 0)
