@@ -82,6 +82,7 @@ void serverRun(std::vector<ServConfig> servers, int max_fd, size_t fd_size) {
 						if (handleConnection(&it->second))
 						{
 							// std::cout << C"[" DV "serverRun" C "] " << MB "close chunck connection" C << std::endl;
+							shutdown(it->second.connection, SHUT_WR);
 							close(it->second.connection);
 							request_map.erase(it->second.connection);
 							fds.erase(fds.end() - request_map.size() - 1 + j);
