@@ -5,43 +5,53 @@ server {
 	methodes NONE
 	server_names littleCloud
 	client_size 42
+    autoindex on
+    timeoutCgi  20
 	template www/pages/template.html
 
 	location / {
+        root www/pages/
 		methodes GET POST DELETE
 		redirection		www/pages/index.html
 		cgi_path		cgiFiles/
 		cgi_extention	.cgi .py
 	}
 	location /about {
+        root www/pages/
 		methodes		GET
 		redirection		www/pages/about.html
 	}
     location /favicon.ico {
+        root www/pages/
         methodes GET
         redirection www/images/favicon.ico
     }
     location /arrow.png {
+        root www/pages/
         methodes GET
         redirection www/images/arrow.png
     }
 	location /listUpload {
+        root www/pages/
         methodes GET
 		redirection		cgiFiles/listUpload.py
 		cgi_path		cgiFiles/
 		cgi_extention	.py
 	}
     location /download {
+        root www/pages/
         methodes GET
         redirection cgiFiles/getUpload.py
         cgi_path   cgiFiles/
         cgi_extention .py
     }
 	location /styles.css {
+        root www/pages/
 		methodes GET
 		redirection www/css/styles.css
 	}
 	location /script.js {
+        root www/pages/
 		methodes GET
 		redirection www/js/script.js
 	}

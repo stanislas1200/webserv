@@ -116,9 +116,29 @@ std::vector<unsigned char>	runCgi(s_request& request)
 
 	close(fd[1]);
 
+
+	std::vector<unsigned char> data;
+    char buffer[4096];
+    ssize_t check;
+
 	int timeout = request.conf.getTimeoutCgi();
 	while (waitpid(pid, &childStatus, WNOHANG) == 0)
 	{
+
+		// Read from pipe in chunks
+		std::cout << "Reading from pipe" << std::endl;
+        while ((check = read(fd[0], buffer, sizeof(buffer))) > 0)
+            data.insert(data.end(), buffer, buffer + check);
+		std::cout << "Read " << check << " bytes" << std::endl;
+		std::cout << "Read " << data.size() << " bytes" << std::endl;
+		if (check == -1)
+		{
+			std::cerr << RED "CGI read failed" C << std::endl;
+			// Throw error
+			request.status = 502;
+			throw (tempThrow());
+		}
+
 		if (timeout <= 0)
 		{
 			kill(pid, SIGTERM);
@@ -141,9 +161,42 @@ std::vector<unsigned char>	runCgi(s_request& request)
 			throw (tempThrow());
 		}
 	}
-	outputString = getOutput(fd[0]);
+	// outputString = getOutput(fd[0]);
+	outputString = data;
 	close(fd[0]);
 	return (outputString);
+}
+
+void sendChunk(int sockfd, const std::vector<unsigned char>& data, size_t chunkSize)
+{
+	for (size_t i = 0; i < data.size(); i += chunkSize)
+	{
+		// Get the next chunk of data
+		std::vector<unsigned char> chunk(data.begin() + i, data.begin() + std::min(i + chunkSize, data.size()));
+
+		// Send the chunk
+		// int retries = 3;
+		// while (retries > 0)
+		// {
+			if (send(sockfd, &chunk[0], chunk.size(), 0) == -1)
+			{
+				error("Send:", "don't care", NULL);
+				return;
+				// retries--;
+				// if (retries == 0)
+				// {
+				// 	// Handle error
+				// 	error("Send:", "Failed to send data after 3 attempts", NULL);
+				// 	return;
+				// }
+				// // Sleep for a bit before retrying
+				// sleep(1);
+			}
+		// 	else
+		// 		break;
+		// }
+		usleep(1);
+	}
 }
 
 void requestCgi(s_request& request)
@@ -159,6 +212,7 @@ void requestCgi(s_request& request)
 	std::string header = responseHeader(200, request);
 	if (send(request.connection, header.c_str(), header.length(), 0) == -1)
 		return error("Send:", "don't care", NULL);
-	if (send(request.connection, response.data(), response.size(), 0) == -1)
-		error("Send:", "don't care", NULL);
+	sendChunk(request.connection, response, 4096);
+	// if (send(request.connection, response.data(), response.size(), 0) == -1)
+	// 	error("Send:", "don't care", NULL);
 }
