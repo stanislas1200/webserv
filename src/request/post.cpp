@@ -81,9 +81,12 @@ int chunckData(s_request *request, s_FormDataPart *formDataPart) {
 			formDataPart->header = head;
 			// BODY 
 			formDataPart->data.erase(bpos, formDataPart->data.end()); // next file data
-			if (formDataPart->data.size() < sizeof(crlf2))
+
+			if (formDataPart->data.size() > sizeof(crlf2))
 			{
 				std::vector<char>::iterator pos = std::search(formDataPart->data.begin(), formDataPart->data.end(), crlf2, crlf2 + 4);
+				if (pos == formDataPart->data.end())
+					return -1; // TODO : error code ? malformed data
 				formDataPart->data.erase(formDataPart->data.begin(), pos + 4);
 			}
 			
@@ -131,8 +134,11 @@ int readFormData(s_request *request) {
 		// return chunckData(request, formDataPart);
 	}
 
-	if (bytes == (size_t)-1 || bytes == std::string::npos)
-		return -1;
+	// if (bytes == (size_t)-1 || bytes == std::string::npos) // FIXME : resource temp unavailable (reduce buffer size fix it but not the best solution)
+	// {
+	// 	std::cout << RED << "Error read: " << strerror(errno) << C << std::endl;
+	// 	return -1;
+	// }
 	
 	return chunckData(request, formDataPart);
 }

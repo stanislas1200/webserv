@@ -17,6 +17,7 @@
 # include <iostream>
 # include <fcntl.h>
 # include <signal.h>
+# include <algorithm>
 # include "ServConfig.hpp"
 # include "Location.hpp"
 
