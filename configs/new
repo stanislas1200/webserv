@@ -1,0 +1,49 @@
+server {
+	errorpages 404 www/pages/errorpages/error_404.html
+	errorpages 503 www/pages/errorpages/error_503.html
+	listen 8080
+	methodes NONE
+	server_names littleCloud
+	client_size 42
+	template www/pages/template.html
+
+	location / {
+		methodes GET POST DELETE
+		redirection		www/pages/index.html
+		cgi_path		cgiFiles/
+		cgi_extention	.cgi .py
+	}
+	location /about {
+		methodes		GET
+		redirection		www/pages/about.html
+	}
+    location /favicon.ico {
+        methodes GET
+        redirection www/images/favicon.ico
+    }
+    location /arrow.png {
+        methodes GET
+        redirection www/images/arrow.png
+    }
+	location /listUpload {
+        methodes GET
+		redirection		cgiFiles/listUpload.py
+		cgi_path		cgiFiles/
+		cgi_extention	.py
+	}
+    location /download {
+        methodes GET
+        redirection cgiFiles/getUpload.py
+        cgi_path   cgiFiles/
+        cgi_extention .py
+    }
+	location /styles.css {
+		methodes GET
+		redirection www/css/styles.css
+	}
+	location /script.js {
+		methodes GET
+		redirection www/js/script.js
+	}
+
+}
