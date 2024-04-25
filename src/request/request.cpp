@@ -81,7 +81,7 @@ std::string responseHeader(int status)
 
 	std::stringstream s;
 	s << status;
-	std::string response = "HTTP/1.0 " + s.str() + " " + httpStatusCodes[status] + "\r\n"; // TODO : Content-type
+	std::string response = "HTTP/1.0 " + s.str() + " " + httpStatusCodes[status] + "\r\n";
 	return response;
 }
 
@@ -107,7 +107,8 @@ void sendError(int status, s_request req)
 	// check template
 	content = useTemplate(content, req);
 	std::string response = responseHeader(status) + content;
-	send(req.connection, response.c_str(), response.length(), 0);
+	if (send(req.connection, response.c_str(), response.length(), 0) == -1)
+		error("Send:", "don't care", NULL);
 }
 
 std::string useTemplate(std::string content, s_request request) {
@@ -158,22 +159,17 @@ std::string getContentType(s_request request)
 	return ret;
 }
 
-void	sendFile(int connection, std::ifstream *file, int status, s_request request) {
-
+void	sendFile(int connection, std::ifstream *file, s_request request) {
+	int status = 200;
 	std::stringstream ss;
 	ss << file->rdbuf();
 
 	std::string fileContent = ss.str();
-	std::string response = getContentType(request) + useTemplate(fileContent, request); // TODO : content type
+	std::string response = getContentType(request) + useTemplate(fileContent, request);
 	response = responseHeader(status) + response;
-	// if (response.empty())
-	// 	response = "HTTP/1.1 " + status + "Content-Type: text/html\r\n\r\n" + fileContent; // TODO : map status code and message
-	// Send status line
-	// send(connection, statusLine.c_str(), statusLine.length(), 0);
-    // send(connection, "Content-Type: text/html\r\n\r\n", strlen("Content-Type: text/html\r\n\r\n"), 0);
 	file->close();
-	send(connection, response.c_str(), response.size(), 0);
-
+	if (send(connection, response.c_str(), response.size(), 0) == -1)
+		error("Send:", "don't care", NULL);
 }
 
 void printRequest(s_request request) {
@@ -260,7 +256,7 @@ int parseRequest(std::string header, s_request *request) {
 			request->loc = loc[i];
 			if (request->method == "GET" && loc[i].getMethode().find("GET") != std::string::npos)
 				return handleGetRequest(connection, *request);
-			else if (request->method == "POST" && loc[i].getMethode().find("POST") != std::string::npos) // TODO : cgi ? cgi outside methode ?
+			else if (request->method == "POST" && loc[i].getMethode().find("POST") != std::string::npos)
 				return handlePostRequest(connection, request); // TODO : content lenght
 			else if (request->method == "DELETE" && loc[i].getMethode().find("DELETE") != std::string::npos) // TODO : cgi
 			{

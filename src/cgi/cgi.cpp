@@ -113,6 +113,7 @@ std::vector<unsigned char>	runCgi(s_request& request)
 		if (timeout <= 0)
 		{
 			kill(pid, SIGTERM);
+			error("CGI:", "timeout", NULL);
 			// TODO : return error
 		}
 		sleep(1);
@@ -144,6 +145,8 @@ void requestCgi(s_request& request)
 		return sendError(500, request);
 	}
 	std::string header = responseHeader(200);
-	send(request.connection, header.c_str(), header.length(), 0);
-	send(request.connection, response.data(), response.size(), 0);
+	if (send(request.connection, header.c_str(), header.length(), 0) == -1)
+		return error("Send:", "don't care", NULL);
+	if (send(request.connection, response.data(), response.size(), 0) == -1)
+		error("Send:", "don't care", NULL);
 }

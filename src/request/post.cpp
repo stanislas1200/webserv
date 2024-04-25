@@ -107,7 +107,7 @@ int chunckData(s_request *request, s_FormDataPart *formDataPart) {
 
 	if (request->dataLen < std::strtoul (request->headers["Content-Length"].c_str(), NULL, 10))
 		return 0; // chunk
-	return 1; // TODO : idk but check this function
+	return 1;
 }
 
 int readFormData(s_request *request) {
@@ -124,7 +124,7 @@ int readFormData(s_request *request) {
 		std::cout << YELLOW << request->boundary << C << std::endl;
 	}
 
-	if ((bytes = recv(request->connection, buffer, bufferSize, 0)) > 0 && bytes != std::string::npos) // TODO : check error
+	if ((bytes = recv(request->connection, buffer, bufferSize, 0)) > 0 && bytes != std::string::npos) 
 	{
 		std::cout << "byte: " << bytes << std::endl;
 		buffer[bytes] = '\0';
@@ -251,7 +251,8 @@ int handlePostRequest(int connection, s_request *request) {
 	if (end)
 	{
 		std::string response = responseHeader(status);
-		send(connection, response.c_str(), response.length(), 0);
+		if (send(connection, response.c_str(), response.length(), 0) == -1)
+			error("Send:", "don't care", NULL);
 	}
 	
 	std::cout << C"[" GREEN "handlePostRequest" C "] " << YELLOW "---END---" C << std::endl;

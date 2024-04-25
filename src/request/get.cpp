@@ -20,6 +20,6 @@ int handleGetRequest(int connection, s_request request) {
 		return sendError(404, request), 1;
 	}
 	
-	sendFile(connection, &file, 200, request); // TODO : remove status
+	sendFile(connection, &file, request);
 	return 1;
 }

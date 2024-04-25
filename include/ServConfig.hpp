@@ -6,7 +6,7 @@
 /*   By: sgodin <sgodin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:33:10 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/24 15:06:28 by sgodin           ###   ########.fr       */
+/*   Updated: 2024/04/25 13:24:39 by sgodin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,6 +192,6 @@ struct s_request;
 int parseRequest(std::string header, s_request *request);
 void error(const char *type, const char *msg, const char *bold);
 void acceptConnection(std::vector<ServConfig> config);
-void	sendFile(int connection, std::ifstream *file, int status, s_request request);
+void	sendFile(int connection, std::ifstream *file, s_request request);
 void printRequest(s_request request);
 std::string readHeader(int connection);
