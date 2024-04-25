@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServConfig.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sgodin <sgodin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:43:18 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/24 15:06:36 by sgodin           ###   ########.fr       */
+/*   Updated: 2024/04/25 13:43:14 by gduchesn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,7 +149,6 @@ void    ServConfig::checkUpConfig(void) {
     if (_timeoutCgi == -1)
         wrongFormatError("Timeout cgi", MISSING);
     for (std::vector<Location>::iterator it = _location.begin(); it != _location.end(); it++) {
-        std::cout << "yo" << std::endl;
         if (it->getPath().empty())
             wrongFormatError("Location: path", MISSING);
         if (it->getRedirection().empty())

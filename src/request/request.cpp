@@ -245,10 +245,10 @@ int parseRequest(std::string header, s_request *request) {
 				return sendError(505, *request), 1;
 		}
 	}
-	if (request->path[request->path.size() - 1] == "/") {
-		if (request->conf.getAutoindex())
-			return (autoindex(), 1);
-	}
+	// if (request->path[request->path.size() - 1] == "/") {
+	// 	if (request->conf.getAutoindex())
+	// 		return (autoindex(), 1);
+	// }
 	sendError(404, *request);
 	return 1;
 }
