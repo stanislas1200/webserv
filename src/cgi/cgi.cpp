@@ -50,10 +50,9 @@ std::vector<unsigned char>	getOutput(int fd)
 	size_t bufferSize = 1024;
 	char buffer[bufferSize + 1];
 	int			check;
-std::cout << "ok" << std::endl;
+
 	while ((check = read(fd, &buffer, bufferSize)))
 	{
-		std::cout << "HEY" <<  check << std::endl;
 		if (check == -1)
 		{
 			std::cerr << RED "CGI read failed" C << std::endl;
@@ -73,6 +72,7 @@ std::vector<unsigned char>	runCgi(s_request& request)
 	{
 		std::cerr << RED "CGI pipe failed" C << std::endl;
 		// Throw error
+		request.status = 500;
 		throw (tempThrow());
 	}
 	int pid = fork();
@@ -82,6 +82,7 @@ std::vector<unsigned char>	runCgi(s_request& request)
 		close(fd[1]);
 		std::cerr << RED "CGI fork failed" C << std::endl;
 		// Throw error
+		request.status = 500;
 		throw (tempThrow());
 	}
 
@@ -95,7 +96,7 @@ std::vector<unsigned char>	runCgi(s_request& request)
 		close(fd[1]);
 		std::string fullPath = request.path;
 
-		char *argv[] = {const_cast<char*>(fullPath.c_str()), NULL};
+		char *argv[] = {const_cast<char*>(fullPath.c_str()), NULL}; // TODO : file requested as first arg ?
 		if (execve(fullPath.c_str(), argv, env.data()) == -1)
 		{
 			std::cerr << RED "CGI execve failed" C << std::endl;std::cerr << RED "CGI errno: " MB << strerror(errno) << C << std::endl;
@@ -119,8 +120,8 @@ std::vector<unsigned char>	runCgi(s_request& request)
 		{
 			kill(pid, SIGTERM);
 			error("CGI:", "timeout", NULL);
-			// TODO : return error
-			// throw (tempThrow());
+			request.status = 504;
+			throw (tempThrow());
 		}
 		sleep(1);
 		timeout--;
@@ -133,6 +134,7 @@ std::vector<unsigned char>	runCgi(s_request& request)
 			close(fd[0]);
 			std::cerr << RED "CGI child return value != 0" C << std::endl;
 			// Throw error
+			request.status = 502;
 			throw (tempThrow());
 		}
 	}
@@ -145,12 +147,13 @@ void requestCgi(s_request& request)
 {
 	std::vector<unsigned char> response;
 	try {
+		request.status = 500;
 		response = runCgi(request);
 	} catch (const std::exception& e) {
 		std::cerr << RED "Error: " YELLOW << e.what() << C << std::endl;
-		return sendError(500, request);
+		return sendError(request.status, request);
 	}
-	std::string header = responseHeader(200);
+	std::string header = responseHeader(200, request);
 	if (send(request.connection, header.c_str(), header.length(), 0) == -1)
 		return error("Send:", "don't care", NULL);
 	if (send(request.connection, response.data(), response.size(), 0) == -1)

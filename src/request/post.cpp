@@ -4,6 +4,12 @@
 std::vector<unsigned char>	runCgi(s_request& request);
 void requestCgi(s_request& request);
 
+bool is_number(const std::string& s)
+{
+	std::string::const_iterator it = s.begin();
+	while (it != s.end() && std::isdigit(*it)) ++it;
+	return !s.empty() && it == s.end();
+}
 
 void printFile(s_request *request, bool body) {
 	std::cout << DV "Header:\n" MB << request->formData[0].header << std::endl;
@@ -53,6 +59,11 @@ int parseFormData(s_request *request) {
 }
 
 int chunckData(s_request *request, s_FormDataPart *formDataPart) {
+	size_t length = std::strtoul (request->headers["Content-Length"].c_str(), NULL, 10);
+
+	if (request->dataLen > request->maxBody)
+		return -3;
+		
 	if (formDataPart->data.size() > request->boundary.size())
 	{
 		std::vector<char>::iterator bpos;
@@ -86,13 +97,12 @@ int chunckData(s_request *request, s_FormDataPart *formDataPart) {
 			{
 				std::vector<char>::iterator pos = std::search(formDataPart->data.begin(), formDataPart->data.end(), crlf2, crlf2 + 4);
 				if (pos == formDataPart->data.end())
-					return -1; // TODO : error code ? malformed data
+					return -2;
 				formDataPart->data.erase(formDataPart->data.begin(), pos + 4);
 			}
 			
 			formDataPart->full = true;
-			std::cout << request->dataLen << " " << request->headers["Content-Length"] << std::endl;
-			if (request->dataLen < std::strtoul (request->headers["Content-Length"].c_str(), NULL, 10) || boundaryCount > 1) // TODO : split file // TODO : var for content length + check valid when read header
+			if (request->dataLen < length || boundaryCount > 1)
 			{
 				parseFormData(request);
 				std::cout << RED "Unfinished upload" C<< std::endl;
@@ -105,7 +115,7 @@ int chunckData(s_request *request, s_FormDataPart *formDataPart) {
 			std::cout << RED << "[FORMDATA-READ] NOT FIND BOUNDARY" << std::endl;
 	}
 
-	if (request->dataLen < std::strtoul (request->headers["Content-Length"].c_str(), NULL, 10))
+	if (request->dataLen < length)
 		return 0; // chunk
 	return 1;
 }
@@ -119,9 +129,10 @@ int readFormData(s_request *request) {
 
 	if (request->boundary.empty())
 	{
-		pos = request->headers["Content-Type"].find("boundary=") + 9; // TODO check it exists		
+		pos = request->headers["Content-Type"].find("boundary=") + 9;
+		if (pos == std::string::npos)
+			return -2;	
 		request->boundary = "--" + request->headers["Content-Type"].substr(pos, request->headers["Content-Type"].size() - pos - 1);
-		std::cout << YELLOW << request->boundary << C << std::endl;
 	}
 
 	if ((bytes = recv(request->connection, buffer, bufferSize, 0)) > 0 && bytes != std::string::npos) 
@@ -157,6 +168,10 @@ int handleFormData(int connection, s_request *request, int *end) {
 	*end = readFormData(request);
 	if (*end == -1)
 		return 500;
+	if (*end == -2)
+		return 400;
+	if (*end == -3)
+		return 413;
 	if (*end == 0)
 		return 200;
 	return parseFormData(request);
@@ -176,6 +191,9 @@ int handleUrlEncoded(int connection, s_request request) {
 		buffer[bytes] = '\0';
 		data += buffer;
 		length -= bytes;
+		request.dataLen += bytes;
+		if (request.dataLen > request.maxBody)
+			return 413;
 	}
 	if (bytes == (size_t)-1 || bytes == std::string::npos)
 		return 500;
@@ -216,6 +234,17 @@ int handleUrlEncoded(int connection, s_request request) {
 
 int handlePostRequest(int connection, s_request *request) {
 	std::cout << C"[" GREEN "handlePostRequest" C "] " << YELLOW "---START---" C << std::endl;
+	if (request->headers["Content-Length"].empty())
+	{
+		sendError(411, *request);
+		return 1;
+	}
+	else if (is_number(request->headers["Content-Length"]))
+	{
+		sendError(400, *request);
+		return 1;
+	}
+
 	int status = 505;
 	int end = 1;
 
@@ -232,6 +261,10 @@ int handlePostRequest(int connection, s_request *request) {
 			buffer[bytes] = '\0';
 			request->body += buffer;
 			length -= bytes;
+			request->dataLen += bytes;
+
+			if (request->dataLen > request->maxBody)
+				return sendError(413, *request), 1;
 		}
 
 		if (bytes == (size_t)-1 || bytes == std::string::npos)
@@ -250,7 +283,7 @@ int handlePostRequest(int connection, s_request *request) {
 	std::cout << DV << "POST request end" << end << std::endl;
 	if (end)
 	{
-		std::string response = responseHeader(status);
+		std::string response = responseHeader(status, *request);
 		if (send(connection, response.c_str(), response.length(), 0) == -1)
 			error("Send:", "don't care", NULL);
 	}

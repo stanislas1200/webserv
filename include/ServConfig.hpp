@@ -6,7 +6,7 @@
 /*   By: sgodin <sgodin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:33:10 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/25 13:24:39 by sgodin           ###   ########.fr       */
+/*   Updated: 2024/04/25 17:03:51 by sgodin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -183,6 +183,8 @@ typedef struct s_request {
 	int connection;
 	ServConfig conf;
 	Location loc;
+    size_t maxBody;
+    int status;
 } t_request;
 
 void error(const char *type, const char *msg, const char *bold);
@@ -194,4 +196,4 @@ void error(const char *type, const char *msg, const char *bold);
 void acceptConnection(std::vector<ServConfig> config);
 void	sendFile(int connection, std::ifstream *file, s_request request);
 void printRequest(s_request request);
-std::string readHeader(int connection);
+std::string readHeader(int connection, int *status);
