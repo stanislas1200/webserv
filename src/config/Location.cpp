@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sgodin <sgodin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 15:17:47 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/17 16:51:26 by sgodin           ###   ########.fr       */
+/*   Updated: 2024/04/25 20:16:02 by gduchesn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/Location.hpp"
 
-Location::Location() : _autoindex(false) {}
+Location::Location() : _autoindex(-1) {}
 
 Location::Location(const Location &src) {
     _path = src._path;
@@ -103,9 +103,9 @@ void Location::init(std::vector<std::string> tokens, std::ifstream *confFile) {
                 if (tokens.size() != 2)
                     ServConfig::wrongFormatError("Location: Autoindex", NOT_RIGHT);
                 if (tokens[1] == "on")
-                    _autoindex = true;
+                    _autoindex = 1;
                 else if (tokens[1] == "off")
-                    _autoindex = false;
+                    _autoindex = 0;
                 break;
             default:
                     if (tokens[0] == "}")
@@ -146,7 +146,7 @@ std::string Location::getTemplate(void) const {
     return (this->_templatePath);
 }
 
-bool Location::getAutoindex(void) const {
+int Location::getAutoindex(void) const {
     return (this->_autoindex);
 }
 
@@ -158,6 +158,10 @@ void    Location::setMethode(std::string str) {
 
 void    Location::setTemplate(std::string str) {
     _templatePath = str;
+}
+
+void    Location::setAutoindex(int a) {
+    _autoindex = a;
 }
 
 std::ostream& operator<<(std::ostream& os, const Location& obj) {
