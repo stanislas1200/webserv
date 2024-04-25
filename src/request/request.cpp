@@ -93,7 +93,8 @@ void sendError(int status, s_request req)
 	std::string content = "<!DOCTYPE html> <html>  <h1 style=\"text-align:center\">Error " + s.str() + "</h1> </html>";
 	if (!req.conf.pathToErrorPage(status).empty())
 	{
-		std::ifstream file(req.conf.pathToErrorPage(status).c_str());
+		req.path = req.conf.pathToErrorPage(status);
+		std::ifstream file(req.path.c_str());
 		if (file.is_open())
 		{
 			// read error page
@@ -106,7 +107,7 @@ void sendError(int status, s_request req)
 	}
 	// check template
 	content = useTemplate(content, req);
-	std::string response = responseHeader(status) + content;
+	std::string response = responseHeader(status) + "text\r\n\r\n" + content;
 	if (send(req.connection, response.c_str(), response.length(), 0) == -1)
 		error("Send:", "don't care", NULL);
 }
@@ -118,7 +119,7 @@ std::string useTemplate(std::string content, s_request request) {
 	std::string templatePath = request.conf.getTemplate();
 	if (!request.loc.getTemplate().empty())
 		templatePath = request.loc.getTemplate();
-	if (!templatePath.empty() && stringEnd(templatePath, ".html"))
+	if (!templatePath.empty() && stringEnd(path, ".html"))
 	{
 		std::ifstream templat(templatePath.c_str());
 		if (templat.is_open())

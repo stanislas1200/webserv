@@ -14,6 +14,9 @@ std::vector<char *>	mapConvert(std::map<std::string, std::string>& headers, s_re
 
 	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
 	{
+		if (it->second.length() >= 2 && (it->second[it->second.length() - 1] == '\r' || it->second[it->second.length() - 1] == '\n'))
+			it->second = it->second.substr(0, it->second.length() - 2);
+
 		if (it->first == "Accept")
 			env.push_back(cstr("HTTP_ACCEPT=" + it->second.substr(1)));
 		else if (it->first == "Accept-Encoding")
@@ -27,7 +30,7 @@ std::vector<char *>	mapConvert(std::map<std::string, std::string>& headers, s_re
 		else if (it->first == "Content-Type")
 			env.push_back(cstr("CONTENT_TYPE=" + it->second.substr(1)));
 		else if (it->first == "Host")
-			env.push_back(cstr("HTTP_HOST=" + it->second.substr(1 , it->second.length() - 2))); // TODO : check -2 (\n)
+			env.push_back(cstr("HTTP_HOST=" + it->second.substr(1 , it->second.length())));
 		else if (it->first == "User-Agent")
 			env.push_back(cstr("HTTP_USER_AGENT=" + it->second.substr(1)));
 	}
@@ -44,18 +47,20 @@ std::vector<char *>	mapConvert(std::map<std::string, std::string>& headers, s_re
 std::vector<unsigned char>	getOutput(int fd)
 {
     std::vector<unsigned char> data;
-    unsigned char buffer;
+	size_t bufferSize = 1024;
+	char buffer[bufferSize + 1];
 	int			check;
-
-	while ((check = read(fd, &buffer, 1))) // TODO : check if read bigger is faster
+std::cout << "ok" << std::endl;
+	while ((check = read(fd, &buffer, bufferSize)))
 	{
+		std::cout << "HEY" <<  check << std::endl;
 		if (check == -1)
 		{
 			std::cerr << RED "CGI read failed" C << std::endl;
 			// Throw error
 			throw (tempThrow());
 		}
-		data.push_back(buffer);
+		data.insert(data.end(), buffer, buffer + check);
 	}
 	return (data);
 }
@@ -107,7 +112,7 @@ std::vector<unsigned char>	runCgi(s_request& request)
 
 	close(fd[1]);
 
-	int timeout = 10;
+	int timeout = 5;
 	while (waitpid(pid, &childStatus, WNOHANG) == 0)
 	{
 		if (timeout <= 0)
@@ -115,6 +120,7 @@ std::vector<unsigned char>	runCgi(s_request& request)
 			kill(pid, SIGTERM);
 			error("CGI:", "timeout", NULL);
 			// TODO : return error
+			// throw (tempThrow());
 		}
 		sleep(1);
 		timeout--;

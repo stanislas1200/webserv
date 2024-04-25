@@ -61,6 +61,10 @@ server {
         cgi_path   cgiFiles/
         cgi_extention .py
     }
+    location /arrow.png {
+        methodes GET
+        redirection src/pages/arrow.png
+    }
 }
 
 
