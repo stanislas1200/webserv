@@ -6,7 +6,7 @@
 /*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 15:17:47 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/25 20:16:02 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/04/25 23:01:49 by gduchesn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,6 +154,10 @@ int Location::getAutoindex(void) const {
 
 void    Location::setMethode(std::string str) {
     _methode = str;
+}
+
+void    Location::setRedirection(std::string str) {
+    _redirection = str;
 }
 
 void    Location::setTemplate(std::string str) {

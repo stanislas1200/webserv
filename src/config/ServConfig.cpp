@@ -6,7 +6,7 @@
 /*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:43:18 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/25 20:17:04 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/04/25 23:02:57 by gduchesn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,6 +157,7 @@ void    ServConfig::checkUpConfig(void) {
             wrongFormatError("Location: redirection", MISSING);
         if (it->getRoot().empty())
             wrongFormatError("Location: root", MISSING);
+        it->setRedirection(it->getRoot() + it->getRedirection());
         if (it->getMethode().empty())
             it->setMethode(_methode);
         if (it->getTemplate().empty() && !_templatePath.empty())

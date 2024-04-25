@@ -19,8 +19,8 @@ server {
     }
     location / {
         methodes GET POST DELETE
-        root ./
-        redirection src/pages/index.html
+        root src/pages/
+        redirection index.html
         cgi_path   cgiFiles/
         cgi_extention  .cgi .py sdfdfs
         template src/pages/template.html
@@ -65,6 +65,16 @@ server {
         root ./
         methodes GET
         redirection src/pages/favicon.ico
+    }
+    location /errorpages/ {
+        root src/pages/
+        methodes nothing
+        redirection errorpages/
+    }
+    location /errorpages/error_503.html {
+        root src/pages/errorpages/
+        methodes GET
+        redirection error_503.html
     }
     location /download {
         root ./

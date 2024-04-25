@@ -6,7 +6,7 @@
 /*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:33:10 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/25 20:16:24 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/04/25 23:02:02 by gduchesn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,6 +145,7 @@ class Location {
         //////  setter  //////
 
         void    setMethode(std::string str);
+        void    setRedirection(std::string str);
         void    setTemplate(std::string str);
         void    setAutoindex(int a);
 
