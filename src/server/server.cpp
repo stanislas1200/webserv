@@ -1,12 +1,17 @@
 #include "../../include/Webserv.hpp"
+void sendError(int status, s_request req);
+
 
 // inet_ntoa
 #include <arpa/inet.h>
 
 int handleConnection(s_request *request) {
 	std::string header;
+	int status;
 	if (request->headers.size() == 0)
-		header = readHeader(request->connection);
+		header = readHeader(request->connection, &status);
+	if (request->headers.empty() && header.empty())
+		return sendError(status, *request), 1;
 	return (parseRequest(header, request));
 }
 
@@ -36,7 +41,7 @@ int serverSetup(ServConfig *server) {
 	if (bind(server->getFd(), (struct sockaddr*)&server->_sockaddr, sizeof(server->_sockaddr)) == -1)
 		return close(server->getFd()), error("Bind:", strerror(errno), NULL), -1;
 
-	if (listen(server->getFd(), 10) == -1) // TODO : check max 
+	if (listen(server->getFd(), server->getMaxClient()) == -1)
 		return close(server->getFd()), error("Listen:", strerror(errno), NULL), -1;
 
 	return 0;
@@ -78,6 +83,7 @@ void serverRun(std::vector<ServConfig> servers, int max_fd, size_t fd_size) {
 						if (handleConnection(&it->second))
 						{
 							// std::cout << C"[" DV "serverRun" C "] " << MB "close chunck connection" C << std::endl;
+							shutdown(it->second.connection, SHUT_WR);
 							close(it->second.connection);
 							request_map.erase(it->second.connection);
 							fds.erase(fds.end() - request_map.size() - 1 + j);
@@ -101,6 +107,7 @@ void serverRun(std::vector<ServConfig> servers, int max_fd, size_t fd_size) {
 					request.dataLen = 0;
 					request.formData[0].full = false;
 					request.formData[1].full = false;
+					request.maxBody = 9223372036854775807;
 
 					request.connection = accept(servers[i].getFd(), (struct sockaddr*)&servers[i]._sockaddr, (socklen_t*)&addrlen);
 					request.conf = servers[i];
@@ -127,7 +134,6 @@ void serverRun(std::vector<ServConfig> servers, int max_fd, size_t fd_size) {
 						fill.revents = 0;
 						fds.push_back(fill);
 						request_map[request.connection] = request;
-						// std::cout << C"[" DV "serverRun" C "] " << MB "connection fd" C ": " GREEN << request.connection << std::endl;
 					}
 					
 				}

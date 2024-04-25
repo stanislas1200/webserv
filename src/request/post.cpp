@@ -4,6 +4,12 @@
 std::vector<unsigned char>	runCgi(s_request& request);
 void requestCgi(s_request& request);
 
+bool is_number(const std::string& s)
+{
+	std::string::const_iterator it = s.begin();
+	while (it != s.end() && std::isdigit(*it)) ++it;
+	return !s.empty() && it == s.end();
+}
 
 void printFile(s_request *request, bool body) {
 	std::cout << DV "Header:\n" MB << request->formData[0].header << std::endl;
@@ -17,7 +23,7 @@ void printFile(s_request *request, bool body) {
 	std::cout << RED << "-----PRINT END-----" << std::endl;
 }
 
-std::string parseFormData(s_request *request) { // FIXME : response to each file uploaded
+int parseFormData(s_request *request) {
 	s_FormDataPart *formDataPart = &request->formData[0];
 	std::istringstream iss(formDataPart->header);
 	std::string line;
@@ -37,25 +43,27 @@ std::string parseFormData(s_request *request) { // FIXME : response to each file
 		if (line.find("Content-Type") != std::string::npos)
 			formDataPart->contentType = line.substr(line.find("Content-Type:") + 14);
 	}
-
+	
 	std::ofstream outputFile(("upload/" + formDataPart->filename).c_str(), std::ios::binary);
-	if (!outputFile.is_open())
+	if (!outputFile.is_open() || !formDataPart->data.size())
 	{
 		error("Open:", strerror(errno), NULL);
-		send(request->connection, "File upload failed! ", strlen("File upload failed! "), 0);
-		return "500";
+		return 500;
 	}
 
 	// TODO : check if need endbound
 	outputFile.write(&formDataPart->data[0], formDataPart->data.size());
 	std::cout << MB "File uploaded!" << std::endl;
 	outputFile.close();
-	handleGetRequest(request->connection, *request); // TODO : check send pages or just ok
-	send(request->connection, "File uploaded! ", strlen("File uploaded! "), 0);
-	return "200";
+	return 200;
 }
 
 int chunckData(s_request *request, s_FormDataPart *formDataPart) {
+	size_t length = std::strtoul (request->headers["Content-Length"].c_str(), NULL, 10);
+
+	if (request->dataLen > request->maxBody)
+		return -3;
+		
 	if (formDataPart->data.size() > request->boundary.size())
 	{
 		std::vector<char>::iterator bpos;
@@ -84,11 +92,17 @@ int chunckData(s_request *request, s_FormDataPart *formDataPart) {
 			formDataPart->header = head;
 			// BODY 
 			formDataPart->data.erase(bpos, formDataPart->data.end()); // next file data
-			formDataPart->data.erase(formDataPart->data.begin(), std::search(formDataPart->data.begin(), formDataPart->data.end(), crlf2, crlf2 + 4) + 4);
+
+			if (formDataPart->data.size() > sizeof(crlf2))
+			{
+				std::vector<char>::iterator pos = std::search(formDataPart->data.begin(), formDataPart->data.end(), crlf2, crlf2 + 4);
+				if (pos == formDataPart->data.end())
+					return -2;
+				formDataPart->data.erase(formDataPart->data.begin(), pos + 4);
+			}
 			
 			formDataPart->full = true;
-			std::cout << request->dataLen << " " << request->headers["Content-Length"] << std::endl;
-			if (request->dataLen < std::strtoul (request->headers["Content-Length"].c_str(), NULL, 10) || boundaryCount > 1) // TODO : split file // TODO : var for content length + check valid when read header
+			if (request->dataLen < length || boundaryCount > 1)
 			{
 				parseFormData(request);
 				std::cout << RED "Unfinished upload" C<< std::endl;
@@ -101,9 +115,9 @@ int chunckData(s_request *request, s_FormDataPart *formDataPart) {
 			std::cout << RED << "[FORMDATA-READ] NOT FIND BOUNDARY" << std::endl;
 	}
 
-	if (request->dataLen < std::strtoul (request->headers["Content-Length"].c_str(), NULL, 10))
+	if (request->dataLen < length)
 		return 0; // chunk
-	return 1; // TODO : idk but check this function
+	return 1;
 }
 
 int readFormData(s_request *request) {
@@ -115,26 +129,32 @@ int readFormData(s_request *request) {
 
 	if (request->boundary.empty())
 	{
-		pos = request->headers["Content-Type"].find("boundary=") + 9; // TODO check it exists		
+		pos = request->headers["Content-Type"].find("boundary=") + 9;
+		if (pos == std::string::npos)
+			return -2;	
 		request->boundary = "--" + request->headers["Content-Type"].substr(pos, request->headers["Content-Type"].size() - pos - 1);
-		std::cout << YELLOW << request->boundary << C << std::endl;
 	}
 
-	if ((bytes = recv(request->connection, buffer, bufferSize, 0)) > 0 && bytes != std::string::npos) // TODO : check error
+	if ((bytes = recv(request->connection, buffer, bufferSize, 0)) > 0 && bytes != std::string::npos) 
 	{
 		std::cout << "byte: " << bytes << std::endl;
 		buffer[bytes] = '\0';
 		request->dataLen += bytes;
 		formDataPart->data.insert(formDataPart->data.end(), buffer, buffer + bytes);
 
-		return chunckData(request, formDataPart);
+		// return chunckData(request, formDataPart);
 	}
+
+	// if (bytes == (size_t)-1 || bytes == std::string::npos) // FIXME : resource temp unavailable (reduce buffer size fix it but not the best solution)
+	// {
+	// 	std::cout << RED << "Error read: " << strerror(errno) << C << std::endl;
+	// 	return -1;
+	// }
 	
 	return chunckData(request, formDataPart);
-	return 1;
 }
 
-std::string handleFormData(int connection, s_request *request, int *end) {
+int handleFormData(int connection, s_request *request, int *end) {
 	std::cout << C"[" GREEN "handlePostRequest" C "] " << MB "formdata" C << std::endl;
 	(void)connection;
 	if (request->formData[0].full)
@@ -146,47 +166,18 @@ std::string handleFormData(int connection, s_request *request, int *end) {
 	}
 	// size_t pos = 0;
 	*end = readFormData(request);
+	if (*end == -1)
+		return 500;
+	if (*end == -2)
+		return 400;
+	if (*end == -3)
+		return 413;
 	if (*end == 0)
-		return "Chunked";
+		return 200;
 	return parseFormData(request);
-
-	// // parse header
-	// s_FormDataPart *formDataPart = &request->formData[0];
-	// std::istringstream iss(formDataPart->header);
-	// std::string line;
-	// while (std::getline(iss, line) && !line.empty())
-	// {
-	// 	if (line == "\r")
-	// 		break;
-	// 	if (line.find("Content-Disposition") != std::string::npos)
-	// 	{
-	// 		line = line.substr(line.find("name=\"") + 6);
-	// 		formDataPart->name = line.substr(0, line.find('"'));
-	// 		line = line.substr(line.find("filename=\"") + 10);
-	// 		formDataPart->filename = line.substr(0, line.find('"'));
-	// 	}
-	// 	if (line.find("Content-Type") != std::string::npos)
-	// 		formDataPart->contentType = line.substr(line.find("Content-Type:") + 14);
-	// }
-	// // TODO : check malformated request
-	// // write in file
-	// std::ofstream outputFile(("upload/" + formDataPart->filename).c_str(), std::ios::binary);
-	// if (!outputFile.is_open())
-	// {
-	// 	error("Open:", strerror(errno), NULL);
-	// 	send(request->connection, "File upload failed! ", strlen("File upload failed! "), 0);
-	// 	return "500";
-	// }
-	// pos = formDataPart->header.find("\r\n\r\n");
-	// outputFile.write(&formDataPart->data[pos + 4], request->dataLen- (pos + 4) - request->boundary.size()); // +2 if end request (--)
-	// outputFile.close();
-	// handleGetRequest(request->connection, *request);
-	// send(request->connection, "File uploaded! ", strlen("File uploaded! "), 0);
-	// std::cout << C"[" GREEN "handlePostRequest" C "] " << MB "File uploaded!" C << std::endl;
-	// return "200";
 }
 
-std::string handleUrlEncoded(int connection, s_request request) {
+int handleUrlEncoded(int connection, s_request request) {
 	std::cout << C"[" GREEN "handlePostRequest" C "] " << MB "UrlEncoded" C << std::endl;
 	
 	char buffer[1000];
@@ -200,7 +191,12 @@ std::string handleUrlEncoded(int connection, s_request request) {
 		buffer[bytes] = '\0';
 		data += buffer;
 		length -= bytes;
+		request.dataLen += bytes;
+		if (request.dataLen > request.maxBody)
+			return 413;
 	}
+	if (bytes == (size_t)-1 || bytes == std::string::npos)
+		return 500;
 
 	// parse data
 	std::map<std::string, std::string> parsedData;
@@ -216,31 +212,40 @@ std::string handleUrlEncoded(int connection, s_request request) {
 		parsedData[key] = value;
 	}
 
-	handleGetRequest(connection, request);
-
 	// write data in cout
-	std::map<std::string, std::string>::const_iterator it;
-	for (it = parsedData.begin(); it != parsedData.end(); ++it)
-	{
-		std::cout << MB << it->first << C ": " DV << it->second << std::endl;
-		send(connection, it->first.c_str(), it->first.length(), 0);
-		send(connection, ": ", 2, 0);
-		send(connection, it->second.c_str(), it->second.length(), 0);
-		send(connection, " ", 1, 0);
-	}
-	return "200";
+	// std::map<std::string, std::string>::const_iterator it;
+	// for (it = parsedData.begin(); it != parsedData.end(); ++it)
+	// {
+	// 	std::cout << MB << it->first << C ": " DV << it->second << std::endl;
+		// send(connection, it->first.c_str(), it->first.length(), 0);
+		// send(connection, ": ", 2, 0);
+		// send(connection, it->second.c_str(), it->second.length(), 0);
+		// send(connection, " ", 1, 0);
+	// }
+	return 200;
 }
 
-std::string handleJson(int connection, s_request request) {
-	std::cout << DV "handleJson" << std::endl;
-	(void)connection;
-	(void)request;
-	return "200";
-}
+// std::string handleJson(int connection, s_request request) {
+// 	std::cout << DV "handleJson" << std::endl;
+// 	(void)connection;
+// 	(void)request;
+// 	return "200";
+// }
 
 int handlePostRequest(int connection, s_request *request) {
 	std::cout << C"[" GREEN "handlePostRequest" C "] " << YELLOW "---START---" C << std::endl;
-	std::string status = "505";
+	if (request->headers["Content-Length"].empty())
+	{
+		sendError(411, *request);
+		return 1;
+	}
+	else if (is_number(request->headers["Content-Length"]))
+	{
+		sendError(400, *request);
+		return 1;
+	}
+
+	int status = 505;
 	int end = 1;
 
 	std::string path = request->loc.getRedirection();
@@ -256,7 +261,15 @@ int handlePostRequest(int connection, s_request *request) {
 			buffer[bytes] = '\0';
 			request->body += buffer;
 			length -= bytes;
+			request->dataLen += bytes;
+
+			if (request->dataLen > request->maxBody)
+				return sendError(413, *request), 1;
 		}
+
+		if (bytes == (size_t)-1 || bytes == std::string::npos)
+			return 1;
+			
 		request->path = path;
 		return requestCgi(*request), 1;
 	}
@@ -265,12 +278,15 @@ int handlePostRequest(int connection, s_request *request) {
 		status = handleFormData(connection, request, &end);
 	else if (request->headers["Content-Type"].find("application/x-www-form-urlencoded") != std::string::npos)
 		status = handleUrlEncoded(connection, *request);
-	else if (request->headers["Content-Type"].find("application/json") != std::string::npos)
-		status = handleJson(connection, *request);
-	std::cout << DV << "POST request end" << std::endl;
-	std::string response = "HTTP/1.1 " + status + " OK\r\n"; // TODO : check
+	// else if (request->headers["Content-Type"].find("application/json") != std::string::npos)
+	// 	status = handleJson(connection, *request);
+	std::cout << DV << "POST request end" << end << std::endl;
 	if (end)
-		send(connection, response.c_str(), response.length(), 0);
+	{
+		std::string response = responseHeader(status, *request);
+		if (send(connection, response.c_str(), response.length(), 0) == -1)
+			error("Send:", "don't care", NULL);
+	}
 	
 	std::cout << C"[" GREEN "handlePostRequest" C "] " << YELLOW "---END---" C << std::endl;
 	return end;

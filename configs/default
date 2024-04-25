@@ -73,6 +73,10 @@ server {
         cgi_path   cgiFiles/
         cgi_extention .py
     }
+    location /arrow.png {
+        methodes GET
+        redirection src/pages/arrow.png
+    }
 }
 
 
@@ -111,7 +115,14 @@ server {
     location / {
         root ./
         methodes GET POST
-        redirection src/pages/index.html
-        template src/pages/template.html
+        redirection src/pages/index2.html
+    }
+    location /form-styles.css {
+        methodes GET POST
+        redirection src/pages/form-styles.css
+    }
+    location /script.js {
+        methodes GET POST
+        redirection src/pages/js/script.js
     }
 }

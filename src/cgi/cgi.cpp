@@ -14,6 +14,9 @@ std::vector<char *>	mapConvert(std::map<std::string, std::string>& headers, s_re
 
 	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
 	{
+		if (it->second.length() >= 2 && (it->second[it->second.length() - 1] == '\r' || it->second[it->second.length() - 1] == '\n'))
+			it->second = it->second.substr(0, it->second.length() - 2);
+
 		if (it->first == "Accept")
 			env.push_back(cstr("HTTP_ACCEPT=" + it->second.substr(1)));
 		else if (it->first == "Accept-Encoding")
@@ -27,7 +30,7 @@ std::vector<char *>	mapConvert(std::map<std::string, std::string>& headers, s_re
 		else if (it->first == "Content-Type")
 			env.push_back(cstr("CONTENT_TYPE=" + it->second.substr(1)));
 		else if (it->first == "Host")
-			env.push_back(cstr("HTTP_HOST=" + it->second.substr(1 , it->second.length() - 2))); // TODO : check -2 (\n)
+			env.push_back(cstr("HTTP_HOST=" + it->second.substr(1 , it->second.length())));
 		else if (it->first == "User-Agent")
 			env.push_back(cstr("HTTP_USER_AGENT=" + it->second.substr(1)));
 	}
@@ -44,10 +47,11 @@ std::vector<char *>	mapConvert(std::map<std::string, std::string>& headers, s_re
 std::vector<unsigned char>	getOutput(int fd)
 {
     std::vector<unsigned char> data;
-    unsigned char buffer;
+	size_t bufferSize = 1024;
+	char buffer[bufferSize + 1];
 	int			check;
 
-	while ((check = read(fd, &buffer, 1))) // TODO : check if read bigger is faster
+	while ((check = read(fd, &buffer, bufferSize)))
 	{
 		if (check == -1)
 		{
@@ -55,7 +59,7 @@ std::vector<unsigned char>	getOutput(int fd)
 			// Throw error
 			throw (tempThrow());
 		}
-		data.push_back(buffer);
+		data.insert(data.end(), buffer, buffer + check);
 	}
 	return (data);
 }
@@ -68,6 +72,7 @@ std::vector<unsigned char>	runCgi(s_request& request)
 	{
 		std::cerr << RED "CGI pipe failed" C << std::endl;
 		// Throw error
+		request.status = 500;
 		throw (tempThrow());
 	}
 	int pid = fork();
@@ -77,6 +82,7 @@ std::vector<unsigned char>	runCgi(s_request& request)
 		close(fd[1]);
 		std::cerr << RED "CGI fork failed" C << std::endl;
 		// Throw error
+		request.status = 500;
 		throw (tempThrow());
 	}
 
@@ -90,7 +96,7 @@ std::vector<unsigned char>	runCgi(s_request& request)
 		close(fd[1]);
 		std::string fullPath = request.path;
 
-		char *argv[] = {const_cast<char*>(fullPath.c_str()), NULL};
+		char *argv[] = {const_cast<char*>(fullPath.c_str()), NULL}; // TODO : file requested as first arg ?
 		if (execve(fullPath.c_str(), argv, env.data()) == -1)
 		{
 			for (std::vector<char *>::iterator it = env.begin(); it != env.end(); it++) {
@@ -110,13 +116,15 @@ std::vector<unsigned char>	runCgi(s_request& request)
 
 	close(fd[1]);
 
-	int timeout = 10;
+	int timeout = 5;
 	while (waitpid(pid, &childStatus, WNOHANG) == 0)
 	{
 		if (timeout <= 0)
 		{
 			kill(pid, SIGTERM);
-			// TODO : return error
+			error("CGI:", "timeout", NULL);
+			request.status = 504;
+			throw (tempThrow());
 		}
 		sleep(1);
 		timeout--;
@@ -129,6 +137,7 @@ std::vector<unsigned char>	runCgi(s_request& request)
 			close(fd[0]);
 			std::cerr << RED "CGI child return value != 0" C << std::endl;
 			// Throw error
+			request.status = 502;
 			throw (tempThrow());
 		}
 	}
@@ -141,12 +150,15 @@ void requestCgi(s_request& request)
 {
 	std::vector<unsigned char> response;
 	try {
+		request.status = 500;
 		response = runCgi(request);
 	} catch (const std::exception& e) {
 		std::cerr << RED "Error: " YELLOW << e.what() << C << std::endl;
-		return sendError(500, request);
+		return sendError(request.status, request);
 	}
-	std::string header = responseHeader(200);
-	send(request.connection, header.c_str(), header.length(), 0);
-	send(request.connection, response.data(), response.size(), 0);
+	std::string header = responseHeader(200, request);
+	if (send(request.connection, header.c_str(), header.length(), 0) == -1)
+		return error("Send:", "don't care", NULL);
+	if (send(request.connection, response.data(), response.size(), 0) == -1)
+		error("Send:", "don't care", NULL);
 }

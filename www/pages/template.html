@@ -11,6 +11,7 @@
 
 	:root {
 		--background: #020c1a;
+		/* --background: rgba(2,12,26,0.5); */
 		--text-color: #dfeafd;
 
 		/* --text-color-dim: #666;
@@ -80,11 +81,13 @@
 	}
 
 	.container {
+		z-index: 1;
 		display: grid;
 		gap: 20px;
 		padding: 10px;
 		grid-template-columns: repeat(3, 1fr);
 		grid-auto-rows: minmax(180px, auto);
+		background-color: transparent;
 
 		.box {
 			color: var(--text-color);
@@ -261,6 +264,10 @@
 </style>
 
 <head>
+	<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <link rel="stylesheet" href="styles.css"> -->
+    <link rel="stylesheet" href="styles.css">
 	<title>Webserv</title>
 	<div class="navbar">
 		<div class="logo">
@@ -276,6 +283,8 @@
 	</div>
 </head>
 
+<body>
 {{BODY}}
+</body>
 
 </html>

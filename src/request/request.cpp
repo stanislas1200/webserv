@@ -1,16 +1,33 @@
 #include "../../include/request.hpp"
 
-std::string readHeader(int connection) {
-	std::string header;
-	char buffer[1024];
-	int bytes = 0;
 
-	while ((bytes = recv(connection, buffer, 1, 0)) > 0) {
+
+std::string readHeader(int connection, int *status) {
+	std::string header;
+	char buffer[2];
+	size_t bytes = 0;
+	size_t max_size = 1000; // TODO : conf ?
+
+	while ((bytes = recv(connection, buffer, 1, 0)) > 0 && bytes != std::string::npos) {
 		buffer[bytes] = '\0';
 		header += buffer;
+		max_size -= bytes;
+		if (max_size <= 0)
+		{
+			header.clear();
+			*status = 431;
+			break;
+		}
 		if (header.find("\r\n\r\n") != std::string::npos)
 			break;
 	}
+
+	if (bytes == (size_t)-1 || bytes == std::string::npos)
+	{
+		header.clear();
+		*status = 500;
+	}
+
 	return header;
 }
 
@@ -28,7 +45,7 @@ bool stringEnd(std::string file, std::string end) {
 	return true;
 }
 
-std::string responseHeader(int status)
+std::string responseHeader(int status, s_request request)
 {
 	std::map<int, std::string> httpStatusCodes;
 	httpStatusCodes[100] = "Continue";
@@ -77,7 +94,8 @@ std::string responseHeader(int status)
 
 	std::stringstream s;
 	s << status;
-	std::string response = "HTTP/1.0 " + s.str() + " " + httpStatusCodes[status] + "\r\n"; // TODO : Content-type
+	std::string response = "HTTP/1.0 " + s.str() + " " + httpStatusCodes[status] + "\r\n";
+	response += "Server: " + request.conf.getName() + "\r\n";
 	return response;
 }
 
@@ -89,7 +107,8 @@ void sendError(int status, s_request req)
 	std::string content = "<!DOCTYPE html> <html>  <h1 style=\"text-align:center\">Error " + s.str() + "</h1> </html>";
 	if (!req.conf.pathToErrorPage(status).empty())
 	{
-		std::ifstream file(req.conf.pathToErrorPage(status).c_str());
+		req.path = req.conf.pathToErrorPage(status);
+		std::ifstream file(req.path.c_str());
 		if (file.is_open())
 		{
 			// read error page
@@ -102,8 +121,9 @@ void sendError(int status, s_request req)
 	}
 	// check template
 	content = useTemplate(content, req);
-	std::string response = responseHeader(status) + content;
-	send(req.connection, response.c_str(), response.length(), 0);
+	std::string response = responseHeader(status, req) + "text\r\n\r\n" + content;
+	if (send(req.connection, response.c_str(), response.length(), 0) == -1)
+		error("Send:", "don't care", NULL);
 }
 
 std::string useTemplate(std::string content, s_request request) {
@@ -113,7 +133,7 @@ std::string useTemplate(std::string content, s_request request) {
 	std::string templatePath = request.conf.getTemplate();
 	if (!request.loc.getTemplate().empty())
 		templatePath = request.loc.getTemplate();
-	if (!templatePath.empty() && stringEnd(templatePath, ".html"))
+	if (!templatePath.empty() && stringEnd(path, ".html"))
 	{
 		std::ifstream templat(templatePath.c_str());
 		if (templat.is_open())
@@ -132,22 +152,39 @@ std::string useTemplate(std::string content, s_request request) {
 	return content;
 }
 
-void	sendFile(int connection, std::ifstream *file, int status, s_request request) {
+std::string getContentType(s_request request)
+{
+	std::string ret = "Content-type:";
+	size_t pos = request.path.find_last_of(".");
+	if (pos == std::string::npos)
+	{
+		ret += "text\r\n\r\n"; // Default // TODO : check what to send default
+		return ret;
+	}
+	std::string ext = request.path.substr(pos);
+	if (ext == ".html")
+		ret += "text/html";
+	else if (ext == ".css")
+		ret += "text/css";
+	else if (ext == ".js")
+		ret += "text/javascript";
+	else
+		ret += "text"; // Default
+	ret += "\r\n\r\n";
+	return ret;
+}
 
+void	sendFile(int connection, std::ifstream *file, s_request request) {
+	int status = 200;
 	std::stringstream ss;
 	ss << file->rdbuf();
 
 	std::string fileContent = ss.str();
-	std::string response = "Content-type:text/html\r\n\r\n" + useTemplate(fileContent, request);
-	response = responseHeader(status) + response;
-	// if (response.empty())
-	// 	response = "HTTP/1.1 " + status + "Content-Type: text/html\r\n\r\n" + fileContent; // TODO : map status code and message
-	// Send status line
-	// send(connection, statusLine.c_str(), statusLine.length(), 0);
-    // send(connection, "Content-Type: text/html\r\n\r\n", strlen("Content-Type: text/html\r\n\r\n"), 0);
+	std::string response = getContentType(request) + useTemplate(fileContent, request);
+	response = responseHeader(status, request) + response;
 	file->close();
-	send(connection, response.c_str(), response.size(), 0);
-
+	if (send(connection, response.c_str(), response.size(), 0) == -1)
+		error("Send:", "don't care", NULL);
 }
 
 void printRequest(s_request request) {
@@ -180,6 +217,13 @@ std::string	replaceHexAndAmp(std::string src)
 			str += src[i];
 	}
 	return (str);
+}
+
+int checkHeader(s_request request)
+{
+	// TODO : ???? None of the HTTP Headers are required in an HTTP/1.0 Request
+	(void)request;
+	return 0;
 }
 
 int parseRequest(std::string header, s_request *request) {
@@ -215,6 +259,10 @@ int parseRequest(std::string header, s_request *request) {
 			request->headers[headerName] = headerValue;
 		}
 	}
+
+	if (checkHeader(*request))
+		return 1;
+
 	// handle methode
 	// std::cout << C"[" DV "parseRequest" C "] " << MB "METHOD" C ": " GREEN << request->method << C << std::endl;
 	// printRequest(*request);
@@ -234,8 +282,8 @@ int parseRequest(std::string header, s_request *request) {
 			request->loc = loc[i];
 			if (request->method == "GET" && loc[i].getMethode().find("GET") != std::string::npos)
 				return handleGetRequest(connection, *request);
-			else if (request->method == "POST" && loc[i].getMethode().find("POST") != std::string::npos) // TODO : cgi ? cgi outside methode ?
-				return handlePostRequest(connection, request); // TODO : content lenght
+			else if (request->method == "POST" && loc[i].getMethode().find("POST") != std::string::npos)
+				return handlePostRequest(connection, request);
 			else if (request->method == "DELETE" && loc[i].getMethode().find("DELETE") != std::string::npos) // TODO : cgi
 			{
 				request->path += fileName;

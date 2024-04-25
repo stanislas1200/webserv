@@ -1,0 +1,17 @@
+
+.container {
+    /* width: 100vw;
+    height: 100vh; */
+    perspective: 1000px;
+    /* position: fixed; */
+}
+
+.cube {
+    z-index: -1;
+    width: 20px;
+    height: 20px;
+    position: fixed;
+    background-color: #020c1a;
+    transform-style: preserve-3d;
+    transition: transform 0.2s ease-out;
+}
