@@ -1,15 +1,15 @@
 server {
     autoindex on
-	errorpages 404 src/pages/errorpages/error_404.html
-	errorpages 503 src/pages/errorpages/error_503.html
+	errorpages 404 www/pages/errorpages/error_404.html
+	errorpages 503 www/pages/errorpages/error_503.html
 	listen 8080
     methodes GET AGAIN
     server_names littleCloud
     client_size 42
-    template src/pages/template.html
+    template www/pages/template.html
     timeoutCgi  10
     location /about {
-        root src/pages/
+        root www/pages/
         redirection about.html
     }
     location /about {
@@ -20,13 +20,13 @@ server {
     location / {
         methodes GET POST DELETE
         root ./
-        redirection src/pages/index.html
+        redirection www/pages/index.html
         cgi_path   cgiFiles/
         cgi_extention  .cgi .py sdfdfs
-        template src/pages/template.html
+        template www/pages/template.html
     }
     location /about {
-        root src/pages/
+        root www/pages/
         redirection about.html
     }
     location /cgi {
@@ -64,7 +64,7 @@ server {
     location /favicon.ico {
         root ./
         methodes GET
-        redirection src/pages/favicon.ico
+        redirection www/pages/favicon.ico
     }
     location /download {
         root ./
@@ -76,27 +76,27 @@ server {
     location /arrow.png {
         root ./
         methodes GET
-        redirection src/pages/arrow.png
+        redirection www/pages/arrow.png
     }
 }
 
 
 server {
     autoindex on
-    template src/pages/template.html
-	errorpages 505 src/pages/errorpages/error_505.html
+    template www/pages/template.html
+	errorpages 505 www/pages/errorpages/error_505.html
     methodes GET POST DELETE
 	listen 8081
     timeoutCgi  10
     location / {
         root ./
         methodes GET POST
-        redirection src/pages/index.html
+        redirection www/pages/index.html
     }
     location /favicon.ico {
         root ./
         methodes GET
-        redirection src/pages/favicon.ico
+        redirection www/pages/favicon.ico
     }
     server_names bigCloud
     client_size 43
@@ -105,28 +105,28 @@ server {
 
 server {
     autoindex on
-    errorpages 505 src/pages/errorpages/error_505.html
+    errorpages 505 www/pages/errorpages/error_505.html
 	listen 8082
     client_size 43
     methodes GET POST DELETE
     timeoutCgi  10
     location /about {
         root ./
-        redirection src/pages/about.html
+        redirection www/pages/about.html
     }
     location / {
         root ./
         methodes GET POST
-        redirection src/pages/index2.html
+        redirection www/pages/index2.html
     }
     location /form-styles.css {
         root ./
         methodes GET POST
-        redirection src/pages/form-styles.css
+        redirection www/pages/form-styles.css
     }
     location /script.js {
         root ./
         methodes GET POST
-        redirection src/pages/js/script.js
+        redirection www/pages/js/script.js
     }
 }

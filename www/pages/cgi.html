@@ -1,0 +1,107 @@
+<style>
+	.container {
+		grid-template-columns: repeat(2, 1fr);
+
+		.box {
+			form {
+				height: 100%;
+
+				button {
+					margin-top: auto;
+				}
+
+				.button-grp {
+					display: flex;
+					flex-direction: row;
+					flex-wrap: wrap;
+
+					button {
+						margin: 5px;
+					}
+				}
+			}
+		}
+	}
+
+	.responseContainer {
+		display: flex;
+		flex-direction: column;
+		height: 50vh;
+		max-width: 100%;
+		padding: 10px;
+
+		#cgiResponse {
+			padding: 10px;
+			border-radius: 10px;
+			border: 2px solid var(--secondary-color);
+			flex-grow: 1;
+			background-color: black;
+		}
+	}
+    h1 {
+        text-align: center;
+    }
+</style>
+
+
+<body>
+	<h1>CGI Test Interface</h1>
+	<div class="container">
+		<!-- Section for GET request -->
+		<div class="box">
+			<form id="getForm">
+				<h1>Perform GET Request</h1>
+				<div class="button-grp">
+					<button type="button" onclick="performGet()">Hello World</button>
+					<button type="button" onclick="performGet('listUpload')">List Uploads</button>
+					<button type="button" onclick="performGet('env')">Get Env</button>
+				</div>
+			</form>
+		</div>
+		<div class="box">
+
+			<!-- Section for POST request -->
+			<form id="postForm">
+				<h1>Perform POST Request</h1>
+				<input type="text" id="postInput" name="input">
+				<button type="button" onclick="performPost('post')">Try Post</button>
+			</form>
+		</div>
+	</div>
+	<div class="responseContainer">
+		<div id="cgiResponse"></div>
+	</div>
+
+	<script>
+		function getRandomHello() {
+			var hellos = ['helloBash', 'helloPhp', 'helloPython', 'helloPerl'];
+			var randomIndex = Math.floor(Math.random() * hellos.length);
+			return hellos[randomIndex];
+		}
+		function performGet(fileName = getRandomHello()) {
+			fetch(`/cgi/${fileName}`)
+				.then(response => response.text())
+				.then(data => {
+					document.getElementById('cgiResponse').innerHTML = '<pre>' + data + '</pre>';
+				})
+				.catch(error => {
+					console.error('Error performing GET request:', error);
+				});
+		}
+
+		function performPost(fileName) {
+			const formData = new FormData(document.getElementById('postForm'));
+			fetch(`/cgi/${fileName}`, {
+				method: 'POST',
+				body: formData
+			})
+				.then(response => response.text())
+				.then(data => {
+					document.getElementById('cgiResponse').innerHTML = '<pre>' + data + '</pre>';
+				})
+				.catch(error => {
+					console.error('Error performing POST request:', error);
+				});
+		}
+	</script>
+</body>

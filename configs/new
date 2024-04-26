@@ -1,49 +1,106 @@
 server {
-	errorpages 404 www/pages/errorpages/error_404.html
-	errorpages 503 www/pages/errorpages/error_503.html
-	listen 8080
-	methodes NONE
-	server_names littleCloud
-	client_size 42
-	template www/pages/template.html
+	errorpages			404 www/pages/errorpages/error_404.html
+	errorpages			503 www/pages/errorpages/error_503.html
+	listen				8080
+	methodes			NONE
+	server_names		littleCloud
+	client_size			42
+    autoindex			on
+    timeoutCgi			10
+	template			www/pages/template.html
 
 	location / {
-		methodes GET POST DELETE
+        root			www/pages/
+		methodes		GET POST DELETE
 		redirection		www/pages/index.html
 		cgi_path		cgiFiles/
 		cgi_extention	.cgi .py
 	}
 	location /about {
+        root			www/pages/
 		methodes		GET
 		redirection		www/pages/about.html
 	}
+	location /cgi {
+        root			www/pages/
+		methodes		GET
+		redirection		www/pages/cgi.html
+	}
     location /favicon.ico {
-        methodes GET
-        redirection www/images/favicon.ico
+        root			www/pages/
+        methodes		GET
+        redirection		www/images/favicon.ico
     }
     location /arrow.png {
-        methodes GET
-        redirection www/images/arrow.png
+        root			www/pages/
+        methodes		GET
+        redirection		www/images/arrow.png
     }
-	location /listUpload {
-        methodes GET
+	location /styles.css {
+		root			www/pages/
+		methodes		GET
+		redirection		www/css/styles.css
+	}
+	location /script.js {
+        root			www/pages/
+		methodes		GET
+		redirection		www/js/script.js
+	}
+	location /cgi/listUpload {
+		root			www/pages/
+		methodes		GET
 		redirection		cgiFiles/listUpload.py
 		cgi_path		cgiFiles/
 		cgi_extention	.py
 	}
-    location /download {
-        methodes GET
-        redirection cgiFiles/getUpload.py
-        cgi_path   cgiFiles/
-        cgi_extention .py
-    }
-	location /styles.css {
-		methodes GET
-		redirection www/css/styles.css
+	location /cgi/download {
+		root			www/pages/
+		methodes		GET
+		redirection		cgiFiles/getUpload.py
+		cgi_path		cgiFiles/
+		cgi_extention	.py
 	}
-	location /script.js {
-		methodes GET
-		redirection www/js/script.js
+	location /cgi/helloBash {
+		root			www/pages/
+		methodes		GET
+		redirection		cgiFiles/helloWorld/helloBash.sh
+		cgi_path		cgiFiles/
+		cgi_extention	.sh .pl .php .py
+	}
+	location /cgi/helloPerl {
+		root			www/pages/
+		methodes		GET
+		redirection		cgiFiles/helloWorld/helloPerl.pl
+		cgi_path		cgiFiles/
+		cgi_extention	.sh .pl .php .py
+	}
+	location /cgi/helloPhp {
+		root			www/pages/
+		methodes		GET
+		redirection		cgiFiles/helloWorld/helloPhp.php
+		cgi_path		cgiFiles/
+		cgi_extention	.sh .pl .php .py
+	}
+	location /cgi/helloPython {
+		root			www/pages/
+		methodes		GET
+		redirection		cgiFiles/helloWorld/helloPython.py
+		cgi_path		cgiFiles/
+		cgi_extention	.sh .pl .php .py
+	}
+	location /cgi/env {
+		root			www/pages/
+		methodes		GET
+		redirection		cgiFiles/printEnv.py
+		cgi_path		cgiFiles/
+		cgi_extention	.py
+	}
+	location /cgi/post {
+		root			www/pages/
+		methodes		POST
+		redirection		cgiFiles/post.py
+		cgi_path		cgiFiles/
+		cgi_extention	.py
 	}
 
 }

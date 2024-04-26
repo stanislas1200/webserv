@@ -139,13 +139,16 @@
 
 	input[type=button],
 	input[type=submit],
-	input[type=reset] {
+	input[type=reset],
+	button,
+	#download-file-btn {
 		background-color: var(--primary-color);
 		color: var(--secondary-color);
 		border: none;
 		padding: 20px 30px;
 		margin: 4px 2px;
-		/* text-decoration: none; */
+
+		text-decoration: none;
 		cursor: pointer;
 		font-size: 18px;
 		transition: all 0.5s ease;
@@ -154,7 +157,9 @@
 	}
 
 	input[type=button],
-	input[type=submit]:hover {
+	input[type=submit]:hover,
+	button:hover,
+	#download-file-btn:hover {
 		background-color: #0d45a5;
 		color: var(--text-color);
 		transition: all 0.3 ease;
@@ -277,6 +282,7 @@
 		</div>
 		<div class="navItem">
 			<a href="/">Home</a>
+			<a href="cgi">Cgi</a>
 			<a href="about">About</a>
 			<a href="Error 404">Error 404</a>
 		</div>
