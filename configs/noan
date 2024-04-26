@@ -7,40 +7,49 @@ server {
 	client_size			42
     autoindex			on
     timeoutCgi			10
-	template			www/pages/template.html
-    root src
+    root www
 	
 	location / {
-        root			www/pages/
+        root			www/
 		methodes		GET POST DELETE
-		redirection		www/pages/index.html
+		redirection		HOME/index.html
 		cgi_path		cgiFiles/
 		cgi_extention	.cgi .py
 	}
 	location /about {
-        root			www/pages/
+        root			www/
 		methodes		GET
-		redirection		www/pages/about.html
+		redirection		ABOUT/index.html
 	}
 	location /cgi {
-        root			www/pages/
+        root			www/
 		methodes		GET
-		redirection		www/pages/cgi.html
+		redirection		CGI/index.html
 	}
     location /favicon.ico {
-        root			www/pages/
+        root			www/
         methodes		GET
-        redirection		www/images/favicon.ico
+        redirection		images/favicon.ico
     }
     location /arrow.png {
-        root			www/pages/
+        root			www/
         methodes		GET
-        redirection		www/images/arrow.png
+        redirection		images/arrow.png
     }
-	location /styles.css {
-		root			www/pages/
+	location /homeStyles.css {
+		root			www/
 		methodes		GET
-		redirection		www/css/styles.css
+		redirection		HOME/styles.css
+	}
+	location /aboutStyles.css {
+		root			www/
+		methodes		GET
+		redirection		ABOUT/styles.css
+	}
+	location /cgiStyles.css {
+		root			www/
+		methodes		GET
+		redirection		CGI/styles.css
 	}
 	location /script.js {
         root			www/pages/
