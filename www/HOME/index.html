@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webserv</title>
+	<link rel="stylesheet" href="styles.css">
+	<div class="navbar">
+		<div class="logo">
+			<img width="65" height="40" alt="Accueil École 42"
+				src="https://campus19.be/wp-content/uploads/2022/06/19_member42_black-_2_.svg">
+			<h1>WebServ</h1>
+		</div>
+		<div class="navItem">
+			<a href="/">Home</a>
+			<a href="about">About</a>
+			<a href="cgi">Cgi</a>
+			<a href="Error 404">404</a>
+		</div>
+	</div>
+</head>
+<body>
+    <div class="container" id="container"></div>
+	<div class="form-container-wrapper">
+		<div class="form-container">
+		<form method='POST' enctype='application/x-www-form-urlencoded' accept-charset='utf-8'>
+			<h1>Send a message</h1>
+			<input id="email" name="email" type="email" />
+			<input id="message" name="message" type="text" />
+			<input type="submit", value="Send">
+		</form>
+	</div>
+	<div class="form-container">
+		<form id="myForm" , enctype="application/x-www-form-urlencoded">
+			<h1>Send a Query String</h1>
+			<input id="param" name="param" type="text">
+			<input type="submit", value="Send">
+		</form>
+	</div>
+	<div class="form-container">
+		<form id="upload-form" method='POST' enctype='multipart/form-data' accept-charset='utf-8'>
+			<h1>Upload a file</h1>
+			<div class="file-input">
+				<input id="file1" name="file1" type="file" />
+			</div>
+			<div class="file-input">
+				<input id="file2" name="file2" type="file" />
+			</div>
+			<div class="file-input">
+				<input id="file3" name="file3" type="file" />
+			</div>
+			<input type="submit" value="Upload File">
+		</form>
+		<div id="progress-bar">
+			<div id="progress">0%</div>
+		</div>
+	</div>
+	<div class="form-container">
+		<form id="delete" , enctype="application/x-www-form-urlencoded">
+			<h1>Delete a file</h1>
+			<div class="select">
+				<select id="delet-file" class="select-el" name="file">
+					<option value="" disabled selected>Select a file</option>
+				</select>
+			</div>
+			<input type="submit", value="Send">
+		</form>
+	</div>
+	<div class="form-container">
+		<form id="download" , enctype="application/x-www-form-urlencoded">
+			<h1>Download a file</h1>
+			<div class="select">
+				<select id="download-file" class="select-el" name="file">
+					<option value="" disabled selected>Select a file</option>
+				</select>
+			</div>
+			<a id="download-file-btn" href="" download=""> Download </a>
+		</form>
+	</div>
+</div>
+</div>
+
+<script>
+	var defaultUrl = window.location.href; // Default upload URL
+	var alertDuration = 3000;
+
+	// Selector
+	var select = document.getElementsByClassName('select-el');
+	for (var i = 0; i < select.length; i++) {
+		// Get Files name
+		select[i].addEventListener('click', function (target) {
+
+			// Only fetch the list of files if the select element is empty
+			if (target.target.options.length === 1) {
+				// Disable the button
+				target.target.disabled = true;
+				var xhr = new XMLHttpRequest();
+				xhr.open('GET', '/listUpload', true);
+				xhr.onload = function () {
+					if (xhr.status === 200) {
+						var files = JSON.parse(xhr.responseText);
+						for (var i = 0; i < files.length; i++) {
+							var option = document.createElement('option');
+							option.value = files[i];
+							option.text = files[i];
+							target.target.appendChild(option);
+						}
+					}
+					   // Re-enable the button
+					target.target.disabled = false;
+				};
+				xhr.send();
+			}
+		}, i);
+	}
+
+	// Function to clear select options
+	function clearSelectOptions() {
+		for (var i = 0; i < select.length; i++) {
+
+			for (let j = select[i].options.length - 1; j >= 1; j--) {
+				select[i].remove(j);
+			}
+		}
+	}
+
+	// Function to display temporary alerts
+	function showAlert(message, duration) {
+		var existingAlert = document.querySelector('.temporary-alert');
+		if (existingAlert) {
+			existingAlert.remove();
+		}
+
+		var alertBox = document.createElement('div');
+		alertBox.textContent = message;
+		alertBox.classList.add('temporary-alert');
+		alertBox.style.position = 'fixed';
+		alertBox.style.top = '25px';
+		alertBox.style.left = '50%';
+		alertBox.style.transform = 'translateX(-50%)';
+		alertBox.style.padding = '10px 20px';
+		alertBox.style.background = '#73acf4';
+		alertBox.style.color = '#590c9e';
+		alertBox.style.borderRadius = '5px';
+		alertBox.style.zIndex = '9999';
+		alertBox.style.fontSize = '18px';
+		alertBox.style.opacity = '0';
+		document.body.appendChild(alertBox);
+
+		alertBox.offsetWidth;
+
+		alertBox.style.transition = 'opacity 0.5s ease-in-out';
+		alertBox.style.opacity = '1';
+
+		setTimeout(function() {
+			alertBox.style.opacity = '0';
+			setTimeout(function() {
+				alertBox.remove();
+			}, 500);
+		}, duration - 500);
+	}
+
+	// Delete file
+	document.getElementById('delete').addEventListener('submit', function (event) {
+		event.preventDefault(); // Prevent the default form submission
+		var fileName = document.getElementById('delet-file').value;
+		var xhr = new XMLHttpRequest();
+		var formData = new FormData(document.getElementById('delete'));
+		xhr.open('DELETE', fileName, true);
+		xhr.onload = function () {
+			if (xhr.status === 200) {
+				console.log('File deleted successfully!');
+				clearSelectOptions();
+				showAlert('File deleted successfully!', alertDuration);
+			}
+			if (xhr.status === 404) {
+				console.log('File not found!');
+				showAlert('File not found!', alertDuration);
+			}
+			if (xhr.status === 501) {
+				console.log('Not supported!');
+				showAlert('Not supported!', alertDuration);
+			}
+		};
+		xhr.onerror = function () {
+			console.log('Failed to delete file!');
+			clearSelectOptions();
+			showAlert('Failed to delete file!', alertDuration);
+		}
+		xhr.send();
+	});
+
+	// Upload file
+	document.getElementById('upload-form').addEventListener('submit', function (event) {
+		event.preventDefault(); // Prevent the default form submission
+		var xhr = new XMLHttpRequest();
+		var formData = new FormData(document.getElementById('upload-form'));
+		xhr.open('POST', defaultUrl, true);
+		xhr.upload.onprogress = function (event) {
+			if (event.lengthComputable) {
+				var progress = Math.round((event.loaded / event.total) * 100);
+				document.getElementById('progress').style.width = progress + '%';
+				document.getElementById('progress').innerText = progress + '%';
+			}
+		};
+		xhr.onload = function () {
+			clearSelectOptions();
+			if (xhr.status === 200) {
+				console.log('File uploaded successfully!');
+				showAlert('File uploaded successfully!', alertDuration);
+			}
+			if (xhr.status === 501) {
+				console.log('Not supported!');
+				showAlert('Not supported!', alertDuration);
+			}
+		};
+		xhr.onerror = function () {
+			document.getElementById('progress').style.backgroundColor = '#dc3545';
+			document.getElementById('progress').innerText = "Failed!";
+			showAlert('Failed to upload file!', alertDuration);
+		}
+		xhr.send(formData);
+	});
+		
+	// Download file
+	document.getElementById('download-file').addEventListener('change', function (event) {
+		var dBtn = document.getElementById('download-file-btn');
+		console.log(this.options[this.options.selectedIndex].value)
+		value = this.options[this.options.selectedIndex].value;
+		dBtn.href = "/download" + '?name=' + value;
+		dBtn.download = value;
+	});
+</script>
+<script src="script.js"></script>
+</body>
+</html>

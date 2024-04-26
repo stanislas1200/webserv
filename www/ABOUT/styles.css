@@ -1,0 +1,140 @@
+:root {
+	--background: #020c1a;
+	--text-color: #dfeafd;
+	
+	/* --text-color-dim: #666;
+	--text-color-light: #999; */
+	
+	--primary-color: #73acf4;
+	
+	/* --primary-color-shade: #0056b3;
+	--primary-color-tint: #4d94ff; */
+	
+	--secondary-color: #590c9e;
+	
+	/* --secondary-color-shade: #5a6268;
+	--secondary-color-tint: #7b8a91; */
+	
+	--success-color: #04AA6D;
+	--info-color: #17a2b8;
+	--warning-color: #ffc107;
+	--danger-color: #dc3545;
+	
+	--accent-color: #d033f0;
+	
+	--breakpoint-xs: 0;
+	--breakpoint-sm: 576px;
+	--breakpoint-md: 768px;
+	--breakpoint-lg: 992px;
+	--breakpoint-xl: 1200px;
+}
+
+body, html {
+	font-family: "Times New Roman", Times, serif;;
+	height: 100%;
+	margin: 0;
+	overflow: hidden;
+	background-color: var(--background);
+}
+
+.navbar {
+	overflow: hidden;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background-color: var(--background);
+	color: var(--text-color);
+	border-bottom: var(--primary-color) 2px solid;
+	transition: all 0.3s ease;
+
+	.navItem {
+		display: flex;
+	}
+
+	.logo {
+		display: flex;
+		align-items: center;
+		padding: 10px;
+
+	}
+
+	a {
+        margin-right: 20px;
+		font-size: 24px;
+		color: var(--text-color);
+		text-align: center;
+		padding: 20px;
+		text-decoration: none;
+		height: 100%;
+		width: 100%;
+		transition: all 0.5s ease;
+		border-radius: 10px;
+
+		&:hover {
+			background-color: var(--primary-color);
+			color: var(--secondary-color);
+			transition: all 0.3s ease;
+		}
+	}
+}
+
+.arrow-img {
+    position: absolute;
+    width: 400px;
+    height: auto;
+    transform: rotate(-70deg);
+    margin-top: -75px;
+    right: 247px;
+	pointer-events: none;
+}
+
+.arrow-text {
+    position: absolute;
+    transform: rotate(-30deg);
+    margin-top: 50px;
+    right: 495px;
+    font-family: 'Caveat', cursive;
+    font-size: 48px;
+    color: #9b66ea;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.about {
+	margin-top: 100px;
+	margin-left: 30px;
+	margin-right: 600px;
+	color: #ffffff;
+}
+
+.about h1 {
+	font-size: 50px;
+} 
+
+.about-text {
+	font-size: 18px;
+}
+
+.add-box {
+	display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+	height: 200px;
+    background-color: #ffffff;
+}
+
+.add {
+	color: blue;
+	font-size: large;
+	text-align: center;
+    width: calc(25%);
+	border: 1px solid hotpink;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
