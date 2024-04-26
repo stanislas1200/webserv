@@ -6,7 +6,7 @@
 /*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:33:10 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/25 23:02:02 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/04/26 11:29:13 by gduchesn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 # define TEMPLATE       6
 # define AUTOINDEX      7
 # define TIMEOUTCGI     8
+# define ROOT           9
 # define NOT_RIGHT "not right amount of parameter"
 # define ERROR_HAPPEND "something wrong in parameters"
 # define MISSING "mandatory information missing"
@@ -39,6 +40,7 @@ class ServConfig {
         std::string                 _templatePath; // nop
         int                         _autoindex;
         int                         _timeoutCgi;
+        std::string                 _root;
 	    int                         _fd;
         
         void    initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile);
@@ -66,6 +68,7 @@ class ServConfig {
         std::map<int, std::string> getErrorPages(void) const;
         int         getAutoindex(void) const;
         int         getTimeoutCgi(void) const;        
+        std::string getRoot(void) const;
         int         getFd(void) const;
         void         setFd(int fd);
         
@@ -105,7 +108,7 @@ bool    isNbrNoOverflow(std::string token, int *result);
 
 # define LOCATION_METHODE   0
 # define REDIRECTION        1
-# define ROOT               2
+# define LOCATION_ROOT               2
 # define PATHTOCGI          3
 # define EXCGI              4
 # define LOCATION_TEMPLATE  5

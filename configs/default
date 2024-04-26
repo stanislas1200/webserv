@@ -8,6 +8,7 @@ server {
     client_size 42
     template src/pages/template.html
     timeoutCgi  10
+    root src
     location /about {
         root src/pages/
         redirection about.html
@@ -66,11 +67,6 @@ server {
         methodes GET
         redirection src/pages/favicon.ico
     }
-    location /errorpages/ {
-        root src/pages/
-        methodes nothing
-        redirection errorpages/
-    }
     location /errorpages/error_503.html {
         root src/pages/errorpages/
         methodes GET
@@ -93,6 +89,7 @@ server {
     methodes GET POST DELETE
 	listen 8081
     timeoutCgi  10
+    root src
     location / {
         root ./
         methodes GET POST
@@ -115,6 +112,7 @@ server {
     client_size 43
     methodes GET POST DELETE
     timeoutCgi  10
+    root src
     location /about {
         root ./
         redirection src/pages/about.html
