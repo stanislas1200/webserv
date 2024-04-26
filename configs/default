@@ -72,6 +72,11 @@ server {
         methodes GET
         redirection error_503.html
     }
+    location /errorpages/error_503.html {
+        root src/pages/errorpages/
+        methodes GET
+        redirection error_503.html
+    }
     location /download {
         root ./
         methodes GET
