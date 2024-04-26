@@ -17,6 +17,9 @@
 # include <iostream>
 # include <fcntl.h>
 # include <signal.h>
+#include <netinet/in.h>
+#include <dirent.h>
+#include <sys/stat.h>
 # include "ServConfig.hpp"
 # include "Location.hpp"
 
