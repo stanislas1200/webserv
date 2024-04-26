@@ -250,7 +250,7 @@ void	autoindex(s_request *request, std::string path) {
 	response += "Content-Length: " + std::to_string(ss.str().length()) + "\r\n";
 	response += "\r\n";
 	response += ss.str();
-	std::string header = responseHeader(200);
+	std::string header = responseHeader(200, *request);
 	send(request->connection, header.c_str(), header.length(), 0);
 	send(request->connection, response.c_str(), response.length(), 0);
 }
@@ -289,8 +289,6 @@ int parseRequest(std::string header, s_request *request) {
 		}
 	}
 
-	if (checkHeader(*request))
-		return 1;
 
 	// handle methode
 	// std::cout << C"[" DV "parseRequest" C "] " << MB "METHOD" C ": " GREEN << request->method << C << std::endl;
