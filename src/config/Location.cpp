@@ -6,7 +6,7 @@
 /*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/25 15:17:47 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/25 20:16:02 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/04/26 11:29:21 by gduchesn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ void Location::init(std::vector<std::string> tokens, std::ifstream *confFile) {
                     ServConfig::wrongFormatError("Location: redirection", ERROR_HAPPEND);
                 _redirection = tokens[1];
                 break;
-            case ROOT:
+            case LOCATION_ROOT:
                 if (tokens.size() != 2)
                     ServConfig::wrongFormatError("Location: root", ERROR_HAPPEND);
                 _root = tokens[1];
@@ -154,6 +154,10 @@ int Location::getAutoindex(void) const {
 
 void    Location::setMethode(std::string str) {
     _methode = str;
+}
+
+void    Location::setRedirection(std::string str) {
+    _redirection = str;
 }
 
 void    Location::setTemplate(std::string str) {

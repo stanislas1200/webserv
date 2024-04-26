@@ -8,6 +8,7 @@ server {
     client_size 42
     template www/pages/template.html
     timeoutCgi  10
+    root src
     location /about {
         root www/pages/
         redirection about.html
@@ -19,8 +20,8 @@ server {
     }
     location / {
         methodes GET POST DELETE
-        root ./
-        redirection www/pages/index.html
+        root src/pages/
+        redirection index.html
         cgi_path   cgiFiles/
         cgi_extention  .cgi .py sdfdfs
         template www/pages/template.html
@@ -66,6 +67,16 @@ server {
         methodes GET
         redirection www/pages/favicon.ico
     }
+    location /errorpages/error_503.html {
+        root src/pages/errorpages/
+        methodes GET
+        redirection error_503.html
+    }
+    location /errorpages/error_503.html {
+        root src/pages/errorpages/
+        methodes GET
+        redirection error_503.html
+    }
     location /download {
         root ./
         methodes GET
@@ -88,6 +99,7 @@ server {
     methodes GET POST DELETE
 	listen 8081
     timeoutCgi  10
+    root src
     location / {
         root ./
         methodes GET POST
@@ -110,6 +122,7 @@ server {
     client_size 43
     methodes GET POST DELETE
     timeoutCgi  10
+    root src
     location /about {
         root ./
         redirection www/pages/about.html

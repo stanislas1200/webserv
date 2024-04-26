@@ -6,7 +6,7 @@
 /*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:43:18 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/25 20:17:04 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/04/26 13:22:09 by gduchesn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ ServConfig::ServConfig(const ServConfig &src) {
     _templatePath = src._templatePath;
     _autoindex = src._autoindex;
     _timeoutCgi = src._timeoutCgi;
+    _root = src._root;
     _fd = src._fd;
     _sockaddr = src._sockaddr;
 }
@@ -41,6 +42,7 @@ ServConfig& ServConfig::operator=(const ServConfig &rhs) {
     _templatePath = rhs._templatePath;
     _autoindex = rhs._autoindex;
     _timeoutCgi = rhs._timeoutCgi;
+    _root = rhs._root;
     _fd = rhs._fd;
     _sockaddr = rhs._sockaddr;
     return (*this);
@@ -63,6 +65,7 @@ std::vector<std::string>    ServConfig::fillVectorInitialisation(void) {
     vec.push_back("template");
     vec.push_back("autoindex");
     vec.push_back("timeoutCgi");
+    vec.push_back("root");
     return (vec);
 }
 
@@ -129,6 +132,11 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifs
                 wrongFormatError("Timeout cgi", NOT_RIGHT);
             _timeoutCgi = result;
             break;
+        case ROOT:
+            if (tokens.size() != 2)
+                wrongFormatError("root", NOT_RIGHT);
+            _root = tokens[1];
+            break;
         default:
             wrongFormatError("Incoherent line:", ("\"" + vecToString(tokens.begin(), tokens.end()) + "\"").c_str());
             break;
@@ -150,6 +158,8 @@ void    ServConfig::checkUpConfig(void) {
         wrongFormatError("Autoindex", MISSING);
     if (_timeoutCgi == -1)
         wrongFormatError("Timeout cgi", MISSING);
+    if (_root.empty())
+        wrongFormatError("root", MISSING);
     for (std::vector<Location>::iterator it = _location.begin(); it != _location.end(); it++) {
         if (it->getPath().empty())
             wrongFormatError("Location: path", MISSING);
@@ -157,6 +167,7 @@ void    ServConfig::checkUpConfig(void) {
             wrongFormatError("Location: redirection", MISSING);
         if (it->getRoot().empty())
             wrongFormatError("Location: root", MISSING);
+        it->setRedirection(it->getRoot() + it->getRedirection());
         if (it->getMethode().empty())
             it->setMethode(_methode);
         if (it->getTemplate().empty() && !_templatePath.empty())
@@ -273,6 +284,10 @@ int ServConfig::getAutoindex(void) const {
 
 int ServConfig::getTimeoutCgi(void) const {
     return (this->_timeoutCgi);
+}
+
+std::string ServConfig::getRoot(void) const {
+    return (this->_root);
 }
 
 int ServConfig::getFd(void) const {
