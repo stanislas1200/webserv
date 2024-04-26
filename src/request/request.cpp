@@ -182,6 +182,49 @@ std::string	replaceHexAndAmp(std::string src)
 	return (str);
 }
 
+#include <netinet/in.h>
+#include <dirent.h>
+#include <sys/stat.h>
+void	autoindex(s_request *request, std::string path) {
+	std::stringstream ss;
+	std::string response;
+	DIR* dir;
+    struct dirent* entry;
+	// std::string path = "./src/pages/";
+	path += request->path;
+    ss << "<html><head><title>Index of " << path << "</title></head><body>";
+    ss << "<h1>Index of " << path << "</h1><hr><pre>";
+    ss << "</pre><hr></body></html>";
+    std::cout << "path:" << path.c_str() << std::endl;
+    if ((dir = opendir(path.c_str())) != nullptr) {
+        while ((entry = readdir(dir)) != nullptr) {
+            // if (entry->d_name[0] != '.') {
+                std::string fullPath = path + "/" + entry->d_name;
+                struct stat statbuf;
+                
+                if (stat(fullPath.c_str(), &statbuf) != -1 && S_ISDIR(statbuf.st_mode)) {
+                    ss << "<a href='" << entry->d_name << "/'>" << entry->d_name << "/</a><br>";
+                } else {
+                    ss << "<a href='" << entry->d_name << "'>" << entry->d_name << "</a><br>";
+                }
+            // }
+        }
+        
+        closedir(dir);
+    }
+	else
+		return sendError(404, *request);
+
+	response = "HTTP/1.1 200 OK\r\n";
+	response += "Content-Type: text/html\r\n";
+	response += "Content-Length: " + std::to_string(ss.str().length()) + "\r\n";
+	response += "\r\n";
+	response += ss.str();
+	std::string header = responseHeader(200);
+	send(request->connection, header.c_str(), header.length(), 0);
+	send(request->connection, response.c_str(), response.length(), 0);
+}
+
 int parseRequest(std::string header, s_request *request) {
 	// Parse request header if needed
 	int connection = request->connection;
@@ -227,6 +270,10 @@ int parseRequest(std::string header, s_request *request) {
 		if (request->path.empty())
 			request->path = "/";
 	}
+	// if (request->path[request->path.size() - 1] == '/') {
+	// 	if (request->conf.getAutoindex())
+	// 		return (autoindex(request), 1);
+	// }
 	for (size_t i = 0; i < loc.size(); i++)
 	{
 		if (loc[i].getPath() == request->path)
@@ -241,14 +288,20 @@ int parseRequest(std::string header, s_request *request) {
 				request->path += fileName;
 				return handleDeleteRequest(connection, *request);
 			}
+			else if (request->path[request->path.size() - 1] == '/') {
+				if (request->loc.getAutoindex())
+					return (autoindex(request, request->loc.getRedirection()), 1);
+			}
 			else
 				return sendError(505, *request), 1;
 		}
 	}
-	// if (request->path[request->path.size() - 1] == "/") {
-	// 	if (request->conf.getAutoindex())
-	// 		return (autoindex(), 1);
-	// }
+	if (request->path[request->path.size() - 1] == '/') {
+		std::cout << "UI\n";
+		if (request->conf.getAutoindex())
+			return (autoindex(request, request->conf.getRoot()), 1);
+		std::cout << "OUT\n";
+	}
 	sendError(404, *request);
 	return 1;
 }
