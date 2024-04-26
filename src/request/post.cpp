@@ -51,7 +51,6 @@ int parseFormData(s_request *request) {
 		return 500;
 	}
 
-	// TODO : check if need endbound
 	outputFile.write(&formDataPart->data[0], formDataPart->data.size());
 	std::cout << MB "File uploaded!" << std::endl;
 	outputFile.close();
@@ -121,7 +120,7 @@ int chunckData(s_request *request, s_FormDataPart *formDataPart) {
 }
 
 int readFormData(s_request *request) {
-	size_t bufferSize = 100000;
+	size_t bufferSize = 10000;
 	char buffer[bufferSize + 1];
 	s_FormDataPart *formDataPart = &request->formData[0];
 	size_t bytes = 0;
@@ -142,14 +141,13 @@ int readFormData(s_request *request) {
 		request->dataLen += bytes;
 		formDataPart->data.insert(formDataPart->data.end(), buffer, buffer + bytes);
 
-		// return chunckData(request, formDataPart);
 	}
 
-	// if (bytes == (size_t)-1 || bytes == std::string::npos) // FIXME : resource temp unavailable (reduce buffer size fix it but not the best solution)
-	// {
-	// 	std::cout << RED << "Error read: " << strerror(errno) << C << std::endl;
-	// 	return -1;
-	// }
+	if (bytes == (size_t)-1 || bytes == std::string::npos)
+	{
+		std::cout << RED << "Error read: " << strerror(errno) << C << std::endl;
+		return -1;
+	}
 	
 	return chunckData(request, formDataPart);
 }

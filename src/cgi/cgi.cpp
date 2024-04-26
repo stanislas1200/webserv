@@ -39,7 +39,7 @@ std::vector<char *>	mapConvert(std::map<std::string, std::string>& headers, s_re
 	env.push_back(cstr("REQUEST_URI=/" + req.path));
 	if (!req.queryString.empty())
 		env.push_back(cstr("QUERY_STRING=" + req.queryString.substr(1)));
-	env.push_back(cstr("PATH_INFO=" + req.path)); // TODO : leave or fix
+	env.push_back(cstr("PATH_INFO=" + req.path));
 	env.push_back(NULL);
 	return (env);
 }
@@ -91,7 +91,7 @@ std::vector<unsigned char>	runCgi(s_request& request)
 	/***	CHILD	***/
 	if (pid == 0)
 	{
-		std::vector<char *> env = mapConvert(request.headers, request); // TODO : free
+		std::vector<char *> env = mapConvert(request.headers, request);
 		dup2(fdR[0], STDIN_FILENO);
 		dup2(fd[1], STDOUT_FILENO);
 		close(fd[0]);
@@ -100,7 +100,7 @@ std::vector<unsigned char>	runCgi(s_request& request)
 		close(fdR[1]);
 		std::string fullPath = request.path;
 
-		char *argv[] = {const_cast<char*>(fullPath.c_str()), NULL}; // TODO : file requested as first arg ?
+		char *argv[] = {const_cast<char*>(fullPath.c_str()), NULL};
 		if (execve(fullPath.c_str(), argv, env.data()) == -1)
 		{
 			for (std::vector<char *>::iterator it = env.begin(); it != env.end(); it++) {
@@ -134,7 +134,7 @@ std::vector<unsigned char>	runCgi(s_request& request)
 
 		// Read from pipe in chunks
 		std::cout << "Reading from pipe" << std::endl;
-		while ((check = read(fd[0], buffer, sizeof(buffer))) != 0 ) // TODO : test timeout
+		while ((check = read(fd[0], buffer, sizeof(buffer))) != 0 )
 		{
 			if (check != -1)
 				data.insert(data.end(), buffer, buffer + check);
