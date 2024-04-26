@@ -20,7 +20,7 @@ server {
     }
     location / {
         methodes GET POST DELETE
-        root src/pages/
+        root www/pages/
         redirection index.html
         cgi_path   cgiFiles/
         cgi_extention  .cgi .py sdfdfs
@@ -31,46 +31,41 @@ server {
         redirection about.html
     }
     location /cgi {
-        root ./
-        redirection cgiFiles/test.cgi
+        root cgiFiles/
+        redirection test.cgi
         cgi_path   cgiFiles/
         cgi_extention   .cgi
     }
     location /cgi/test {
-        root ./
-        redirection cgiFiles/cgi_tester.cgi
+        root cgiFiles/
+        redirection cgi_tester.cgi
         cgi_path   cgiFiles/
         cgi_extention   .cgi
     }
     location /cgi/env {
-        root ./
+        root cgiFiles/
         methodes POST GET
-        redirection cgiFiles/printEnv.py
+        redirection printEnv.py
         cgi_path   cgiFiles/
         cgi_extention   .cgi .py
     }
     location /listUpload {
-        root ./
-        redirection cgiFiles/listUpload.py
+        root cgiFiles/
+        redirection listUpload.py
         cgi_path   cgiFiles/
         cgi_extention   .cgi .py
     }
     location /cgi/post {
-        root ./
+        root cgiFiles/
         methodes POST 
-        redirection cgiFiles/post.py
+        redirection post.py
         cgi_path   cgiFiles/
         cgi_extention   .cgi .py
     }
     location /favicon.ico {
-        root ./
+        root www/pages/
         methodes GET
-        redirection www/pages/favicon.ico
-    }
-    location /errorpages/error_503.html {
-        root src/pages/errorpages/
-        methodes GET
-        redirection error_503.html
+        redirection favicon.ico
     }
     location /errorpages/error_503.html {
         root src/pages/errorpages/
@@ -78,16 +73,16 @@ server {
         redirection error_503.html
     }
     location /download {
-        root ./
+        root cgiFiles/
         methodes GET
-        redirection cgiFiles/getUpload.py
+        redirection getUpload.py
         cgi_path   cgiFiles/
         cgi_extention .py
     }
     location /arrow.png {
-        root ./
+        root www/pages/
         methodes GET
-        redirection www/pages/arrow.png
+        redirection arrow.png
     }
 }
 
@@ -101,45 +96,16 @@ server {
     timeoutCgi  10
     root src
     location / {
-        root ./
+        root www/pages/
         methodes GET POST
-        redirection www/pages/index.html
+        redirection index.html
     }
     location /favicon.ico {
-        root ./
+        root www/pages/
         methodes GET
-        redirection www/pages/favicon.ico
+        redirection favicon.ico
     }
     server_names bigCloud
     client_size 43
 }
 
-
-server {
-    autoindex on
-    errorpages 505 www/pages/errorpages/error_505.html
-	listen 8082
-    client_size 43
-    methodes GET POST DELETE
-    timeoutCgi  10
-    root src
-    location /about {
-        root ./
-        redirection www/pages/about.html
-    }
-    location / {
-        root ./
-        methodes GET POST
-        redirection www/pages/index2.html
-    }
-    location /form-styles.css {
-        root ./
-        methodes GET POST
-        redirection www/pages/form-styles.css
-    }
-    location /script.js {
-        root ./
-        methodes GET POST
-        redirection www/pages/js/script.js
-    }
-}

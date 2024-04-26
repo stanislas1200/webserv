@@ -8,97 +8,98 @@ server {
     autoindex			on
     timeoutCgi			10
 	template			www/pages/template.html
+	root				www
 
 	location / {
         root			www/pages/
 		methodes		GET POST DELETE
-		redirection		www/pages/index.html
+		redirection		index.html
 		cgi_path		cgiFiles/
 		cgi_extention	.cgi .py
 	}
 	location /about {
         root			www/pages/
 		methodes		GET
-		redirection		www/pages/about.html
+		redirection		about.html
 	}
 	location /cgi {
         root			www/pages/
 		methodes		GET
-		redirection		www/pages/cgi.html
+		redirection		cgi.html
 	}
     location /favicon.ico {
-        root			www/pages/
+        root			www/images/
         methodes		GET
-        redirection		www/images/favicon.ico
+        redirection		favicon.ico
     }
     location /arrow.png {
-        root			www/pages/
+        root			www/images/
         methodes		GET
-        redirection		www/images/arrow.png
+        redirection		arrow.png
     }
 	location /styles.css {
-		root			www/pages/
+		root			www/css/
 		methodes		GET
-		redirection		www/css/styles.css
+		redirection		styles.css
 	}
 	location /script.js {
-        root			www/pages/
+        root			www/js/
 		methodes		GET
-		redirection		www/js/script.js
+		redirection		script.js
 	}
 	location /cgi/listUpload {
-		root			www/pages/
+		root			cgiFiles/
 		methodes		GET
-		redirection		cgiFiles/listUpload.py
+		redirection		listUpload.py
 		cgi_path		cgiFiles/
 		cgi_extention	.py
 	}
 	location /cgi/download {
-		root			www/pages/
+		root			cgiFiles/
 		methodes		GET
-		redirection		cgiFiles/getUpload.py
+		redirection		getUpload.py
 		cgi_path		cgiFiles/
 		cgi_extention	.py
 	}
 	location /cgi/helloBash {
-		root			www/pages/
+		root			cgiFiles/helloWorld/
 		methodes		GET
-		redirection		cgiFiles/helloWorld/helloBash.sh
+		redirection		helloBash.sh
 		cgi_path		cgiFiles/
 		cgi_extention	.sh .pl .php .py
 	}
 	location /cgi/helloPerl {
-		root			www/pages/
+		root			cgiFiles/helloWorld/
 		methodes		GET
-		redirection		cgiFiles/helloWorld/helloPerl.pl
+		redirection		helloPerl.pl
 		cgi_path		cgiFiles/
 		cgi_extention	.sh .pl .php .py
 	}
 	location /cgi/helloPhp {
-		root			www/pages/
+		root			cgiFiles/helloWorld/
 		methodes		GET
-		redirection		cgiFiles/helloWorld/helloPhp.php
+		redirection		helloPhp.php
 		cgi_path		cgiFiles/
 		cgi_extention	.sh .pl .php .py
 	}
 	location /cgi/helloPython {
-		root			www/pages/
+		root			cgiFiles/helloWorld/
 		methodes		GET
-		redirection		cgiFiles/helloWorld/helloPython.py
+		redirection		helloPython.py
 		cgi_path		cgiFiles/
 		cgi_extention	.sh .pl .php .py
 	}
 	location /cgi/env {
-		root			www/pages/
+		root			cgiFiles/
 		methodes		GET
-		redirection		cgiFiles/printEnv.py
+		redirection		printEnv.py
 		cgi_path		cgiFiles/
 		cgi_extention	.py
 	}
 	location /cgi/post {
-		root			www/pages/
+		root			cgiFiles/
 		methodes		POST
-		redirection		cgiFiles/post.py
+		redirection		post.py
 		cgi_path		cgiFiles/
 		cgi_extention	.py
 	}
