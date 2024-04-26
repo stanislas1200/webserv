@@ -7,7 +7,7 @@ server {
 	client_size			42
     autoindex			on
     timeoutCgi			10
-    root www
+    root src
 	
 	location / {
         root			www/
@@ -52,65 +52,64 @@ server {
 		redirection		CGI/styles.css
 	}
 	location /script.js {
-        root			www/pages/
+        root			www/
 		methodes		GET
-		redirection		www/js/script.js
+		redirection		HOME/script.js
 	}
 	location /cgi/listUpload {
-		root			www/pages/
+		root			cgiFiles/
 		methodes		GET
-		redirection		cgiFiles/listUpload.py
+		redirection		listUpload.py
 		cgi_path		cgiFiles/
 		cgi_extention	.py
 	}
 	location /cgi/download {
-		root			www/pages/
+		root			cgiFiles/
 		methodes		GET
-		redirection		cgiFiles/getUpload.py
+		redirection		getUpload.py
 		cgi_path		cgiFiles/
 		cgi_extention	.py
 	}
 	location /cgi/helloBash {
-		root			www/pages/
+		root			cgiFiles/
 		methodes		GET
-		redirection		cgiFiles/helloWorld/helloBash.sh
+		redirection		helloWorld/helloBash.sh
 		cgi_path		cgiFiles/
 		cgi_extention	.sh .pl .php .py
 	}
 	location /cgi/helloPerl {
-		root			www/pages/
+		root			cgiFiles/
 		methodes		GET
-		redirection		cgiFiles/helloWorld/helloPerl.pl
+		redirection		helloWorld/helloPerl.pl
 		cgi_path		cgiFiles/
 		cgi_extention	.sh .pl .php .py
 	}
 	location /cgi/helloPhp {
-		root			www/pages/
+		root			cgiFiles/
 		methodes		GET
-		redirection		cgiFiles/helloWorld/helloPhp.php
+		redirection		helloWorld/helloPhp.php
 		cgi_path		cgiFiles/
 		cgi_extention	.sh .pl .php .py
 	}
 	location /cgi/helloPython {
-		root			www/pages/
+		root			cgiFiles/
 		methodes		GET
-		redirection		cgiFiles/helloWorld/helloPython.py
+		redirection		helloWorld/helloPython.py
 		cgi_path		cgiFiles/
 		cgi_extention	.sh .pl .php .py
 	}
 	location /cgi/env {
-		root			www/pages/
+		root			cgiFiles/
 		methodes		GET
-		redirection		cgiFiles/printEnv.py
+		redirection		printEnv.py
 		cgi_path		cgiFiles/
 		cgi_extention	.py
 	}
 	location /cgi/post {
-		root			www/pages/
+		root			cgiFiles/
 		methodes		POST
-		redirection		cgiFiles/post.py
+		redirection		post.py
 		cgi_path		cgiFiles/
 		cgi_extention	.py
 	}
-
 }
