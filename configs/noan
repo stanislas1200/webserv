@@ -1,0 +1,115 @@
+server {
+	errorpages			404 www/pages/errorpages/error_404.html
+	errorpages			503 www/pages/errorpages/error_503.html
+	listen				8080
+	methodes			NONE
+	server_names		littleCloud
+	client_size			42
+    autoindex			on
+    timeoutCgi			10
+    root src
+	
+	location / {
+        root			www/
+		methodes		GET POST DELETE
+		redirection		HOME/index.html
+		cgi_path		cgiFiles/
+		cgi_extention	.cgi .py
+	}
+	location /about {
+        root			www/
+		methodes		GET
+		redirection		ABOUT/index.html
+	}
+	location /cgi {
+        root			www/
+		methodes		GET
+		redirection		CGI/index.html
+	}
+    location /favicon.ico {
+        root			www/
+        methodes		GET
+        redirection		images/favicon.ico
+    }
+    location /arrow.png {
+        root			www/
+        methodes		GET
+        redirection		images/arrow.png
+    }
+	location /homeStyles.css {
+		root			www/
+		methodes		GET
+		redirection		HOME/styles.css
+	}
+	location /aboutStyles.css {
+		root			www/
+		methodes		GET
+		redirection		ABOUT/styles.css
+	}
+	location /cgiStyles.css {
+		root			www/
+		methodes		GET
+		redirection		CGI/styles.css
+	}
+	location /script.js {
+        root			www/
+		methodes		GET
+		redirection		HOME/script.js
+	}
+	location /cgi/listUpload {
+		root			cgiFiles/
+		methodes		GET
+		redirection		listUpload.py
+		cgi_path		cgiFiles/
+		cgi_extention	.py
+	}
+	location /cgi/download {
+		root			cgiFiles/
+		methodes		GET
+		redirection		getUpload.py
+		cgi_path		cgiFiles/
+		cgi_extention	.py
+	}
+	location /cgi/helloBash {
+		root			cgiFiles/
+		methodes		GET
+		redirection		helloWorld/helloBash.sh
+		cgi_path		cgiFiles/
+		cgi_extention	.sh .pl .php .py
+	}
+	location /cgi/helloPerl {
+		root			cgiFiles/
+		methodes		GET
+		redirection		helloWorld/helloPerl.pl
+		cgi_path		cgiFiles/
+		cgi_extention	.sh .pl .php .py
+	}
+	location /cgi/helloPhp {
+		root			cgiFiles/
+		methodes		GET
+		redirection		helloWorld/helloPhp.php
+		cgi_path		cgiFiles/
+		cgi_extention	.sh .pl .php .py
+	}
+	location /cgi/helloPython {
+		root			cgiFiles/
+		methodes		GET
+		redirection		helloWorld/helloPython.py
+		cgi_path		cgiFiles/
+		cgi_extention	.sh .pl .php .py
+	}
+	location /cgi/env {
+		root			cgiFiles/
+		methodes		GET
+		redirection		printEnv.py
+		cgi_path		cgiFiles/
+		cgi_extention	.py
+	}
+	location /cgi/post {
+		root			cgiFiles/
+		methodes		POST
+		redirection		post.py
+		cgi_path		cgiFiles/
+		cgi_extention	.py
+	}
+}
