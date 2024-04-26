@@ -74,7 +74,7 @@
 					// Disable the button
 					target.target.disabled = true;
 					var xhr = new XMLHttpRequest();
-					xhr.open('GET', '/listUpload', true);
+					xhr.open('GET', 'cgi/listUpload', true);
 					xhr.onload = function () {
 						if (xhr.status === 200) {
 							var files = JSON.parse(xhr.responseText);
@@ -165,7 +165,7 @@
 			var dBtn = document.getElementById('download-file-btn');
 			console.log(this.options[this.options.selectedIndex].value)
 			value = this.options[this.options.selectedIndex].value;
-			dBtn.href = "/download" + '?name=' + value;
+			dBtn.href = "cgi/download" + '?name=' + value;
 			dBtn.download = value;
 		});
 	</script>

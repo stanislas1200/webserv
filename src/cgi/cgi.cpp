@@ -15,7 +15,7 @@ std::vector<char *>	mapConvert(std::map<std::string, std::string>& headers, s_re
 	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
 	{
 		if (it->second.length() >= 2 && (it->second[it->second.length() - 1] == '\r' || it->second[it->second.length() - 1] == '\n'))
-			it->second = it->second.substr(0, it->second.length() - 2);
+			it->second = it->second.substr(0, it->second.length() - 1);
 
 		if (it->first == "Accept")
 			env.push_back(cstr("HTTP_ACCEPT=" + it->second.substr(1)));
@@ -66,9 +66,9 @@ std::vector<unsigned char>	getOutput(int fd)
 
 std::vector<unsigned char>	runCgi(s_request& request)
 {
-	int	fd[2];
+	int	fd[2], fdR[2];
 
-	if (pipe(fd) == -1)
+	if (pipe(fd) == -1 || pipe(fdR) == -1)
 	{
 		std::cerr << RED "CGI pipe failed" C << std::endl;
 		// Throw error
@@ -80,6 +80,8 @@ std::vector<unsigned char>	runCgi(s_request& request)
 	{
 		close(fd[0]);
 		close(fd[1]);
+		close(fdR[0]);
+		close(fdR[1]);
 		std::cerr << RED "CGI fork failed" C << std::endl;
 		// Throw error
 		request.status = 500;
@@ -90,10 +92,12 @@ std::vector<unsigned char>	runCgi(s_request& request)
 	if (pid == 0)
 	{
 		std::vector<char *> env = mapConvert(request.headers, request); // TODO : free
-		dup2(fd[0], STDIN_FILENO);
-		close(fd[0]);
+		dup2(fdR[0], STDIN_FILENO);
 		dup2(fd[1], STDOUT_FILENO);
+		close(fd[0]);
 		close(fd[1]);
+		close(fdR[0]);
+		close(fdR[1]);
 		std::string fullPath = request.path;
 
 		char *argv[] = {const_cast<char*>(fullPath.c_str()), NULL}; // TODO : file requested as first arg ?
@@ -112,9 +116,11 @@ std::vector<unsigned char>	runCgi(s_request& request)
 	int			childStatus;
 	
 	if (request.method == "POST" && !request.body.empty())
-		write(fd[1], request.body.data(), request.body.size());
+		write(fdR[1], request.body.data(), request.body.size());
 
 	close(fd[1]);
+	close(fdR[1]);
+	close(fdR[0]);
 
 
 	std::vector<unsigned char> data;
@@ -122,28 +128,33 @@ std::vector<unsigned char>	runCgi(s_request& request)
     ssize_t check;
 
 	int timeout = request.conf.getTimeoutCgi();
+	fcntl(fd[0], F_SETFL, O_NONBLOCK);
 	while (waitpid(pid, &childStatus, WNOHANG) == 0)
 	{
 
 		// Read from pipe in chunks
 		std::cout << "Reading from pipe" << std::endl;
-        while ((check = read(fd[0], buffer, sizeof(buffer))) > 0)
-            data.insert(data.end(), buffer, buffer + check);
-		std::cout << "Read " << check << " bytes" << std::endl;
-		std::cout << "Read " << data.size() << " bytes" << std::endl;
-		if (check == -1)
+		while ((check = read(fd[0], buffer, sizeof(buffer))) != 0 ) // TODO : test timeout
 		{
-			std::cerr << RED "CGI read failed" C << std::endl;
-			// Throw error
-			request.status = 502;
-			throw (tempThrow());
+			if (check != -1)
+				data.insert(data.end(), buffer, buffer + check);
+			if (timeout <= 0)
+			{
+				kill(pid, SIGTERM);
+				error("CGI:", "timeout", NULL);
+				request.status = 504;
+				close(fd[0]);
+				throw (tempThrow());
+			}
+			timeout--;
+			sleep(1);
 		}
-
-		if (timeout <= 0)
+		if (timeout <= 0) // not sure I need this
 		{
 			kill(pid, SIGTERM);
 			error("CGI:", "timeout", NULL);
 			request.status = 504;
+			close(fd[0]);
 			throw (tempThrow());
 		}
 		sleep(1);
