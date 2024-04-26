@@ -106,12 +106,13 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifs
             if (tokens.size() != 3 || tokens[2] != "{")
                 wrongFormatError("location", NOT_RIGHT);
             location.init(tokens, confFile);
-            std::cout << location;
             for (std::vector<Location>::iterator it = _location.begin(); it != _location.end(); it++) {
                 if (_location.empty())
                     break;
-                if (location == *it)
+                if (location == *it) {
                     _location.erase(it);
+                    it = _location.begin();
+                }
             }
             _location.push_back(location);
             break;
