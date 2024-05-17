@@ -251,8 +251,10 @@ void	autoindex(s_request *request, std::string path) {
 	response += "\r\n";
 	response += ss.str();
 	std::string header = responseHeader(200, *request);
-	send(request->connection, header.c_str(), header.length(), 0);
-	send(request->connection, response.c_str(), response.length(), 0);
+	if (send(request->connection, header.c_str(), header.length(), 0) == -1)
+		error("Send:", "don't care", NULL);
+	if (send(request->connection, response.c_str(), response.length(), 0) == -1)
+		error("Send:", "don't care", NULL);
 }
 
 int parseRequest(std::string header, s_request *request) {

@@ -31,10 +31,8 @@ server {
         redirection about.html
     }
     location /cgi {
-        root cgiFiles/
-        redirection test.cgi
-        cgi_path   cgiFiles/
-        cgi_extention   .cgi
+        root www/pages/
+        redirection cgi.html
     }
     location /cgi/test {
         root cgiFiles/
@@ -49,7 +47,7 @@ server {
         cgi_path   cgiFiles/
         cgi_extention   .cgi .py
     }
-    location /listUpload {
+    location /cgi/listUpload {
         root cgiFiles/
         redirection listUpload.py
         cgi_path   cgiFiles/
@@ -62,17 +60,22 @@ server {
         cgi_path   cgiFiles/
         cgi_extention   .cgi .py
     }
+    location /arrow.png {
+        root			www/images/
+        methodes		GET
+        redirection		arrow.png
+    }
     location /favicon.ico {
-        root www/pages/
-        methodes GET
-        redirection favicon.ico
+        root	        www/images/
+        methodes        GET
+        redirection     favicon.ico
     }
     location /errorpages/error_503.html {
         root src/pages/errorpages/
         methodes GET
         redirection error_503.html
     }
-    location /download {
+    location cgi/download {
         root cgiFiles/
         methodes GET
         redirection getUpload.py

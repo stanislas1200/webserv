@@ -23,7 +23,7 @@
     <div class="container" id="container"></div>
 	<div class="form-container-wrapper">
 		<div class="form-container">
-		<form method='POST' enctype='application/x-www-form-urlencoded' accept-charset='utf-8'>
+		<form method='GET' enctype='application/x-www-form-urlencoded' accept-charset='utf-8'>
 			<h1>Send a message</h1>
 			<input id="email" name="email" type="email" />
 			<input id="message" name="message" type="text" />
@@ -95,7 +95,7 @@
 				// Disable the button
 				target.target.disabled = true;
 				var xhr = new XMLHttpRequest();
-				xhr.open('GET', '/listUpload', true);
+				xhr.open('GET', 'cgi/listUpload', true);
 				xhr.onload = function () {
 					if (xhr.status === 200) {
 						var files = JSON.parse(xhr.responseText);
@@ -227,7 +227,7 @@
 		var dBtn = document.getElementById('download-file-btn');
 		console.log(this.options[this.options.selectedIndex].value)
 		value = this.options[this.options.selectedIndex].value;
-		dBtn.href = "/download" + '?name=' + value;
+		dBtn.href = "cgi/download" + '?name=' + value;
 		dBtn.download = value;
 	});
 </script>

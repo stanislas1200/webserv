@@ -11,6 +11,8 @@ void getConfig(std::vector<ServConfig> *configClass, std::string file) {
 	std::ifstream confFile(file.c_str());
 
     try {
+		if (!confFile.is_open())
+			throw std::runtime_error("Config file: Can't open file");
         while (confFile.eof() != 1) {
 			ServConfig  newElement;
             if (newElement.initializeConfig(&confFile))

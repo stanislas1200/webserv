@@ -108,6 +108,7 @@ void serverRun(std::vector<ServConfig> servers, int max_fd, size_t fd_size) {
 					request.formData[0].full = false;
 					request.formData[1].full = false;
 					request.maxBody = 9223372036854775807;
+					// request.maxBody = request.conf.getMaxBody(); // TODO : use request.maxBody or just request.conf.getMaxBody() ?
 
 					request.connection = accept(servers[i].getFd(), (struct sockaddr*)&servers[i]._sockaddr, (socklen_t*)&addrlen);
 					request.conf = servers[i];
