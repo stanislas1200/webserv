@@ -127,7 +127,7 @@ std::vector<unsigned char>	runCgi(s_request& request)
     char buffer[4096];
     ssize_t check;
 
-	int timeout = request.conf.getTimeoutCgi();
+	int timeout = request.conf.getTimeoutCgi() * 100;
 	fcntl(fd[0], F_SETFL, O_NONBLOCK);
 	while (waitpid(pid, &childStatus, WNOHANG) == 0)
 	{
@@ -147,7 +147,7 @@ std::vector<unsigned char>	runCgi(s_request& request)
 				throw (tempThrow());
 			}
 			timeout--;
-			sleep(1);
+			usleep(10000);
 		}
 		if (timeout <= 0) // not sure I need this
 		{
@@ -157,7 +157,7 @@ std::vector<unsigned char>	runCgi(s_request& request)
 			close(fd[0]);
 			throw (tempThrow());
 		}
-		sleep(1);
+		usleep(10000);
 		timeout--;
 	}
 	
