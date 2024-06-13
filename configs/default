@@ -8,6 +8,7 @@ server {
     client_size 42
     template www/pages/template.html
     timeoutCgi  10
+    max_body 10000
     root src
     location /about {
         root www/pages/
@@ -98,6 +99,7 @@ server {
 	listen 8081
     timeoutCgi  10
     root src
+    max_body 10000
     location / {
         root www/pages/
         methodes GET POST

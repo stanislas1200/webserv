@@ -9,6 +9,7 @@ server {
     timeoutCgi			10
 	template			www/pages/template.html
 	root				www
+	max_body		1000000
 
 	location / {
         root			www/pages/

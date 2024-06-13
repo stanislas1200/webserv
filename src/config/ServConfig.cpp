@@ -6,14 +6,14 @@
 /*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:43:18 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/26 13:22:09 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/06/13 02:13:14 by gduchesn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/Webserv.hpp"
 #include <cstring> // src/config/ServConfig.cpp:298:15: error: ‘strlen’ is not a member of ‘std’; did you mean ‘strlen’?
 
-ServConfig::ServConfig() : _methode(""), _port(-1), _maxClient(-1), _autoindex(-1), _timeoutCgi(-1) {}
+ServConfig::ServConfig() : _methode(""), _port(-1), _maxClient(-1), _autoindex(-1), _timeoutCgi(-1), _maxBody(-1) {}
 
 ServConfig::~ServConfig() {}
 
@@ -30,6 +30,7 @@ ServConfig::ServConfig(const ServConfig &src) {
     _root = src._root;
     _fd = src._fd;
     _sockaddr = src._sockaddr;
+    _maxBody = src._maxBody;
 }
 
 ServConfig& ServConfig::operator=(const ServConfig &rhs) {
@@ -45,6 +46,7 @@ ServConfig& ServConfig::operator=(const ServConfig &rhs) {
     _root = rhs._root;
     _fd = rhs._fd;
     _sockaddr = rhs._sockaddr;
+    _maxBody = rhs._maxBody;
     return (*this);
 }
 
@@ -66,6 +68,7 @@ std::vector<std::string>    ServConfig::fillVectorInitialisation(void) {
     vec.push_back("autoindex");
     vec.push_back("timeoutCgi");
     vec.push_back("root");
+    vec.push_back("max_body");
     return (vec);
 }
 
@@ -139,6 +142,11 @@ void    ServConfig::initializeVariable(std::vector<std::string> tokens, std::ifs
                 wrongFormatError("root", NOT_RIGHT);
             _root = tokens[1];
             break;
+        case MAXBODY:
+            if (tokens.size() != 2 || !isNbrNoOverflow(tokens[1], &result))
+                wrongFormatError("max body", NOT_RIGHT);
+            _maxBody = result;
+            break;
         default:
             wrongFormatError("Incoherent line:", ("\"" + vecToString(tokens.begin(), tokens.end()) + "\"").c_str());
             break;
@@ -162,6 +170,8 @@ void    ServConfig::checkUpConfig(void) {
         wrongFormatError("Timeout cgi", MISSING);
     if (_root.empty())
         wrongFormatError("root", MISSING);
+    if (_maxBody == -1)
+        wrongFormatError("max body", MISSING);
     for (std::vector<Location>::iterator it = _location.begin(); it != _location.end(); it++) {
         if (it->getPath().empty())
             wrongFormatError("Location: path", MISSING);
@@ -236,6 +246,7 @@ std::ostream& operator<<(std::ostream& os, const ServConfig& obj) {
     os << "Template : " << obj.getTemplate() << std::endl;
     os << "Autoindex: " << obj.getAutoindex() << std::endl;
     os << "Timeout  : " << obj.getTimeoutCgi() << std::endl;
+    os << "maxBody  : " << obj.getMaxBody() << std::endl;
     os << std::endl << MB "--" C " Start " RED "Error" C " Pages " MB "--" C << std::endl;
     std::map<int, std::string> errorPages = obj.getErrorPages();
     for (std::map<int, std::string>::iterator it = errorPages.begin(); it != errorPages.end(); it++) {
@@ -294,6 +305,10 @@ std::string ServConfig::getRoot(void) const {
 
 int ServConfig::getFd(void) const {
     return (this->_fd);
+}
+
+int ServConfig::getMaxBody(void) const {
+    return (this->_maxBody);
 }
 
 void ServConfig::setFd(int fd) {

@@ -8,6 +8,7 @@ server {
     autoindex			on
     timeoutCgi			10
     root src
+	max_body		1000000
 	
 	location / {
         root			www/

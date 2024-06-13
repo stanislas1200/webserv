@@ -6,7 +6,7 @@
 /*   By: gduchesn <gduchesn@students.s19.be>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 14:33:10 by gduchesn          #+#    #+#             */
-/*   Updated: 2024/04/25 20:21:25 by gduchesn         ###   ########.fr       */
+/*   Updated: 2024/06/13 02:09:24 by gduchesn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 # define AUTOINDEX      7
 # define TIMEOUTCGI     8
 # define ROOT           9
+# define MAXBODY        10
 # define NOT_RIGHT "not right amount of parameter"
 # define ERROR_HAPPEND "something wrong in parameters"
 # define MISSING "mandatory information missing"
@@ -41,6 +42,7 @@ class ServConfig {
         int                         _autoindex;
         int                         _timeoutCgi;
         std::string                 _root;
+        int                         _maxBody;
 	    int                         _fd;
         
         void    initializeVariable(std::vector<std::string> tokens, std::ifstream *confFile);
@@ -70,6 +72,7 @@ class ServConfig {
         int         getTimeoutCgi(void) const;        
         std::string getRoot(void) const;
         int         getFd(void) const;
+        int         getMaxBody(void) const;
         void         setFd(int fd);
         
 		class wrongFormat : public std::exception {
